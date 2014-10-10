@@ -1,0 +1,46 @@
+# bash completion for libncarg-bin  -*- shell-script -*-
+
+# ncargcc  ncargex  ncargf77  ncargf90  ng4ex  nhlcc  nhlf77  nhlf90  WRAPIT  wrapit77
+
+complete -W " 
+-agupwrtx \
+-conransmooth -conranquick -conransuper -conrecsmooth -conrecquick -conrecsuper \
+-dashsmooth -dashquick -dashline -dashsuper -dashchar \
+-ictrans \
+-ngmath -ncarbd -ngmathbd -noX11 -nox11 \
+-sungks -smooth -super \
+-quick \
+"  ncargcc ncargf77 ncargf90
+
+complete -W "
+-A -areas -autograph \
+-bivar \
+-class -clean -colconv -conpack -conpackt -conran_family -conrec_family -csagrid -cssgrid \
+-dashline -dashpack -dsgrid \
+-E -ezmap \
+-F -field_flow -fitgrid \
+-gflash -gks -gridall \
+-halftone -histogram \
+-isosrfhr -isosurface \
+-labelbar \
+-misc \
+-ngmath -natgrid -ngmisc \
+-onebyone \
+-ps -P -plotchar -polypack -pwrite_family \
+-scrolled_title -seter -shgrid -softfill -spps -streamlines -surface \
+-T -threed \
+-U \
+-vaspackt -vectors \
+-W -wmap \
+-x11 " -f ncargex
+
+complete -W "
+-cdf \
+-hdf \
+-ngmath -ncarbd -ngmathbd -netcdf \
+-XmXt -xmxt " -f nhlcc nhlf77 nhlf90 
+
+complete -W "
+-d -h -l -L -n -q32 -r8 -fPIC
+-pg -lf -in -g95 -gf -g77 " -f WRAPIT
+

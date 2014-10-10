@@ -1,0 +1,26 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Disable rpath; not used in Debian.
+Last-Updated: 2014-02-07
+Forwarded: not-needed
+
+Index: ncl-6.2.0/config/Template
+===================================================================
+--- ncl-6.2.0.orig/config/Template
++++ ncl-6.2.0/config/Template
+@@ -714,12 +714,12 @@ BUILDINCTOP	= ./..
+ 
+ #ifdef	_LibRootEqualPath
+ _LIBROOTSEARCH	=	-L$(LIBROOT)
+-_EXECLIBSEARCH	=	$(RPATHFLAG)$(TOP)/shared:$(LIBROOT)
+-_SHLIBSEARCH	=	-rpath $(TOP)/shared:$(LIBROOT)
++_EXECLIBSEARCH	=
++_SHLIBSEARCH	=
+ #else
+ _LIBROOTSEARCH	=	-L$(LIBPATH) -L$(LIBROOT)
+-_EXECLIBSEARCH	=	$(RPATHFLAG)$(TOP)/shared:$(LIBPATH):$(LIBROOT)
+-_SHLIBSEARCH	=	-rpath $(TOP)/shared:$(LIBPATH):$(LIBROOT)
++_EXECLIBSEARCH	=
++_SHLIBSEARCH	=
+ #endif
+ 
+ #ifdef	_IncRootEqualPath

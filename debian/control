@@ -1,0 +1,66 @@
+Source: ncl
+Section: science
+Priority: optional
+Maintainer: Alastair McKinstry <mckinstry@debian.org>
+Build-Depends: flex, bison, gfortran, zlib1g-dev, libbz2-dev, libxt-dev,
+ libxaw7-dev, libxmu-headers, libcairo2-dev, libjpeg-dev, libpng12-dev,
+ pkg-config, fontconfig, libfontconfig1-dev, libfreetype6-dev, libexpat1-dev,
+ libpixman-1-dev,  libcurl4-gnutls-dev | libcurl-dev,  libgdal1-dev,
+ libnetcdf-dev, libudunits2-dev,
+ libatlas-dev, liblapack-dev, libblas-dev, libatlas3-base,
+ libgrib2c-dev, libsphere-dev, libhdf4-alt-dev, libhdfeos-dev,
+ libgctp-dev, libhe5-hdfeos-dev, tcsh | csh | c-shell,
+ debhelper (>= 9), libhdf5-serial-dev | libhdf5-dev,
+ libproj-dev
+Standards-Version: 3.9.6
+Homepage: http://www.ncl.ucar.edu/
+
+Package: ncl-ncarg
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, tcsh | csh | c-shell
+Description: NCAR Command Language and NCAR graphics
+ The NCAR Command Language (NCL) is a free interpreted language designed
+ specifically for scientific data processing and visualization. NCL has robust
+ file input and output. It can read and write netCDF-3, netCDF-4 classic
+ HDF4, HDF5, binary, and ASCII data, and read HDF-EOS2, GRIB1 and
+ GRIB2. The graphics are world class and highly customizable.
+ .
+ The software comes with a couple of useful command line tools:
+ * ncl_filedump - prints the contents of supported files (netCDF, HDF,
+   GRIB1, GRIB2, HDF-EOS2, and CCM History Tape)
+ * ncl_convert2nc - converts one or more GRIB1, GRIB2, HDF and/or HDF-EOS
+   iles to netCDF formatted files.
+
+Package: libncarg0
+Section: libs
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, libudunits2-0, ttf-bitstream-vera, fonts-lyx, libncarg-data, tcsh | csh | c-shell
+Recommends: libncarg-bin, pkg-config
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Description: NCAR command-language library
+ NCAR Command Language library used by NCAR binaries and tools.
+
+Package: libncarg-dev
+Section: libdevel
+Architecture: any
+Depends: ${misc:Depends}, libncarg0 (= ${binary:Version} ), libxgks-dev, libudunits2-dev
+Multi-Arch: same
+Description: Development files for the NCAR command language library
+ ncarg is the NCAR command-language. 
+
+Package: libncarg-bin
+Architecture: any
+Depends: ${misc:Depends}, libncarg-dev (= ${binary:Version} ), ${shlibs:Depends}, tcsh | csh | c-shell
+Multi-Arch: foreign
+Description: NCAR command-language library - development tools
+ This package provides development tools for developing applications of the 
+ NCARG command library, such as wrappers for compilation of NCL executables.
+
+Package: libncarg-data
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}
+Description: NCAR command-language library - Data
+ NCAR Command Language library used by NCAR. This package contains data such
+ as colormaps, fonts and map data that is used by the ncarg library.

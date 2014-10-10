@@ -1,0 +1,18 @@
+Description: Ensure Default paths on Debian are found without env. variables set.
+Author: Alastair McKinstry <mckinstry@debian.org>
+Last-Updated: 2013-11-03
+Forwarded: not-needed
+
+Index: ncl-6.2.0/ni/src/lib/hlu/Palette.c
+===================================================================
+--- ncl-6.2.0.orig/ni/src/lib/hlu/Palette.c
++++ ncl-6.2.0/ni/src/lib/hlu/Palette.c
+@@ -35,7 +35,7 @@
+ 
+ #define NDV_COLORMAP_PATH  	"NDV_COLORMAP_PATH"
+ #define NCARG_COLORMAP_PATH  	"NCARG_COLORMAP_PATH"
+-#define DEFAULT_COLORMAP_PATH 	".:$NCARG_ROOT/lib/ncarg/colormaps"
++#define DEFAULT_COLORMAP_PATH 	".:$NCARG_ROOT/lib/ncarg/colormaps:/usr/share/ncarg/colormaps"
+ 
+ #define Oset(field)	NhlOffset(NhlPaletteLayerRec,pal.field)
+ static NhlResource resources[] = {

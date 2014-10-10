@@ -1,0 +1,13 @@
+tty.patch
+manpage_fixes.patch
+xyplot-fix.patch
+linking-rules.patch
+fixlibs.patch
+default-paths.patch
+support-archs.patch
+envvars.patch
+security.patch
+rpath.patch
+nio-path.patch
+ftuser.patch
+ncldriver.patch

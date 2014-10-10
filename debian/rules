@@ -1,0 +1,125 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE=1
+
+# The magic debhelper  rule
+%:
+	dh $@ 
+
+TOPDIR:=$(shell pwd)
+DESTDIR:=$(TOPDIR)/debian/tmp/
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+LIBDIR:=/usr/lib/$(DEB_HOST_MULTIARCH)
+
+# For the config file. Done this way to pull in stuff from hardening, etc.
+CFLAGS:=$(shell dpkg-buildflags --get CFLAGS)
+CPPFLAGS:=$(shell dpkg-buildflags --get CPPFLAGS)
+# LDFLAGS:=$(shell dpkg-buildflags --get LDFLAGS)
+LDFLAGS:= 
+FFLAGS:=$(shell dpkg-buildflags --get FFLAGS)
+CC ?= cc
+FC := gfortran
+VERSION := 6.1.2
+
+ifneq ($(wildcard /usr/lib/$(DEB_HOST_MULTIARCH)/hdf5/serial/libhdf5.so),)
+  CFLAGS += -I/usr/include/hdf5/serial
+  export HDF5_LDFLAGS := -Wl,-L/usr/lib/$(DEB_HOST_MULTIARCH)/hdf5/serial
+endif
+
+export LD_LIBRARY_PATH=$(TOPDIR)/shared:$(LIBDIR)/libfakeroot
+
+# We built it twice: first shared, to get the shared libraries (with -fpic -fPIC)
+# then static, for execution speed.
+
+LIBS:= \
+	libNGcgm.so  libNGctrans.so   libNGgksPDF.so  libNGgksX.so     libNGlluC.so  libNGmisc2.so  libNGncl.so \
+	libNGcn.so   libNGff.so       libNGgksPS.so   libNGhlu.so      libNGllu.so   libNGmisc.so   libNGnfp.so \
+	libNGc.so    libNGgksCTXT.so  libNGgks.so     libNGictrans.so  libNGmath.so  libNGmp.so     libNGras.so \
+	libfftpack5_dp.so libsphere3.1_dp.so libNGnfpfort.so
+
+# Add extra libs to ensure all shared libs link
+EXTRA_LIBS:= -lpng -lz -lX11 -lcairo
+
+# This done here to avoid subsitution bug on broken ymake buildsystem
+INCS="-I/usr/include/freetype2 -I/usr/include/gdal  -I/usr/include/hdf-eos5 -I/usr/include/hdf -I/usr/include/${DEB_HOST_MULTIARCH}/hdf -I/usr/include/mpi"
+
+override_dh_auto_configure:
+	sed -e 's,@LIBDIR@,$(LIBDIR),' \
+	    -e 's/@PREFIX@/\/usr/' \
+	    -e 's/@VERSION@/$(VERSION)/' \
+	< debian/ncarg.pc.in > ncarg.pc
+	sed -e 's/@CC@/${CC}/' \
+	    -e 's/@FC@/${FC}/' \
+	    -e 's/@LD@/${CC}/' \
+	    -e 's:@CFLAGS@:${CFLAGS}:' \
+	    -e 's/@FFLAGS@/${FFLAGS}/' \
+	    -e 's/@CPPFLAGS@/${CPPFLAGS}/' \
+	    -e 's/@LDFLAGS@/${LDFLAGS}/' \
+	    -e 's%@DESTDIR@%${DESTDIR}%' \
+	< debian/Site.local.shared.in > config/Site.local.shared
+	sed -e 's/@CC@/${CC}/' \
+	    -e 's/@FC@/${FC}/' \
+	    -e 's/@LD@/${CC}/' \
+	    -e 's:@CFLAGS@:${CFLAGS}:' \
+	    -e 's/@FFLAGS@/${FFLAGS}/' \
+	    -e 's/@CPPFLAGS@/${CPPFLAGS}/' \
+	    -e 's/@LDFLAGS@/${LDFLAGS}/' \
+	    -e 's%@DESTDIR@%${DESTDIR}%' \
+	< debian/Site.local.static.in > config/Site.local.static
+
+override_dh_auto_build:
+	# First do spherepack. (Later replace this with external spherepack)
+	cp config/Site.local.shared config/Site.local
+	echo 'n' | ./Configure -v
+	$(MAKE) Makefiles includes depend
+	$(MAKE) -C external/sphere3.1_dp install INCSEARCH=${INCS} INC_SEARCH=${INCS}
+	# Static libraries need to be built first
+	cp debian/LINUX.DEBIAN config/LINUX
+	cp config/Site.local.static config/Site.local
+	echo 'n' | ./Configure -v
+	$(MAKE) Makefiles includes depend
+	for d in common external ngmath/src/lib ncarg2d/src/libncarg_gks ncarg2d/src/libncarg ncarg2d/src/liboptional  ncarview ni/src/lib ; do \
+		$(MAKE) -C $$d install INCSEARCH=${INCS} INC_SEARCH=${INCS} ; done
+	$(MAKE) install INCSEARCH=${INCS} INC_SEARCH=${INCS} 
+	# Install them safely in $(DESTDIR) as originals will be removed making shared libs
+	mkdir -p $(DESTDIR)/staticlibs
+	mv $(DESTDIR)/lib/*.a $(DESTDIR)/staticlibs
+	$(MAKE) clean
+	find . -name '*.[o]' -delete
+	# Shared libraries next, in the right order.
+	cp config/Site.local.shared config/Site.local
+	echo 'n' | ./Configure -v
+	$(MAKE) Makefiles includes depend
+	for d in common external ngmath/src/lib ncarg2d/src/libncarg_gks ncarg2d/src/libncarg ncarg2d/src/liboptional  ncarview ni/src/lib ; do \
+		LD_LIBRARY_PATH=$(TOPDIR)/debian/tmp/lib:$(TOPDIR)/shared $(MAKE) -C $$d install \
+			DEV_SYS_LIBS=$(EXTRA_LIBS)   INCSEARCH=${INCS} INC_SEARCH=${INCS}; done
+	# Then build all the rest
+	LD_LIBRARY_PATH=$(TOPDIR)/debian/tmp/lib:$(TOPDIR)/shared $(MAKE) Everything \
+		DEV_SYS_LIBS=$(EXTRA_LIBS) INCSEARCH=${INCS} INC_SEARCH=${INCS}
+	mv $(DESTDIR)/staticlibs/* $(DESTDIR)/lib
+
+override_dh_auto_install:
+	dh_auto_install
+	mkdir -p debian/libncarg-dev/$(LIBDIR)
+	cp debian/tmp/lib/*.a debian/libncarg-dev/$(LIBDIR)
+	mkdir -p debian/libncarg0/$(LIBDIR)
+	cp shared/*.so.1 debian/libncarg0/$(LIBDIR)
+	mkdir -p  debian/libncarg-dev/$(LIBDIR)/pkgconfig
+	cp ncarg.pc debian/libncarg-dev/$(LIBDIR)/pkgconfig
+	for d in $(LIBS) ; do \
+		dh_link -p libncarg-dev $(LIBDIR)/$$d.1 $(LIBDIR)/$$d ; done 
+	mkdir -p debian/libncarg0/$(LIBDIR)
+	mkdir -p debian/libncarg-dev/$(LIBDIR)/ncarg
+	for d in $(LIBS) ; do \
+		cp shared/$$d debian/libncarg0/$(LIBDIR)/$$d.1 ; \
+		dh_link -p libncarg-dev $(LIBDIR)/$$d.1 $(LIBDIR)/$$d ;  done
+	cp -a debian/tmp/lib/ncarg/robj debian/libncarg-dev/$(LIBDIR)/ncarg
+
+override_dh_auto_clean:
+	find . -name '*.so.1' -delete
+	find . -type l -delete
+	find . -name '*.o' -delete
+	rm -f ncarg.pc config/Site.local.*
+ifneq ($(wildcard config/LINUX.ORIG),)
+	mv config/LINUX.ORIG config/LINUX
+endif

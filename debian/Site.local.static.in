@@ -1,0 +1,44 @@
+/*
+ *	This file was created by the Configure script.
+ */
+
+#ifdef FirstSite
+
+#endif /* FirstSite */
+
+#ifdef SecondSite
+
+
+#define CppCommand '/usr/bin/cpp -traditional @CPPFLAGS@'
+#define CCompiler   @CC@
+#define FCompiler   @FC@
+#define CtoFLibraries   -lgfortran -lm
+#define CcOptions      -ansi   @CFLAGS@
+#define FcOptions      -fno-second-underscore -fno-range-check @FFLAGS@
+#define XToolLibrary    -lXt -lSM -lICE
+#define BuildShared NO
+#define XLibrary      -lX11 -lXext
+#define ExtraExportFlags -rdynamic
+#define COptimizeFlag
+#define FOptimizeFlag
+
+#define YmakeRoot @DESTDIR@/usr
+#define ManRoot @DESTDIR@/usr/man
+#define LibRoot @DESTDIR@/lib
+#define SharePath @DESTDIR@/usr/share/data
+#define BinRoot @DESTDIR@/usr/bin
+#define IncRoot @DESTDIR@/usr/include
+
+#define BuildGDAL 1
+#define BuildTRIANGLE 0
+
+LD = @LD@
+EXTRA_SYS_LIBS  = -lgfortran
+EXTRA_FLDFLAGS = 
+EXTRA_CLDFLAGS = 
+EXTRA_LDFLAGS = 
+FC = $(F77)
+
+
+
+#endif /* SecondSite */

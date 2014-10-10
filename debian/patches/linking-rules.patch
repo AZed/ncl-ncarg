@@ -1,0 +1,47 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Change linking rules to Debian standards.
+ * Add SONAME to shared libraries
+ * Add -pie, relro rules for hardening executables
+Last-Updated: 2014-02-25
+Forwarded: no
+
+Index: ncl-6.1.2/config/LinuxLib
+===================================================================
+--- ncl-6.1.2.orig/config/LinuxLib	2014-02-25 13:24:07.302584880 +0000
++++ ncl-6.1.2/config/LinuxLib	2014-02-25 13:27:11.118998845 +0000
+@@ -42,7 +42,7 @@
+ ]\
+ library.so.major:: arch]\
+ 	MakeDir($(TOP)/shared)]\
+-	$(LD) -shared -o $@ --whole-archive arch $(SHAREDLDLIBSEARCH) reqlibs ]\
++	gcc -shared -o $@ $(EXTRA_LDFLAGS)  -Wl,-soname,library.so.major  -Wl,--whole-archive arch  -Wl,--no-whole-archive $(SHAREDLDLIBSEARCH)  -Wl,--as-needed  reqlibs -lgfortran ]\
+ 	@cd $(TOP)/shared;\ ]\
+ 	$(RM) library.so.major; \ ]\
+ 	$(LN) ../$(CURRENT_DIR)/library.so.major . ]\
+@@ -78,7 +78,7 @@
+ ]\
+ library.so.major:: arch]\
+ 	MakeDir($(TOP)/shared)]\
+-	$(LD) -shared -o $@ --whole-archive arch $(SHAREDLDLIBSEARCH) reqlibs ]\
++	gcc -shared -o $@ $(EXTRA_LDFLAGS)  -Wl,-soname,library.so.major  -Wl,--whole-archive arch  -Wl,--no-whole-archive $(SHAREDLDLIBSEARCH) -Wl,--as-needed reqlibs  -lgfortran ]\
+ 	@cd $(TOP)/shared;\ ]\
+ 	$(RM) library.so.major; \ ]\
+ 	$(LN) ../$(CURRENT_DIR)/library.so.major . ]\
+@@ -118,7 +118,7 @@
+ ]\
+ library.so.major:: objects]\
+ 	MakeDir($(TOP)/shared)]\
+-	$(LD) -shared -o $@ objects $(SHAREDLDLIBSEARCH) reqlibs ]\
++	gcc -shared -o $@ $(EXTRA_LDFLAGS) -Wl,-soname,library.so.major objects $(SHAREDLDLIBSEARCH) -Wl,--as-needed reqlibs -lgfortran ]\
+ 	@cd $(TOP)/shared;\ ]\
+ 	$(RM) library.so.major; \ ]\
+ 	$(LN) ../$(CURRENT_DIR)/library.so.major . ]\
+@@ -154,7 +154,7 @@
+ ]\
+ library.so.major:: objects]\
+ 	MakeDir($(TOP)/shared)]\
+-	$(LD) -shared -o $@ objects $(SHAREDLIBSEARCH) $(_LIBROOTSEARCH) $(LIB_SEARCH) reqlibs ]\
++	gcc -shared -o $@ objects $(EXTRA_LDFLAGS)  -Wl,-soname,library.so.major  $(SHAREDLIBSEARCH) $(_LIBROOTSEARCH) $(LIB_SEARCH) -Wl,--as-needed reqlibs -lgfortran ]\
+ 	@cd $(TOP)/shared;\ ]\
+ 	$(RM) library.so.major; \ ]\
+ 	$(LN) ../$(CURRENT_DIR)/library.so.major . ]\

@@ -1,0 +1,258 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Avoid using /dev/tty
+ Don't output to /dev/tty; breaks on FreeBSD
+Last-Updated: 2014-01-03
+Forwarded: no
+
+Index: ncl-6.1.2/config/ymake
+===================================================================
+--- ncl-6.1.2.orig/config/ymake	2014-01-03 11:42:39.000000000 +0000
++++ ncl-6.1.2/config/ymake	2014-01-03 18:44:19.000000000 +0000
+@@ -50,7 +50,7 @@
+                 if ($#argv) then
+                         set config_dir = "$argv[1]"
+                         if (! -d $config_dir) then
+-                                echo "$0 : Unable to open NCARG_CONFIG dir : $config_dir" > /dev/tty
++                                echo "$0 : Unable to open NCARG_CONFIG dir : $config_dir"
+                                 exit 1
+                         endif
+                                 
+@@ -85,7 +85,7 @@
+                 if ($#argv) then
+                         set top_dir = "$argv[1]"
+                         if (! -d $top_dir) then
+-                                echo "$0 : Unable to open Topdir : $top_dir" > /dev/tty
++                                echo "$0 : Unable to open Topdir : $top_dir" 
+                                 exit 1
+                         endif
+ 
+@@ -126,7 +126,7 @@
+                 set defines = ($defines -D_YmakeArg5=$arg)
+                 breaksw
+         default:
+-                echo "$0 :Too Many args - ignoring $arg" > /dev/tty
++                echo "$0 :Too Many args - ignoring $arg" 
+                 breaksw
+         endsw
+ end
+@@ -148,53 +148,53 @@
+ if ($useinstalled != 0) then
+         set config_dir = `ncargpath config`
+         if ($status != 0) then
+-                echo "$0 : Unable to find NCARG_CONFIG dir" > /dev/tty
++                echo "$0 : Unable to find NCARG_CONFIG dir" 
+                 exit 1
+         endif
+         if (! -d $config_dir) then
+-                echo "$0 : Unable to open NCARG_CONFIG dir : $config_dir" > /dev/tty
++                echo "$0 : Unable to open NCARG_CONFIG dir : $config_dir" 
+                 exit 1
+         endif
+         set defines = (-I$config_dir -DUseInstalled $defines)
+ 
+         set root_dir = `ncargpath root`
+         if ($status != 0) then
+-                echo "$0 : Unable to find NCARG_ROOT dir" > /dev/tty
++                echo "$0 : Unable to find NCARG_ROOT dir" 
+                 exit 1
+         endif
+         set defines=($defines -D_InstRoot\=$root_dir -D_InstConfig\=$config_dir)
+ 
+         set tmp_dir = `ncargpath tmp`
+         if ($status != 0) then
+-                echo "$0 : Unable to find TMP dir" > /dev/tty
++                echo "$0 : Unable to find TMP dir" 
+                 exit 1
+         endif
+         set defines = ($defines -D_InstTmp\=$tmp_dir)
+ 
+         set lib_dir = `ncargpath lib`
+         if ($status != 0) then
+-                echo "$0 : Unable to find NCARG_LIB dir" > /dev/tty
++                echo "$0 : Unable to find NCARG_LIB dir"
+                 exit 1
+         endif
+         set defines = ($defines -D_InstLib\=$lib_dir)
+ 
+         set bin_dir = `ncargpath bin`
+         if ($status != 0) then
+-                echo "$0 : Unable to find NCARG_BIN dir" > /dev/tty
++                echo "$0 : Unable to find NCARG_BIN dir"
+                 exit 1
+         endif
+         set defines = ($defines -D_InstBin\=$bin_dir)
+ 
+         set inc_dir = `ncargpath include`
+         if ($status != 0) then
+-                echo "$0 : Unable to find NCARG_INCLUDE dir" > /dev/tty
++                echo "$0 : Unable to find NCARG_INCLUDE dir" 
+                 exit 1
+         endif
+         set defines = ($defines -D_InstInc\=$inc_dir)
+ 
+         set man_dir = `ncargpath man`
+         if ($status != 0) then
+-                echo "$0 : Unable to find NCARG_MAN dir" > /dev/tty
++                echo "$0 : Unable to find NCARG_MAN dir" 
+                 exit 1
+         endif
+         set defines = ($defines -D_InstMan\=$man_dir)
+@@ -204,7 +204,7 @@
+         if (-r $YMAKE_DEV_FILE) then
+                 set defines=($defines -DYMAKEDEVFILE=\"$YMAKE_DEV_FILE\")
+         else
+-                echo "unable to open YMAKE_DEV_FILE $YMAKE_DEV_FILE" > /dev/tty
++                echo "unable to open YMAKE_DEV_FILE $YMAKE_DEV_FILE" 
+         endif
+ endif
+ 
+@@ -227,7 +227,7 @@
+         set ymakefile="yMakefile"
+         set outfile = "Makefile"
+ else
+-        echo "$0 : no y(mM)akefile found" > /dev/tty
++        echo "$0 : no y(mM)akefile found" 
+         exit 1
+ endif
+ 
+@@ -249,12 +249,12 @@
+ #       and the machine architecture. 
+ #
+ if ($status != 0) then
+-        echo "$0 : Unknown operating system" > /dev/tty
++        echo "$0 : Unknown operating system"
+         exit 1
+ endif
+ set mach = `uname -m`
+ if ($status != 0) then
+-        echo "$0 : Unknown machine type" > /dev/tty
++        echo "$0 : Unknown machine type" 
+         exit 1
+ endif
+ 
+@@ -283,7 +283,7 @@
+                 set opsys = UNICOS
+                 breaksw
+         default:
+-                echo "$0 : system unknown" > /dev/tty
++                echo "$0 : system unknown"
+                 exit 1
+         endsw
+         breaksw
+@@ -330,7 +330,7 @@
+                 set sysincs = Sun3
+                 breaksw
+         default:
+-                echo "$0 : Unknown machine type" > /dev/tty
++                echo "$0 : Unknown machine type"
+                 exit 1
+         endsw
+ 
+@@ -347,7 +347,7 @@
+                 set arch = RS6k$model
+                 breaksw
+         default:
+-                echo "$0 : Unknown machine type" > /dev/tty
++                echo "$0 : Unknown machine type" 
+                 exit 1
+         endsw
+ 
+@@ -379,7 +379,7 @@
+             set vendor  = APPLE
+             breaksw
+         default:
+-            echo "$0 : Unknown machine type" > /dev/tty
++            echo "$0 : Unknown machine type" 
+             exit 1
+         endsw
+ 
+@@ -398,7 +398,7 @@
+             set vendor  = IBM
+             breaksw
+         default:
+-            echo "$0 : Unknown machine type" > /dev/tty
++            echo "$0 : Unknown machine type"
+             exit 1
+         endsw
+ 
+@@ -422,7 +422,7 @@
+             set vendor  = Apple
+             breaksw
+         default:
+-            echo "$0 : Unknown machine type" > /dev/tty
++            echo "$0 : Unknown machine type" 
+             exit 1
+         endsw
+ 
+@@ -445,7 +445,7 @@
+                 set arch = $mach
+                 breaksw
+         default:
+-                echo "$0 : Unknown machine type" > /dev/tty
++                echo "$0 : Unknown machine type" 
+                 exit 1
+         endsw
+ 
+@@ -482,7 +482,7 @@
+                 set arch = HP9k8$model
+                 breaksw
+         default:
+-                echo "$0 : Unknown machine type" > /dev/tty
++                echo "$0 : Unknown machine type" 
+                 exit 1
+         endsw
+ 
+@@ -506,7 +506,7 @@
+                         set arch = $mach[1]
+                 breaksw
+                 default:
+-                        echo "$0 : Unknown machine type" > /dev/tty
++                        echo "$0 : Unknown machine type" 
+                         exit 1
+                 endsw
+         breaksw
+@@ -520,7 +520,7 @@
+         breaksw
+ 
+         default:
+-                echo "$0 : Unknown machine type" > /dev/tty
++                echo "$0 : Unknown machine type" 
+                 exit 1
+         endsw
+ 
+@@ -530,13 +530,13 @@
+         breaksw
+ 
+ default:
+-        echo "$0 : Unknown System Type - No Config file" > /dev/tty
++        echo "$0 : Unknown System Type - No Config file" 
+         exit 1
+         breaksw
+ endsw
+ 
+ if ($?sysincs == 0) then
+-        echo "$0 : Unknown System Type - No Config file" > /dev/tty
++        echo "$0 : Unknown System Type - No Config file" 
+         exit 1
+ endif
+ 
+@@ -547,7 +547,7 @@
+         set defines=($defines -DSystemIncludes=\"$sysincs\")
+         set defines=($defines -DSystemIncludesName=\"$sysincs\")
+ else
+-        echo "$0 : Unable to open Config file: $sysincs" > /dev/tty
++        echo "$0 : Unable to open Config file: $sysincs" 
+         exit 1
+ endif
+ 
+@@ -679,8 +679,8 @@
+ exit 0
+ 
+ error_cleanup:
+-echo "" > /dev/tty
+-echo "Error in <ymake>: Interrupted in" `pwd` "- restoring $outfile" > /dev/tty
++echo "" 
++echo "Error in <ymake>: Interrupted in" `pwd` "- restoring $outfile" 
+ /bin/rm -f $outfile $tmp1
+ cp $outfile.bak $outfile
+ /bin/rm -f $outfile.bak

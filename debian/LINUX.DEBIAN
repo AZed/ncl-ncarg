@@ -1,0 +1,56 @@
+/*
+ *  Description:    This file contains all the directives needed to
+ *                  tell ymake how to build NCARG/NCL on a LINUX
+ *                  system. 
+ *
+ *                  The default version of this file assumes you are
+ *                  using the GNU compilers, gcc and gfortran.
+ *
+ *                  You may need to modify it to change or include
+ *                  options. You can also look at the other LINUX* 
+ *                  files in this directory for help on how to configure
+ *                  this file.
+ */
+
+#define HdfDefines  -DLINUX
+#define StdDefines  -DSYSV -D_POSIX_SOURCE -D_XOPEN_SOURCE -DByteSwapped
+#define ByteSwapped
+#define Cstatic
+#define Cdynamic
+#define XToolLibrary    -lXt -lSM -lICE
+#define XLibrary      -lX11 -lXext
+
+#define        HDFlib  -lmfhdfalt -ldfalt -ljpeg -lz
+#define        HDFEOSlib   -lhdfeos -lgctp
+#define        HDFEOS5lib   -lhe5_hdfeos -lgctp
+/*
+ * $(HDF5_LDFLAGS) must not be substitued before built time because
+ * of buggy ymake who replaces $arch and $system with "1"
+ */
+#define        HDF5lib $(HDF5_LDFLAGS) -lhdf5_hl -lhdf5 -lz
+#define        NetCDF4lib    $(HDF5_LDFLAGS)  -lhdf5_hl -lhdf5
+#define	       GDALlib -lgdal
+
+#define NoMakeDepend
+#define ExtraSysLibraries -lgfortran
+#define        RpathFlag      
+
+/* Blank so that -rpath is not set */
+_EXECLIBSEARCH  =
+_SHLIBSEARCH   =
+
+FC = $(F77)
+
+
+/*************** Redefine Macros from Rules ********************************/
+
+/*
+ * Macro:   MakeDir
+ *
+ * Description: This rule creates a directory - if a parent dir doesn't exist
+ *      it attempts to create it.
+ */
+#ifndef MakeDir
+#define MakeDir(dir)    @if (test ! -d dir); then ($(MKDIRHIER) dir); fi
+#endif
+

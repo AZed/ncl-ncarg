@@ -1,0 +1,99 @@
+ncl (6.2.0-3) unstable; urgency=medium
+
+  * Change libjpeg8 -> libjpeg in debian/control. Closes: #763485.
+  * Now at Standards-Version: 3.9.6
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Fri, 10 Oct 2014 07:46:56 +0100
+
+ncl (6.2.0-2.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Support hdf5 1.8.13 new packaging layout (closes: #756686).
+
+ -- Gilles Filippini <pini@debian.org>  Tue, 05 Aug 2014 19:56:38 +0200
+
+ncl (6.2.0-2) unstable; urgency=medium
+
+  * libproj-dev now needed explicitly. 
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Mon, 28 Jul 2014 21:07:13 +0100
+
+ncl (6.2.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Build sphere3.1_dp first to ensure its always present when needed.
+    Closes: #753231.
+  * Build with atlas rather than base lapack, blas.
+  * Use xz compression.
+  * Add symlink $NCARG_ROOT/lib/ncarg -> /usr/share/ncarg fix references
+    in scripts to non-FHS directory locations.  LP: #1329691.
+  * Patch needed for compiler issue under examination in _NGResolvePath()
+    compiler_fix.patch.
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sun, 27 Jul 2014 13:05:44 +0100
+
+ncl (6.1.2-7) unstable; urgency=medium
+
+  * Add support for kFreeBSD, Hurd to support-archs.patch 
+  * Add support for aarch64 to support-archs.patch. Closes: #742467.
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Mon, 03 Mar 2014 11:02:41 +0000
+
+ncl (6.1.2-6) unstable; urgency=medium
+
+  * proj library not needed. Drop references in config/Project.
+  * Fix library references and refactor patches to fix FTBFS.
+    Closes: #733003.
+  * Fix bash_completion.d ; wrong file installed. 
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Fri, 28 Feb 2014 15:56:27 +0000
+
+ncl (6.1.2-5) unstable; urgency=medium
+
+  * Don't redirect output to tty in ymake; breaks on FreeBSD, not 
+    guaranteed anywhere.
+  * Build executables with shared libraries, fPIC as otherwise fPIE doesn't
+    work on amd64.
+  * Add flex, bison build-dependencies to generate wrapit.  
+  * Build by setting RootPath rather than $(DESTDIR)
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Sun, 12 Jan 2014 10:22:17 +0000
+
+ncl (6.1.2-4) unstable; urgency=medium
+
+   * Enforce building libraries first, as build-order via makefile
+     not reliable.
+  * Add -I/usr/include/mpi when building when libhdf-mpi-dev rather than
+    serial. 
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Fri, 03 Jan 2014 11:40:02 +0000
+
+ncl (6.1.2-3) unstable; urgency=medium
+
+  * Depend on gfortran, libxt-dev
+  * Add dependency on fonts-lyx for cms*ttf fonts, rather than shipping them. 
+  * tty_patch: don't use /dev/tty directly in ymake as it breaks on kFreeBSD.
+  * manpages_patch: Fix (some) lintian warnings on whatis entries, hyphens
+    More to do next year.
+  * link_pie_prog.patch: Link Programs with -fPIE, immediate binding, 
+    for hardening.
+  * Add sonames, hardening to shared libraries.
+  * Now needs security.patch to fix false alarms after hardening enabled.
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Mon, 30 Dec 2013 19:41:22 +0000
+
+ncl (6.1.2-2) unstable; urgency=medium
+
+  * Add tcsh | csh | c-shell as Build-Dependency. Closes: #733033.
+    Also as dep for binary packages.
+  * Label libncarg-data as Multi-Arch: foreign. 
+  * Move to Standards-Version: 3.9.5. No changes required. 
+  * libncarg-bin is now Multi-Arch: foreign
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Mon, 30 Dec 2013 16:29:09 +0000
+
+ncl (6.1.2-1) unstable; urgency=low
+
+  * Initial release. (Closes: #531982)
+
+ -- Alastair McKinstry <mckinstry@debian.org>  Wed, 02 Oct 2013 01:31:40 +0000

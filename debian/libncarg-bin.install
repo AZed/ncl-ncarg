@@ -1,0 +1,11 @@
+usr/bin/ncargcc		/usr/bin
+usr/bin/ncargex		/usr/bin
+usr/bin/ncargf77		/usr/bin
+usr/bin/ncargf90		/usr/bin
+usr/bin/ng4ex		/usr/bin
+usr/bin/nhlcc		/usr/bin
+usr/bin/nhlf77		/usr/bin
+usr/bin/nhlf90		/usr/bin
+usr/bin/WRAPIT		/usr/bin
+usr/bin/wrapit77		/usr/bin
+debian/bash_completion.d/libncarg-bin /etc/bash_completion.d

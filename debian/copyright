@@ -1,0 +1,128 @@
+Files: *
+Copyright: 2013, University Corporation for Atmospheric Research
+License: BSD-4-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are
+ met:
+ .
+ Neither the names of NCAR's Computational and Information Systems
+ Laboratory, the University Corporation for Atmospheric Research, nor
+ the names of its contributors may be used to endorse or promote
+ products derived from this Software without specific prior written
+ permission.
+ .
+ Redistributions of source code must retain the above copyright
+ notice, this list of conditions, and the disclaimer below.
+ .
+ Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions, and the disclaimer below in the
+ documentation and/or other materials provided with the distribution.
+ .
+ THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ NONINFRINGEMENT. IN NO EVENT SHALL THE CONTRIBUTORS OR COPYRIGHT
+ HOLDERS BE LIABLE FOR ANY CLAIM, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE
+ SOFTWARE.
+
+Files: external/fftpack5/*
+Copyright: 1995-2001, University Corporation for Atmospheric Research
+License: BSD-4-clause
+Source:  http://www.cisl.ucar.edu/css/software/fftpack5/
+
+Files: ./ncarg2d/src/db/ftfonts/Vera*.ttf
+Copyright: 2003 Bitstream, Inc.
+License:
+ All Rights Reserved. Bitstream Vera is a trademark of Bitstream, Inc.
+ .
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of the fonts accompanying this license ("Fonts") and associated
+ documentation files (the "Font Software"), to reproduce and distribute
+ the Font Software, including without limitation the rights to use, copy,
+ merge, publish, distribute, and/or sell copies of the Font Software, and
+ to permit persons to whom the Font Software is furnished to do so,
+ subject to the following conditions:
+ .
+ The above copyright and trademark notices and this permission notice
+ shall be included in all copies of one or more of the Font Software
+ typefaces.
+ .
+ The Font Software may be modified, altered, or added to, and in
+ particular the designs of glyphs or characters in the Fonts may be
+ modified and additional glyphs or characters may be added to the Fonts,
+ only if the fonts are renamed to names not containing either the words
+ "Bitstream" or the word "Vera".
+ .
+ This License becomes null and void to the extent applicable to Fonts or
+ Font Software that has been modified and is distributed under the
+ "Bitstream Vera" names.
+ .
+ The Font Software may be sold as part of a larger software package but
+ no copy of one or more of the Font Software typefaces may be sold by
+ itself.
+ .
+ THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
+ COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL
+ BITSTREAM OR THE GNOME FOUNDATION BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ OTHER LIABILITY, INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL,
+ OR CONSEQUENTIAL DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ OTHERWISE, ARISING FROM, OUT OF THE USE OR INABILITY TO USE THE FONT
+ SOFTWARE OR FROM OTHER DEALINGS IN THE FONT SOFTWARE.
+ .
+ Except as contained in this notice, the names of Gnome, the Gnome
+ Foundation, and Bitstream Inc., shall not be used in advertising or
+ therwise to promote the sale, use or other dealings in this Font
+ Software without prior written authorization from the Gnome Foundation
+ or Bitstream Inc., respectively. For further information, contact:
+ <fonts@gnome.org>
+
+Files: ./ncarg2d/src/db/ftfonts/c*.ttf
+License: Knuth
+Source: http://www.ctan.org
+ This software is copyright and you are explicitly granted a license which gives you, the "user" of the software, 
+ legal permission to copy, distribute and/or modify the software, so long as if you modify the software 
+ then it carry a different name from the original software.
+ .
+ All the same, please check the specific details of the software's license before making modifications
+
+Files: external/blas/*
+Source: http://www.netlib.org/blas/
+License: public-domain
+ The copy of BLAS shipped with NCL is not used; instead libblas-dev
+ is used.
+
+Files: external/spherepack/*
+Copyright: 1998 University Corporation for Atmospheric Research
+License: BSD-4-clause
+Source:  http://www.cisl.ucar.edu/css/software/spherepack/
+
+Files: external/lapack/*
+Copyright: 1992-2007 The University of Tennessee
+License: MIT
+ Upstream Authors: Anderson, E. and Bai, Z. and Bischof, C. and
+                Blackford, S. and Demmel, J. and Dongarra, J. and
+                Du Croz, J. and Greenbaum, A. and Hammarling, S. and
+                McKenney, A. and Sorensen, D.
+ .
+ Copyright (c) 1992-2007 The University of Tennessee.  All rights reserved.
+ .
+ LAPACK is a freely-available software package. It is available from
+ netlib via anonymous ftp and the World Wide Web. Thus, it can be
+ included in commercial software packages (and has been). We only ask
+ that proper credit be given to the authors.
+ .
+ Like all software, it is copyrighted. It is not trademarked, but we do
+ ask the following:
+ .
+ If you modify the source for these routines we ask that you change the
+ name of the routine and comment the changes made to the original.
+ .
+ We will gladly answer any questions regarding the software. If a
+ modification is done, however, it is the responsibility of the person
+ who modified the routine to provide support.
+

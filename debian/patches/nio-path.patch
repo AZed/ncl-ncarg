@@ -1,0 +1,13 @@
+Index: ncl-6.2.0/ni/src/lib/nio/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/ni/src/lib/nio/yMakefile
++++ ncl-6.2.0/ni/src/lib/nio/yMakefile
+@@ -105,7 +105,7 @@ GDAL_OBJS = NclOGR.o
+ #define GDALLIB
+ #endif
+ 
+-NIO_DEFS = -DNIO_LIB_ONLY
++NIO_DEFS = -DNIO_LIB_ONLY  -DENV_DEFS='$(NGENV_DESCRIPT)'
+ 
+ 
+ #define APPEND_UNDERSCORE 1

@@ -1,0 +1,11 @@
+prefix=@PREFIX@
+exec_prefix=${prefix}
+libdir=@LIBDIR@
+includedir=${prefix}/include/ncl
+
+Name: NCAR Graphics
+Description: Linking for NCAR Graphics
+Version: @VERSION@
+Requires: hdf hdf5 hdf-eos hdf-eos5 netcdf x11 xext cairo
+Libs: -L${libdir} 
+Libs.private: -lhe5_hdfeos -lhdf_hl -lhdf5 -lgctp -ljpeg -lz -lpthread

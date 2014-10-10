@@ -1,0 +1,80 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Set default values for Debian paths.
+ Debian requires executables work without environmental variables being set,
+ so we set default values pointing to all paths.
+Last-Updated: 2013-12-31
+Forwarded: not-needed
+
+Index: ncl-6.1.2/config/Project
+===================================================================
+--- ncl-6.1.2.orig/config/Project	2014-02-28 16:45:56.408105363 +0000
++++ ncl-6.1.2/config/Project	2014-02-28 16:47:17.520248365 +0000
+@@ -401,40 +401,40 @@
+  */
+ NGENV_DESCRIPT	= \
+ 		{"tmp","TMPDIR",NULL,"$(TMPROOT)",NULL,	\
+-		"fontcap","FONTCAP",NULL,NULL,NULL,		\
+-		"graphcap","GRAPHCAP",NULL,NULL,NULL,		\
+-		"root",NULL,NULL,"$(ROOTPATH)",$(ROOTPATHCHECK),\
++		"fontcap","FONTCAP",NULL,"/usr/share/ncarg/fontcaps",NULL,		\
++		"graphcap","GRAPHCAP",NULL,"/usr/share/ncarg/graphcaps",NULL,		\
++		"root",NULL,NULL,"/usr",NULL,\
+ 		"usrresfile",NULL,NULL,$(USRRESFILE),NULL,	\
+ 		"gks_output",NULL,NULL,"gmeta",NULL,		\
+-		"bin",NULL,"root",NULL,NULL,			\
+-		"lib",NULL,"root",NULL,NULL,			\
+-		"include",NULL,"root",NULL,NULL,		\
+-		"man",NULL,"root",NULL,NULL,			\
+-		"ncarg",NULL,"lib",NULL,NULL,			\
++		"bin",NULL,"root","/usr/bin",NULL,			\
++		"lib",NULL,"root","/usr/lib",NULL,			\
++		"include",NULL,"root","/usr/include/ncarg",NULL,		\
++		"man",NULL,"root","/usr/share/man",NULL,			\
++		"ncarg",NULL,NULL,"/usr/share/ncarg",NULL,			\
+ 		"config",NULL,"ncarg",NULL,NULL,		\
+-		"data",NULL,"ncarg",NULL,NULL,			\
+-		"database",NULL,"ncarg",NULL,NULL,		\
+-		"doc",NULL,"ncarg",NULL,NULL,			\
+-		"fontcaps",NULL,"ncarg",NULL,NULL,		\
+-		"graphcaps",NULL,"ncarg",NULL,NULL,		\
+-		"colormaps",NULL,"ncarg",NULL,NULL,		\
+-		"rangs","NCARG_RANGS","database",NULL,NULL,	\
+-		"udunits","NCARG_UDUNITS","ncarg",NULL,NULL,	\
++		"data",NULL,"ncarg","/usr/share/ncarg/data",NULL,			\
++		"database",NULL,"ncarg","/usr/share/ncarg/database",NULL,		\
++		"doc",NULL,"ncarg","/usr/share/doc/libncarg-data",NULL,			\
++		"fontcaps",NULL,"ncarg","/usr/share/ncarg/fontcaps",NULL,		\
++		"graphcaps",NULL,"ncarg","/usr/share/ncarg/graphcaps",NULL,		\
++		"colormaps",NULL,"ncarg","/usr/share/ncarg/colormaps",NULL,		\
++		"rangs","NCARG_RANGS","database","/usr/share/rangs",NULL,	\
++		"udunits","NCARG_UDUNITS","ncarg","/usr/share/xml/udunits",NULL,	\
+ 		"psadilookup","PSADILOOKUP_PATH",NULL,NULL,NULL,\
+-		"examples",NULL,"ncarg",NULL,NULL,		\
+-		"hluex",NULL,"ncarg",NULL,NULL,			\
+-		"nclex",NULL,"ncarg",NULL,NULL,			\
++		"examples",NULL,"ncarg","/usr/share/doc/libncarg-dev/examples",NULL,		\
++		"hluex",NULL,"ncarg","/usr/share/ncarg/hluex",NULL,			\
++		"nclex",NULL,"ncarg","/usr/share/ncarg/nclex",NULL,			\
+ 		"pynglex",NULL,"ncarg",NULL,NULL,		\
+-		"resfiles",NULL,"ncarg",NULL,NULL,		\
+-		"tests",NULL,"ncarg",NULL,NULL,			\
+-		"tutorial",NULL,"ncarg",NULL,NULL,		\
++		"resfiles",NULL,"ncarg","/usr/share/ncarg/resfiles",NULL,		\
++		"tests",NULL,"ncarg","/usr/share/ncarg/tests",NULL,			\
++		"tutorial",NULL,"ncarg","/usr/share/doc/libncarg-dev/tutorial",NULL,		\
+ 		"xapp",NULL,"ncarg",NULL,NULL,			\
+-		"ngwww",NULL,"ncarg",NULL,NULL,			\
+-		"ngurl",NULL,"ngwww",NULL,NULL,			\
+-		"sysresfile",NULL,"ncarg",NULL,NULL,		\
+-		"sysappres",NULL,"ncarg",NULL,NULL,		\
+-		"grib2_codetables","NIO_GRIB2_CODETABLES","ncarg",NULL,NULL, \
+-		"ftfonts",NULL,"database",NULL,NULL,            \
++		"ngwww",NULL,"ncarg","/usr/share/ncarg/ngwww",NULL,			\
++		"ngurl",NULL,"ngwww","/usr/share/ncarg/ngwww/ngurl",NULL,			\
++		"sysresfile",NULL,"ncarg","/usr/share/ncarg/sysresfile",NULL,		\
++		"sysappres",NULL,"ncarg","/usr/share/ncarg/sysappres",NULL,		\
++		"grib2_codetables","NIO_GRIB2_CODETABLES","ncarg","/usr/share/ncarg/grib2_codetables",NULL, \
++		"ftfonts",NULL,"database","/usr/share/fonts/truetype/ncl",NULL,            \
+ 		NULL}
+ 
+ NGENVDEF	=	-DENV_DEFS=$(NGENV_DESCRIPT)

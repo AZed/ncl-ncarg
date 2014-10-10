@@ -1,0 +1,16 @@
+* Build and depend on ESMF.
+
+* Remove spherepack_dp and use package spherepack-3.1
+
+* udunits - ensure correct paths used.
+
+* RANGS / GSHHS Ensure we can use external package
+
+
+* Build failures:
+ kfreebsd-* : depends on /dev/tty ? why?
+ use 'tty' executable to discover a tty we can use
+
+ hurd : missing dep on libgdal1-dev ? 
+
+ s390x : missing dep on libhdfeos-dev ?  Segfault on testcase ...

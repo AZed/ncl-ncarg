@@ -1,0 +1,65 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Support more architectures under Debian.
+Last-Updated: 2014-03-24
+Forwarded: no
+
+Index: ncl-6.1.2/config/ymake
+===================================================================
+--- ncl-6.1.2.orig/config/ymake	2014-03-25 14:21:36.000000000 +0000
++++ ncl-6.1.2/config/ymake	2014-03-25 14:54:27.610751691 +0000
+@@ -271,6 +271,14 @@
+ case Darwin:
+         set opsys = $foo
+         breaksw
++case GNU/kFreeBSD:
++	# GNU/kFreeBSD on DEBIAN
++	set opsys = DEBIAN
++	breaksw
++case GNU:
++	# GNU/Hurd on Debian
++	set opsys = DEBIAN
++	breaksw
+ case CYGWIN*:
+         set opsys = CYGWIN
+         breaksw
+@@ -356,6 +364,14 @@
+ 
+         breaksw
+ 
++case 	DEBIAN:
++	set os = $opsys
++	set model = $mach
++	set arch = $mach
++	set sysincs = DEBIAN
++	set vendor = DEBIAN
++	breaksw
++
+ case    Linux:
+         set os = $opsys
+ 
+@@ -365,19 +381,18 @@
+ 	case    amd64:
+         case    i*64:
+         case    x*64:
+-        case    p*64:
++        case    s390*:
++        case    mip*:
++        case    sparc*:
++        case    arm*:
++        case    ppc*:
++        case    aarch64*:
+         case    alpha:
+             set model   = $mach
+             set arch    = $mach
+             set sysincs = LINUX
+             set vendor  = IBM
+             breaksw
+-        case    ppc:
+-            set model   = $mach
+-            set arch    = $mach
+-            set sysincs = YDLINUX
+-            set vendor  = APPLE
+-            breaksw
+         default:
+             echo "$0 : Unknown machine type" 
+             exit 1

@@ -1,0 +1,262 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Use complete shared libs where posssible
+Last-Updated:  2014-07-07
+Forwarded: no
+
+Index: ncl-6.2.0/ncarg2d/src/libncarg_gks/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/ncarg2d/src/libncarg_gks/yMakefile
++++ ncl-6.2.0/ncarg2d/src/libncarg_gks/yMakefile
+@@ -19,6 +19,6 @@ PartialSourceLibraryRoot(srcncarg_gks.a,
+ BuildIncludes($(INCLUDES),ncarg,..)
+ InstallTarget($(INCLUDES),$(INSTALL_INC),$(NCARGINCPATH))
+ 
+-BuildSharedFromArch(libNGgks,libbasegks.a,1,0,-lNGgksCTXT -lNGgksX -lNGgksPS)
++BuildSharedFromArch(libNGgks,libncarg_gks.a,1,0,-lNGgksCTXT -lNGgksX -lNGgksPS -lpng -lz -lX11 -lfreetype -lcairo -lm)
+ CleanFilesTarget(libbasegks.a)
+ 
+Index: ncl-6.2.0/config/Project
+===================================================================
+--- ncl-6.2.0.orig/config/Project
++++ ncl-6.2.0/config/Project
+@@ -536,7 +536,7 @@ NIOLIBSRC	= $(NILIBSRC)/nio
+ NCARGCLIB	= -lNGc
+ NCARGLIB	= -lNGllu
+ CNCARGLIB	= -lNGlluC
+-NCARGGKSLIB	= -lNGgks
++NCARGGKSLIB	= -lNGgks -lcairo
+ NGMATHLIB	= -lNGmath
+ CGMLIB		= -lNGcgm
+ NCARGRASLIB	= -lNGras
+@@ -548,8 +548,8 @@ NFPFORTLIB	= -lnfpfort
+ NIOLIB		= -lnio
+ NCLLIB		=
+ NCLAPILIB	= -lNGncl
+-BLASLIB	        = -lblas_ncl
+-LAPACKLIB       = -llapack_ncl
++BLASLIB	        =  -lblas
++LAPACKLIB       = -llapack
+ SPHERELIB	= -lsphere3.1_dp
+ FFTPACK5LIB	= -lfftpack5_dp
+ 
+@@ -568,7 +568,7 @@ DEPNCLLIB	=
+ DEPNCLAPILIB	=
+ DEPNFPLIB	=
+ DEPNIOLIB	=
+-DEPNFPFORTLIB	=
++DEPNFPFORTLIB	= 
+ DEPBLASLIB	=
+ DEPLAPACKLIB	=
+ DEPSPHERELIB	=
+@@ -593,8 +593,8 @@ NIOLIB		= _UseLib(-L$(NIOLIBSRC),-lnio)
+ XCBLIB		= _UseLib(-L$(XCBLIBSRC),-lXcb)
+ NCLLIB		= _UseLib(-L$(NCLLIBSRC),-lncl)
+ NCLAPILIB	= _UseLib(-L$(NCLLIBSRC),-lnclapi)
+-BLASLIB         = _UseLib(-L$(BLASSRC),-lblas_ncl)
+-LAPACKLIB       = _UseLib(-L$(LAPACKSRC),-llapack_ncl)
++BLASLIB         = _UseLib(-L/usr/lib/atlas-base,-lblas)
++LAPACKLIB       = _UseLib(-L/usr/lib/atlas-base,-llapack )
+ SPHERELIB	= _UseLib(-L$(SPHERESRC),-lsphere3.1_dp)
+ FFTPACK5LIB	= _UseLib(-L$(FFTPACK5SRC),-lfftpack5_dp)
+ 
+@@ -623,7 +623,7 @@ DEPICTRANS_LIB	= $(ICTRANS_LIB)
+ ICTRANSLIB	= _DepLib($(ICTRANSLIBSRC),$(ROBJROOT),libictrans.o)
+ DEPICTRANSLIB	= $(ICTRANSLIB)
+ 
+-NCARGLIBS	= $(NCARGLIB) $(NCARGGKSLIB) $(NCARGCLIB)
++NCARGLIBS      = $(NCARGLIB) $(NCARGGKSLIB) $(NCARGCLIB) $(NFPFORTLIB) -lNGmp -lNGlluC -lNGllu -lNGff -lNGmisc -lNGcn -lpng -lz
+ NCARGXQFLIBS	= $(NCARGLIB) $(NCARGGKSXQFLIB) $(NCARGCLIB)
+ NGMATHLIBS	= $(NGMATHLIB)
+ HLULIBS		= $(HLULIB)
+Index: ncl-6.2.0/ncarg2d/src/libncarg/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/ncarg2d/src/libncarg/yMakefile
++++ ncl-6.2.0/ncarg2d/src/libncarg/yMakefile
+@@ -25,13 +25,13 @@ INCLUDES    = ncargC.h
+ PartialLibraryRoot(libncarg.a,$(SUBDIRS))
+ PartialSourceLibraryRoot(srcncarg.a,$(SUBDIRS))
+ 
+-BuildSharedPartialFromArch(libNGmisc,libNGmisc.a,1,0,NullArgument)
+-BuildSharedPartialFromArch(libNGmisc2,libNGmisc2.a,1,0,NullArgument)
+-BuildSharedPartialFromArch(libNGmp,libNGmp.a,1,0,NullArgument)
+-BuildSharedPartialFromArch(libNGff,libNGff.a,1,0,NullArgument)
+-BuildSharedPartialFromArch(libNGcn,libNGcn.a,1,0,NullArgument)
+-BuildSharedPartialFromArch(libNGlluC,libNGlluC.a,1,0,NullArgument)
+-BuildSharedFromArch(libNGllu,libNGllu.a,1,0,-exports -lNGcn -exports -lNGff -exports -lNGmp -exports -lNGmisc -exports -lNGmisc2 -exports -lNGlluC)
++BuildSharedFromArch(libNGmisc,libNGmisc.a,1,0,-lNGmath)
++BuildSharedFromArch(libNGmisc2,libNGmisc2.a,1,0,-lm)
++BuildSharedFromArch(libNGmp,libNGmp.a,1,0,-lpng -lm)
++BuildSharedFromArch(libNGff,libNGff.a,1,0,-lNGmp )
++BuildSharedFromArch(libNGcn,libNGcn.a,1,0,-lNGgks -lm)
++BuildSharedFromArch(libNGlluC,libNGlluC.a,1,0,-lNGmisc2 -lNGcn -lNGff -lNGmp -lNGmisc -lNGgks -lm)
++BuildSharedFromArch(libNGllu,libNGllu.a,1,0, -lNGcn -lNGff -lNGmp -lNGmisc -lNGmisc2 -lNGlluC -lm)
+ CleanFilesTarget(libNGmisc.a libNGmisc2.a libNGmp.a libNGff.a libNGcn.a libNGllu.a libNGlluC.a)
+ 
+ BuildIncludes($(INCLUDES),ncarg,..)
+Index: ncl-6.2.0/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/yMakefile
++++ ncl-6.2.0/yMakefile
+@@ -24,9 +24,9 @@
+ #define IHaveSubdirs
+ 
+ #ifdef BuildNCL
+-SUBDIRS	= config external common ncarg2d ngmath ncarview ni
++SUBDIRS	= config external common ngmath ncarg2d ncarview ni
+ #else
+-SUBDIRS	= config common ncarg2d ngmath ncarview
++SUBDIRS	= config common ngmath ncarg2d ncarview
+ #endif
+ 
+ #ifdef	YMAKEDEVFILE
+Index: ncl-6.2.0/external/fftpack5_dp/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/external/fftpack5_dp/yMakefile
++++ ncl-6.2.0/external/fftpack5_dp/yMakefile
+@@ -34,6 +34,6 @@ OBJS = c1f2kb.o c1f2kf.o c1f3kb.o c1f3kf
+ 	sint1b.o sint1f.o sint1i.o sintb1.o sintf1.o sintmb.o sintmf.o			\
+ 	sintmi.o tables.o xercon.o xerfft.o
+ 
+-
++BuildSharedLibTarget($(MYLIB),$(OBJS) $(SHLIBOBJS),1,0,$(REQLIBS) -lm)
+ LibraryTarget($(MYLIB),$(OBJS))  
+ 
+Index: ncl-6.2.0/ngmath/src/lib/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/ngmath/src/lib/yMakefile
++++ ncl-6.2.0/ngmath/src/lib/yMakefile
+@@ -9,7 +9,7 @@ SUBDIRS = gridpack
+ INCLUDES = ngmath.h
+ 
+ PartialLibraryRoot(libngmath.a,$(SUBDIRS))
+-BuildSharedFromArch(libNGmath,libngmath.a,1,0,NullArgument)
++BuildSharedFromArch(libNGmath,libngmath.a,1,0,-lm)
+ InstallTarget($(INCLUDES),$(INSTALL_INC),$(NCARGINCPATH))
+ includes-local:: ngmath.h
+ BuildIncludes($(INCLUDES),ncarg,..)
+Index: ncl-6.2.0/ncarg2d/src/libncarg_gks/cdrivers/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/ncarg2d/src/libncarg_gks/cdrivers/yMakefile
++++ ncl-6.2.0/ncarg2d/src/libncarg_gks/cdrivers/yMakefile
+@@ -81,8 +81,8 @@ CleanFilesTarget(gks_device_cairo.c gks_
+ 
+ BuildSharedPartialLib(libNGgksCTXT,$(CTXTOBJ),1,0,NullArgument)
+ BuildSharedPartialLib(libNGgksX,$(XOBJ),1,0,NullArgument)
+-BuildSharedPartialLib(libNGgksPS,$(PSOBJ),1,0,NullArgument)
+-BuildSharedPartialLib(libNGgksPDF,$(PDFOBJ),1,0,NullArgument)
++BuildSharedFromArch(libNGgksPS,$(PSOBJ),1,0,-lm)
++BuildSharedPartialLib(libNGgksPDF,$(PDFOBJ),1,0,-lNGgks)
+ 
+ PartialSourceLibraryTarget($(MYNAME),srcncarg_gks.a,$(SOURCES))
+ BuildIncludes($(INCLUDES),ncarg,..)
+Index: ncl-6.2.0/ni/src/ncl/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/ni/src/ncl/yMakefile
++++ ncl-6.2.0/ni/src/ncl/yMakefile
+@@ -178,7 +178,7 @@ HACKOBJS	=	hphack.o
+ #endif
+ 
+ #if !defined(CRAY) && !defined(HPUX) && !defined(IRIX) && !defined(IRIX64) && !defined(OSF1)
+-DYNAMIC_LIBS	=	-ldl
++DYNAMIC_LIBS	=	-lproj -lgomp -ldl 
+ #endif
+ 
+ EXTRA_CDEFINES	=	$(OS1_DEF) $(MAJOR_DEF) \
+@@ -484,7 +484,7 @@ IOOBJS          =       $(IO_OBJS)
+ 
+ LibraryTarget($(MYLIB),$(ARCH_OBJS))
+ LibraryTarget($(MYLIB_API),$(APIOBJS))
+-BuildSharedLibTarget(libNGncl,$(APIOBJS),1,0,$(NCDFLIBS) $(NETCD4LIBS) $(HDFEOSLIB)  $(HDFEOS5LIB) $(HDFLIB) $(HDF5LIB) $(GRIB2LIB) $(GDALLIB) $(GRIDSPECLIB) $(OpenCLLIBS) $(PNGLIB) $(CAIROLIB) $(UDUNITSLIB) $(V5DLIB) $(CTOFLIBS) -lm -lc)
++BuildSharedLibTarget(libNGncl,$(APIOBJS),1,0,$(NCDFLIBS) $(NETCD4LIBS) $(HDFEOSLIB)  $(HDFEOS5LIB) $(HDFLIB) $(HDF5LIB) $(GRIB2LIB) $(GDALLIB) $(GRIDSPECLIB) $(OpenCLLIBS) $(PNGLIB) $(CAIROLIB) $(UDUNITSLIB) $(V5DLIB) $(CTOFLIBS) -lgomp -ldl -lm -lc)
+ CProgram($(MYBIN),$(EXEOBJS),$(DEPLIBS))
+ #ifdef JIRA1530
+ CProgramXQF($(MYXQFBIN),$(EXEOBJS),$(DEPXQFLIBS))
+Index: ncl-6.2.0/external/sphere3.1_dp/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/external/sphere3.1_dp/yMakefile
++++ ncl-6.2.0/external/sphere3.1_dp/yMakefile
+@@ -28,8 +28,7 @@ vhaes.o vhagc.o vhags.o vhsec.o vhses.o
+ vlapec.o vlapes.o vlapgc.o vlapgs.o vrtec.o vrtes.o	\
+ vrtgc.o vrtgs.o vshifte.o vtsec.o vtses.o vtsgc.o vtsgs.o
+ 
+-
+-LibraryTarget($(MYLIB),$(OBJS))  
++BuildSharedLibTarget($(MYLIB),$(OBJS) $(SHLIBOBJS),1,0,$(REQLIBS) -lm)
+ 
+ #if defined(IRIX64)
+ shaec.o: shaec.f
+Index: ncl-6.2.0/ncarg2d/src/db/plotchar/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/ncarg2d/src/db/plotchar/yMakefile
++++ ncl-6.2.0/ncarg2d/src/db/plotchar/yMakefile
+@@ -7,7 +7,7 @@ MYNAME  = plotchar
+ OBJECTS = pccchk.o pcdchk.o pcexcd.o pcwb15.o pcwbin.o pcwrda.o
+ 
+ PROG_LIBS	= $(NCARGLIB) $(NCARGCLIB)
+-DEPLIBS		= $(DEPNCARGLIB) $(DEPNCARGCLIB)
++DEPLIBS		= $(DEPNCARGLIB) $(DEPNCARGCLIB) $(NCARGGKSLIB)
+ 
+ FortranProgram(WritePlotcharData,$(OBJECTS),$(DEPLIBS))
+ InstallTarget(PlotcharData,$(INSTALL_DB),$(DBPATH))
+Index: ncl-6.2.0/ni/src/lib/nfpfort/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/ni/src/lib/nfpfort/yMakefile
++++ ncl-6.2.0/ni/src/lib/nfpfort/yMakefile
+@@ -39,6 +39,7 @@ FOBJS = aam.o areaAve.o areaAve2.o areaR
+ 	slatec_DPOLFT.o wrf_rip_phys_routines.o
+ 
+ LibraryTarget($(MYNAME),$(FOBJS))
++BuildSharedLibTarget(libNGnfpfort,$(FOBJS),1,0,$(NCARGLIB) $(NCARGGKSLIB) $(NCARGCLIB) $(CTOFLIBS) -llapack -lblas -lfftpack5_dp -lsphere3.1_dp -lm -lc)
+ 
+ calc_uh.o: calc_uh.f90
+         $(F77) $(FFLAGS) -c calc_uh.f90
+Index: ncl-6.2.0/ncarg2d/src/db/pwritxnt/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/ncarg2d/src/db/pwritxnt/yMakefile
++++ ncl-6.2.0/ncarg2d/src/db/pwritxnt/yMakefile
+@@ -13,7 +13,7 @@ FSOURCES = \
+ 	 xtch.f
+ 
+ PROG_LIBS	= $(NCARGLIB) $(NCARGCLIB)
+-DEPLIBS		= $(DEPNCARGLIB) $(DEPNCARGCLIB)
++DEPLIBS		= $(DEPNCARGLIB) $(DEPNCARGCLIB) $(NCARGGKSLIB)
+ 
+ FortranProgram(pwritxnt,$(OBJECTS),$(DEPLIBS))
+ InstallTarget(pwritdata,$(INSTALL_DB),$(DBPATH))
+Index: ncl-6.2.0/ni/src/lib/nfp/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/ni/src/lib/nfp/yMakefile
++++ ncl-6.2.0/ni/src/lib/nfp/yMakefile
+@@ -113,7 +113,7 @@ COBJS = areavolW.o betaincW.o bytesW.o c
+ OBJS = $(COBJS) $(UDUNITS_OBJS) $(V5D_OBJS) $(ESMF_OBJS) $(KML_OBJS)
+ SRCS = $(CSRCS) $(UDUNITS_SRCS) $(V5D_SRCS) $(ESMF_SRCS) $(KML_SRCS)
+ 
+-BuildSharedLibTarget(libNGnfp,$(OBJS),1,0,$(NCARGLIB) $(NCARGGKSLIB) $(NCARGCLIB) $(CTOFLIBS) -lm -lc)
++BuildSharedLibTarget(libNGnfp,$(OBJS),1,0,$(NCARGLIB) $(NCARGGKSLIB) $(NCARGCLIB) $(CTOFLIBS) -lNGnfpfort -lsphere3.1_dp -ludunits2 -lm -lc)
+ LibraryTarget($(MYNAME),$(OBJS))
+ BuildIncludes($(HDRS),ncarg/nfp,../..)
+ DependTarget($(SRCS))
+Index: ncl-6.2.0/ngmath/src/lib/gridpack/fitgrid/yMakefile
+===================================================================
+--- ncl-6.2.0.orig/ngmath/src/lib/gridpack/fitgrid/yMakefile
++++ ncl-6.2.0/ngmath/src/lib/gridpack/fitgrid/yMakefile
+@@ -15,8 +15,7 @@ SOURCES =    ceez.f   curvi.f    curvpp.
+ 	intrvldp.f   kurvddp.f    snhcshdp.f    curv2dp.f   curvp2dp.f   \
+ 	curvsdp.f  intrvpdp.f    kurvp1dp.f    surf1dp.f    curvddp.f    \
+ 	curvpidp.f  curvssdp.f     kurv1dp.f   kurvp2dp.f    surf2dp.f   \
+-	curvs1dp.f curvs2dp.f    ftuser.c ftstoredp.f  \
+-        strhlpdp.f
++	curvs1dp.f curvs2dp.f     ftstoredp.f  strhlpdp.f
+  
+ OBJECTS =    ceez.o   curvi.o    curvpp.o   fcurv2.o    kurv2.o    \
+ 	kurvpd.o   terms.o     curv1.o   curvp1.o   curvps.o   \
+@@ -29,8 +28,7 @@ OBJECTS =    ceez.o   curvi.o    curvpp.
+ 	intrvldp.o   kurvddp.o    snhcshdp.o    curv2dp.o   curvp2dp.o   \
+ 	curvsdp.o  intrvpdp.o    kurvp1dp.o    surf1dp.o    curvddp.o    \
+ 	curvpidp.o  curvssdp.o     kurv1dp.o   kurvp2dp.o    surf2dp.o   \
+-	curvs1dp.o curvs2dp.o    ftuser.o ftstoredp.o  \
+-        strhlpdp.o
++	curvs1dp.o curvs2dp.o    ftstoredp.o  strhlpdp.o
+  
+ PartialLibraryTarget(../libngmath.a,$(OBJECTS))
+ DependTarget($(SOURCES))

@@ -1,0 +1,21 @@
+# Bash completion for ncl-ncarg -*- shell-script -*-
+
+#cgm2ncgm        ezmapdemo  gcaps    med        ncargversion  ncgm2cgm        ncl_filedump  rascat     rasstat            tgks0a
+#ConvertMapData  fcaps      graphc   ncargfile  ncargworld    ncgmstat        ncl_grib2nc   rasgetpal  rasview            tlocal
+#ctlib           findg      ictrans  ncargpath  ncarlogo2ps   ncl             nnalg         rasls      scrip_check_input  WriteLineFile
+#ctrans          fontc      idt      ncargrun   ncarvversion  ncl_convert2nc  pre2ncgm      ras2ccir601  rassplit   tdpackdemo         WriteNameFile
+
+complete -W "-c -v -sed -itime -ftime -tps -h" -f ncl_filedump
+
+complete -W "-c" -f psplit
+complete -W "-V" -f fcaps
+complete -W "-o -t " -f ncargrun
+
+complete -W "-v" -f ncargversion
+complete -W "-v" -f ncarversion
+
+complete -W "-V" -f gcaps
+
+complete -W "-all" -f ncargfile
+
+complete -W "bin config data database doc examples fontcap fontcaps gks_output graphcaps hluex include lib man ncarg nclex ngwww ngurl resfiles root sysappres sysresfile tests tmp tutorial usrresfile  colormaps rangs udunits psadilookup pynglex grib2_codetables ftfonts xapp" ncargpath

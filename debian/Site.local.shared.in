@@ -1,0 +1,44 @@
+/*
+ *	This file was created by the Configure script.
+ */
+
+#ifdef FirstSite
+
+#endif /* FirstSite */
+
+#ifdef SecondSite
+
+#define CppCommand '/usr/bin/cpp -traditional @CPPFLAGS@'
+#define CCompiler   @CC@
+#define FCompiler   @FC@
+#define CtoFLibraries   -lgfortran -lm
+#define CcOptions      -ansi   @CFLAGS@ -fPIC
+#define FcOptions      -fPIC -fno-second-underscore -fno-range-check @FFLAGS@
+#define BuildShared YES
+#define ExtraExportFlags -rdynamic
+#define COptimizeFlag
+#define FOptimizeFlag
+
+#define ArchRecLibSearch    -L/usr/lib
+#define ArchRecIncSearch    -I/usr/include
+#define LibSearch -L/usr/lib
+
+#define YmakeRoot @DESTDIR@/usr
+#define ManRoot @DESTDIR@/usr/man
+#define LibRoot @DESTDIR@/lib
+#define SharePath @DESTDIR@/usr/share/data
+#define BinRoot @DESTDIR@/usr/bin
+#define IncRoot @DESTDIR@/usr/include
+
+#define BuildGDAL 1
+#define BuildTRIANGLE 0
+
+LD = gcc -fPIC
+EXTRA_SYS_LIBS  = -lgfortran
+EXTRA_FLDFLAGS = -fPIE -Wl,-z,relro -Wl,-z,now 
+EXTRA_CLDDLAGS = -fPIE -Wl,-z,relro -Wl,-z,now 
+EXTRA_LDFLAGS = -Wl,-z,relro -Wl,-z,now
+CCLD_OPTIONS = -fPIE -Wl,-z,relro -Wl,-z,now
+FC = $(F77) -fPIC
+
+#endif /* SecondSite */

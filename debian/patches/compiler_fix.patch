@@ -1,0 +1,67 @@
+Description: <short summary of the patch>
+ TODO: Put a short summary on the line above and replace this paragraph
+ with a longer explanation of this change. Complete the meta-information
+ with other relevant fields (see below for details). To make it easier, the
+ information below has been extracted from the changelog. Adjust it or drop
+ it.
+ .
+ ncl (6.2.0-1) UNRELEASED; urgency=medium
+ .
+   * New upstream release.
+   * Build sphere3.1_dp first to ensure its always present when needed.
+     Closes: #753231.
+   * Build with atlas rather than base lapack, blas.
+   * Use xz compression.
+   * Add symlink $NCARG_ROOT/lib/ncarg -> /usr/share/ncarg fix references
+     in scripts to non-FHS directory locations.  LP: #1329691.
+Author: Alastair McKinstry <mckinstry@debian.org>
+Bug-Debian: http://bugs.debian.org/753231
+Bug-Ubuntu: https://bugs.launchpad.net/bugs/1329691
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: http://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: <YYYY-MM-DD>
+
+Index: ncl-6.2.0/common/src/libncarg_c/ncarg_path.c.sed
+===================================================================
+--- ncl-6.2.0.orig/common/src/libncarg_c/yMakefile
++++ ncl-6.2.0/common/src/libncarg_c/yMakefile
+@@ -81,6 +81,7 @@ OBJS	= $(EXOBJS) $(FCPP_OBJS) options.o
+ 	version.o error.o atoargv.o usleep.o env.o trnspprt.o lblank.o \
+ 	iargct.o rwchinfl.o sdbm.o i1mach.o r1mach.o d1mach.o mangle.o
+ 
++
+ #if (defined(IRIX) && (MAJOR == 5)) || (defined(IRIX64) || (MAJOR == 6))
+ MY_DEFINES = -D_BSD_TYPES
+ #endif
+@@ -110,14 +111,16 @@ sdbm.o: sdbm.c
+ 
+ CleanFilesTarget(ncarg_path.c c.h)
+ 
+-ncarg_path.c: ncarg_path.c.sed Makefile
+-	@sed \
+-	-e 's+SED_ENV_DEFS+$(NGENV_DESCRIPT)+' \
+-	<ncarg_path.c.sed >ncarg_path.c
+-
+ c.h: c.h.sed Makefile
+ 	@sed \
+ 	-e 's+SED_NGCALLF+$(NGCALLF)+' \
+ 	<c.h.sed >c.h
++ncarg_path.c: ncarg_path.c.sed Makefile
++	@sed \
++	-e 's+SED_ENV_DEFS+$(NGENV_DESCRIPT)+' \
++   <ncarg_path.c.sed >ncarg_path.c
++
++CCLDOPTIONS:= -O0 -fPIC
++CCOPTIONS:= -O0 -fPIC
+ 
+ BuildSharedLibTarget(libNGc,$(OBJS) $(SHLIBOBJS),1,0,$(REQLIBS))

@@ -1,0 +1,1660 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Manual page fixes for Ncl. Needed for 'whatis' and 'apropos'
+ to work correctly.
+Last-Updated: 2013-12-31
+Forwarded: no
+
+Index: ncl-6.1.2/ncarview/man/ctrans.m
+===================================================================
+--- ncl-6.1.2.orig/ncarview/man/ctrans.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarview/man/ctrans.m	2014-03-01 11:05:28.360688244 +0000
+@@ -47,7 +47,7 @@
+ .I device\-specific options
+ ] 
+ [
+-.B - 
++.B \- 
+ | 
+ .I metafile ...
+ ]
+@@ -95,8 +95,8 @@
+ .BR xwd .
+ The device specifier for these raster
+ formats is the name of the format. For example
+-"-d xwd" specifies translation to an xwd formatted raster file.
+-Additionally, a clear text driver, "-d CTXT",
++"\-d xwd" specifies translation to an xwd formatted raster file.
++Additionally, a clear text driver, "\-d CTXT",
+ is available on any terminal. 
+ Not all of the aforementioned devices
+ may be supported by your particular configuration of 
+@@ -107,7 +107,7 @@
+ .PP
+ .B ctrans
+ will read from the standard input if no metafile name is specified or the
+-the name specified is `-'.
++the name specified is `\-'.
+ .PP
+ .SH OPTIONS
+ .TP
+@@ -212,7 +212,7 @@
+ within the metafile will be scaled by 
+ .BR scale .
+ This option is subject to modification by the 
+-.BR -lmin " and " -lmax 
++.BR \-lmin " and " \-lmax 
+ options.
+ .TP
+ .BI \-movie " time"
+@@ -270,7 +270,7 @@
+ messages; only fatal error messages are
+ reported.
+ .TP
+-.B -record 
++.B \-record 
+ < 
+ .I "record_number... " 
+ >
+@@ -320,7 +320,7 @@
+ specify the lower left corner of the device in normalized coordinates.
+ .IR urx " and " ury
+ specify the upper right corner of the device in normalized coordinates.
+-For example, \fB-viewport 0.0 0.0 0.5 0.5\fR, specifies the lower left 
++For example, \fB\-viewport 0.0 0.0 0.5 0.5\fR, specifies the lower left 
+ corner of the device. 
+ .TP
+ .BI \-window " llx:lly:urx:ury"
+@@ -354,7 +354,7 @@
+ .BR gcaps(1NCARG)
+ command for a list of graphcap-driven devices):
+ .TP
+-.B -simulatebg
++.B \-simulatebg
+ Simulate CGM background color requests by drawing a large filled rectangle 
+ of the appropriate color. This option is useful for devices such as
+ color PostScript printers which have no concept of background color.
+@@ -434,7 +434,7 @@
+ .B ctrans 
+ cannot use
+ "mouse clicks" as a signal to advance frames. For this reason the
+-.B -pause
++.B \-pause
+ option is useful to prevent 
+ .B ctrans
+ from processing the entire metafile without pausing between frames.
+@@ -569,7 +569,7 @@
+ .sp
+ .ti +0.5i
+ % 
+-.B ctrans -d t4107 gmeta
++.B ctrans \-d t4107 gmeta
+ .br
+ .PP
+ If this device is already defined by the GRAPHCAP environment variable,
+@@ -585,7 +585,7 @@
+ .sp
+ .ti +0.5i
+ % 
+-.B "ctrans -record 3 -d t4107 gmeta"
++.B "ctrans \-record 3 \-d t4107 gmeta"
+ .br
+ .PP
+ To examine the metafile
+@@ -596,7 +596,7 @@
+ .sp
+ .ti +0.5i
+ % 
+-.B "ctrans -d CTXT -Data -Para gmeta"
++.B "ctrans \-d CTXT \-Data \-Para gmeta"
+ .PP
+ To render the metafile 
+ .B gmeta 
+@@ -605,7 +605,7 @@
+ .sp
+ .ti +0.5i
+ %
+-.B "ctrans -d X11 -geometry 512x512-0-0 gmeta"
++.B "ctrans \-d X11 \-geometry 512x512-0-0 gmeta"
+ .PP
+ To rasterize the contents of the metafile  
+ .B gmeta
+@@ -613,7 +613,7 @@
+ .sp
+ .ti +0.5i
+ % 
+-.B "ctrans -d xwd -res 1024x1024 > raster.xwd"
++.B "ctrans \-d xwd \-res 1024x1024 > raster.xwd"
+ .sp
+ .br
+ The raster output is in X11 "xwd" format and is sent to the file
+@@ -625,7 +625,7 @@
+ .sp
+ .ti +0.5i
+ % 
+-.B "ctrans -d X11 -window 0.5:0.5:1.0:1.0"
++.B "ctrans \-d X11 \-window 0.5:0.5:1.0:1.0"
+ .sp
+ .br
+ .SH ENVIRONMENT
+Index: ncl-6.1.2/ncarg2d/man/gks/gtx.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gtx.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gtx.m	2014-03-01 11:05:28.360688244 +0000
+@@ -3,9 +3,7 @@
+ .\"
+ .TH GTX 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GTX (Text) - The basic output primitive for drawing text.  A number 
+-of attribute setting routines are available for selecting the size, font, 
+-precision, orientation, color, character spacing, etc.
++GTX \- NCAR Graphics primitive for drawing text
+ .SH SYNOPSIS
+ CALL GTX (X, Y, STRING)
+ .SH C-BINDING SYNOPSIS
+@@ -13,6 +11,9 @@
+ .sp
+ void gtext(const Gpoint *text_pos, const char *char_string);
+ .SH DESCRIPTION
++GTX (Text) - The basic output primitive for drawing text.  A number 
++of attribute setting routines are available for selecting the size, font, 
++precision, orientation, color, character spacing, etc.
+ .IP "X" 12
+ (Real, Input) - The X world coordinate of the text 
+ alignment of the first 
+Index: ncl-6.1.2/ncarview/man/cgm2ncgm.m
+===================================================================
+--- ncl-6.1.2.orig/ncarview/man/cgm2ncgm.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarview/man/cgm2ncgm.m	2014-03-01 11:05:28.364688285 +0000
+@@ -4,7 +4,8 @@
+ .\"	ncgm2cgm.l 3.00 10/5/89 NCAR View
+ .TH NCAR2CGM 1NCARG "January 1993" NCARG "NCAR GRAPHICS"
+ .SH NAME
+-cgm2ncgm ncgm2cgm \- filter \fBNCAR CGM\fR to/from vanilla \fBCGM\fR
++cgm2ncgm \- filter NCAR CGM to/from vanilla CGM
++ncgm2cgm \- filter NCAR CGM to/from vanilla CGM
+ .SH SYNOPSIS
+ .B ncgm2cgm
+ [\ \fB\-s\ \fIoutput block size\fR\ ]
+Index: ncl-6.1.2/ncarview/man/ncgm2cgm.m
+===================================================================
+--- ncl-6.1.2.orig/ncarview/man/ncgm2cgm.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarview/man/ncgm2cgm.m	2014-03-01 11:05:28.364688285 +0000
+@@ -4,7 +4,8 @@
+ .\"	ncgm2cgm.l 3.00 10/5/89 NCAR View
+ .TH NCGM2CGM 1NCARG "January 1993" NCARG "NCAR GRAPHICS"
+ .SH NAME
+-cgm2ncgm ncgm2cgm \- filter \fBNCAR CGM\fR to/from vanilla \fBCGM\fR
++ncgm2cgm \- filter NCAR CGM to vanilla CGM
++cgm2ncgm \- filter NCAR CGM from vanilla CGM
+ .SH SYNOPSIS
+ .B ncgm2cgm
+ [\ \fB\-s\ \fIoutput block size\fR\ ]
+Index: ncl-6.1.2/ncarg2d/man/other/ncarg_gks.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/other/ncarg_gks.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/other/ncarg_gks.m	2014-03-01 11:05:28.364688285 +0000
+@@ -1,6 +1,6 @@
+ .TH NCARG_GKS 1NCAR "January 1992" NCAR "NCAR GRAPHICS"
+ .SH NAME
+-NCAR Graphics GKS - Environment variables
++ncarg_gks \- NCAR Graphics GKS Environment variables
+ .SH SYNOPSIS
+ .sp
+ A collection of environment variables allows you to control certain
+Index: ncl-6.1.2/ncarg2d/man/gks/gactm.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gactm.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gactm.m	2014-03-01 11:05:28.364688285 +0000
+@@ -3,6 +3,8 @@
+ .\"
+ .TH GACTM 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
++gactm \- Accumulate (GKS) transformation matrix 
++.SH DESCRIPTION
+ GACTM (Accumulate transformation matrix) - Constructs a GKS segment
+ transformation matrix by starting with an existing matrix and composing it
+ with a shift vector, a rotation angle, and X and Y scale factors to
+Index: ncl-6.1.2/ncarg2d/man/gks/gacwk.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gacwk.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gacwk.m	2014-03-01 11:05:28.364688285 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GACWK 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GACWK (Activate workstation) - 
+-activates a GKS workstation.
++GACWK \- activates a GKS workstation.
+ .SH SYNOPSIS
+ CALL GACWK (WKID)
+ .SH C-BINDING SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gks/gca.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gca.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gca.m	2014-03-01 11:05:28.364688285 +0000
+@@ -3,6 +3,8 @@
+ .\"
+ .TH GCA 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
++GCA \- Draw a cell array
++.SH DESCRIPTION
+ GCA (Cell array) - draws a cell array starting with a 
+ rectangle specified by two corner points; this initial 
+ rectangle is subdivided into subrectangles by 
+Index: ncl-6.1.2/ncarg2d/man/gks/gclks.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gclks.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gclks.m	2014-03-01 11:05:28.364688285 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GCLKS 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GCLKS (Close GSK) - closes the GKS package.
++GCLKS \- closes the GKS package.
+ .SH SYNOPSIS
+ CALL GCLKS
+ .SH C-BINDING SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gksC/gaccum_tran_matrix.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gaccum_tran_matrix.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gaccum_tran_matrix.m	2014-03-01 11:05:28.364688285 +0000
+@@ -2,7 +2,9 @@
+ .\"	$Id: gaccum_tran_matrix.m,v 1.17 2008-12-23 00:03:04 haley Exp $
+ .\"
+ .TH GACCUM_TRAN_MATRIX 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+-.SH NAME
++.SH NAME 
++GACCUM_TRAN_MATRIX \- Accumulate transformation matrix
++.SH DESCRIPTION
+ gaccum_tran_matrix (Accumulate transformation matrix) - Constructs a GKS segment
+ transformation matrix by starting with an existing matrix and composing it
+ with a shift vector, a rotation angle, and X and Y scale factors to
+Index: ncl-6.1.2/ncarg2d/man/gksC/gactivate_ws.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gactivate_ws.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gactivate_ws.m	2014-03-01 11:05:28.364688285 +0000
+@@ -2,7 +2,9 @@
+ .\"	$Id: gactivate_ws.m,v 1.16 2008-12-23 00:03:04 haley Exp $
+ .\"
+ .TH GACTIVATE_WS 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+-.SH NAME
++.SH NAME 
++gactivate_ws \- Activate a GKS workstation
++.SH DESCRIPTION
+ gactivate_ws (Activate workstation) - 
+ activates a GKS workstation.
+ .SH SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gksC/gcell_array.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gcell_array.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gcell_array.m	2014-03-01 11:05:28.364688285 +0000
+@@ -3,6 +3,8 @@
+ .\"
+ .TH GCELL_ARRAY 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
++gcell_array \- Draw a Cell array from two corner points
++.SH DESCRIPTION
+ gcell_array (Cell array) - draws a cell array starting with a 
+ rectangle specified by two corner points; this initial 
+ rectangle is subdivided into subrectangles by 
+Index: ncl-6.1.2/ncarg2d/man/gksC/gclear_ws.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gclear_ws.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gclear_ws.m	2014-03-01 11:05:28.364688285 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GCLEAR_WS 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-gclear_ws (Clear workstation) - clears a workstation.
++gclear_ws \- clears a workstation.
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/gclose_gks.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gclose_gks.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gclose_gks.m	2014-03-01 11:05:28.364688285 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GCLOSE_GKS 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-gclose_gks (Close GSK) - closes the GKS package.
++gclose_gks \- closes the GKS package.
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ngmath/man/csagrid/csagrid.m
+===================================================================
+--- ncl-6.1.2.orig/ngmath/man/csagrid/csagrid.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ngmath/man/csagrid/csagrid.m	2014-03-01 11:05:28.364688285 +0000
+@@ -5,6 +5,8 @@
+ .na
+ .nh
+ .SH NAME
++csagrid \- cubic spline approximation 
++.SH DESCRIPTION
+ Csagrid is a software package in the ngmath library that implements a 
+ cubic spline approximation algorithm to fit a function to input data. 
+ The input for the approximation is a set of randomly-spaced data. These 
+Index: ncl-6.1.2/ngmath/man/cssgrid/css_overview.m
+===================================================================
+--- ncl-6.1.2.orig/ngmath/man/cssgrid/css_overview.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ngmath/man/cssgrid/css_overview.m	2014-03-01 11:05:28.364688285 +0000
+@@ -5,6 +5,8 @@
+ .na
+ .nh
+ .SH NAME
++cssgrid \- fit a tension spline interpolation to a function
++.SH DESCRIPTION
+ Cssgrid is a software package in the ngmath library that implements a 
+ tension spline interpolation algorithm to fit a function to input data
+ randomly located on the surface of a sphere.
+Index: ncl-6.1.2/ngmath/man/dsgrid/dsgrid.m
+===================================================================
+--- ncl-6.1.2.orig/ngmath/man/dsgrid/dsgrid.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ngmath/man/dsgrid/dsgrid.m	2014-03-01 11:05:28.368688313 +0000
+@@ -5,6 +5,8 @@
+ .na
+ .nh
+ .SH NAME
++dsgrid \- grid 2D and 3D randomly-spaced data 
++.SH NAME
+ Dsgrid is a package for gridding 3D and 2D randomly-spaced data using
+ an inverse distance weighted average algorithm.  Single precision and double
+ precision interfaces exist in both Fortran and C.  
+Index: ncl-6.1.2/ngmath/man/dsgrid/dspnt2d.m
+===================================================================
+--- ncl-6.1.2.orig/ngmath/man/dsgrid/dspnt2d.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ngmath/man/dsgrid/dspnt2d.m	2014-03-01 11:05:28.368688313 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH DSPNT2D 3NCARG "September 1997-1998" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-DSPNT2D- Interpolate at a single point (or points) in 2D in double precision
++DSPNT2D \- Interpolate at a single point (or points) in 2D in double precision
+ .SH SYNOPSIS
+ CALL DSPNT2D (N, X, Y, Z, M, XO, YO, ZO, IER)
+ .SH DESCRIPTION
+Index: ncl-6.1.2/ngmath/man/dsgrid/dspnt2s.m
+===================================================================
+--- ncl-6.1.2.orig/ngmath/man/dsgrid/dspnt2s.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ngmath/man/dsgrid/dspnt2s.m	2014-03-01 11:05:28.368688313 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH DSPNT2S 3NCARG "September 1997-1998" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-DSPNT2S- Interpolate at a single point (or points) in 2D in single precision
++DSPNT2S \- Interpolate at a single point (or points) in 2D in single precision
+ .SH SYNOPSIS
+ CALL DSPNT2S (N, X, Y, Z, M, XO, YO, ZO, IER)
+ .SH DESCRIPTION
+Index: ncl-6.1.2/ngmath/man/dsgrid/dspnt3d.m
+===================================================================
+--- ncl-6.1.2.orig/ngmath/man/dsgrid/dspnt3d.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ngmath/man/dsgrid/dspnt3d.m	2014-03-01 11:05:28.368688313 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH DSPNT3D 3NCARG "September 1997-1998" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-DSPNT3D- Interpolate at a single point (or points) in 3D in double precision
++DSPNT3D \- Interpolate at a single point (or points) in 3D in double precision
+ .SH SYNOPSIS
+ CALL DSPNT3D (N, X, Y, Z, U, M, XO, YO, ZO, UO, IER)
+ .SH DESCRIPTION
+Index: ncl-6.1.2/ngmath/man/dsgrid/dspnt3s.m
+===================================================================
+--- ncl-6.1.2.orig/ngmath/man/dsgrid/dspnt3s.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ngmath/man/dsgrid/dspnt3s.m	2014-03-01 11:05:28.368688313 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH DSPNT3S 3NCARG "September 1997-1998" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-DSPNT3S- Interpolate at a single point (or points) in 3D in single precision
++DSPNT3S \- Interpolate at a single point (or points) in 3D in single precision
+ .SH SYNOPSIS
+ CALL DSPNT3S (N, X, Y, Z, U, M, XO, YO, ZO, UO, IER)
+ .SH DESCRIPTION
+Index: ncl-6.1.2/ngmath/man/fitgrid/c_ftsetfa.m
+===================================================================
+--- ncl-6.1.2.orig/ngmath/man/fitgrid/c_ftsetfa.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ngmath/man/fitgrid/c_ftsetfa.m	2014-03-01 11:05:28.368688313 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH c_ftsetfa 3NCARG "March 1998" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-Set float valued array parameters
++c_ftsetfa \- Set float valued array parameters
+ .SH FUNCTION PROTOTYPE
+ int c_ftsetfa(char *pnam, int n, float *far);
+ .SH SYNOPSIS
+Index: ncl-6.1.2/ngmath/man/fitgrid/fitgrid.m
+===================================================================
+--- ncl-6.1.2.orig/ngmath/man/fitgrid/fitgrid.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ngmath/man/fitgrid/fitgrid.m	2014-03-01 11:05:28.368688313 +0000
+@@ -5,6 +5,8 @@
+ .na
+ .nh
+ .SH NAME
++fitgrid \- interpolate 1d and 2d data
++.SH DESCRIPTION
+ Fitgrid is a package for interpolating one dimensional and two 
+ dimensional data. The package has the following functionality: 
+ .br
+Index: ncl-6.1.2/ncarg2d/man/gks/gclrwk.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gclrwk.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gclrwk.m	2014-03-01 11:05:28.368688313 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GCLRWK 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GCLRWK (Clear workstation) - clears a workstation.
++GCLRWK \- clears a GKS workstation
+ .SH SYNOPSIS
+ CALL GCLRWK (WKID, COFL)
+ .SH C-BINDING SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gks/gclsg.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gclsg.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gclsg.m	2014-03-01 11:05:28.368688313 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GCLSG 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GCLSG (Close segment) - closes a GKS segment.
++GCLSG  \- closes a GKS segment
+ .SH SYNOPSIS
+ CALL GCLSG
+ .SH C-BINDING SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gks/gclwk.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gclwk.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gclwk.m	2014-03-01 11:05:28.368688313 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GCLWK 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GCLWK (Close workstation) - closes a workstation.
++GCLWK \- closes a GKS workstation
+ .SH SYNOPSIS
+ CALL GCLWK (WKID)
+ .SH C-BINDING SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gks/gcrsg.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gcrsg.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gcrsg.m	2014-03-01 11:05:28.368688313 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GCRSG 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GCRSG (Create segment) - creates a GKS segment.
++GCRSG \- creates a GKS segment
+ .SH SYNOPSIS
+ CALL GCRSG(SGNA)
+ .SH C-BINDING SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gks/gcsgwk.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gcsgwk.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gcsgwk.m	2014-03-01 11:05:28.368688313 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GCSGWK 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GCSGWK (Copy segment to workstation) - copies a GKS segment to a GKS 
+-workstation.
++GCSGWK \- copies a GKS segment to a GKS workstation
+ .SH SYNOPSIS
+ CALL GCSGWK(WKID,SGNA)
+ .SH C-BINDING SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gks/gdawk.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gdawk.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gdawk.m	2014-03-01 11:05:28.368688313 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GDAWK 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GDAWK (Deactivate workstation) - deactivates a workstation.
++GDAWK \- deactivates a GKS  workstation
+ .SH SYNOPSIS
+ CALL GDAWK (WKID)
+ .SH C-BINDING SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gks/gdsg.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gdsg.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gdsg.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GDSG 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GDSG (Delete segment) - deletes a GKS segment.
++GDSG \- deletes a GKS segment
+ .SH SYNOPSIS
+ CALL GDSG(SGNA)
+ .SH C-BINDING SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gks/gesc.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gesc.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gesc.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,6 +3,8 @@
+ .\"
+ .TH GESC 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
++gesc \- Provide "Escape" for non-standard GKS features
++.SH DESCRIPTION
+ GESC (Escape) - provides a standard way of implementing nonstandard 
+ GKS features.  NCAR GKS has only two user-accessible escape functions
+ defined: one for changing the name of a metafile and another for
+Index: ncl-6.1.2/ncarg2d/man/gks/gevtm.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gevtm.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gevtm.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,6 +3,8 @@
+ .\"
+ .TH GEVTM 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
++gevtm \- Evaluate a transform matrix and construct GKS segment
++.SH DESCRIPTION
+ GEVTM (Evaluate transformation matrix) - Constructs a GKS segment
+ transformation matrix starting from a given point, a shift vector, a rotation
+ angle, and X and Y scale factors.
+Index: ncl-6.1.2/ncarg2d/man/gks/gfa.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gfa.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gfa.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GFA 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GFA (Fill area) - output primitive for filling polygonal areas.
++GFA \- output primitive for filling polygonal areas.
+ .SH SYNOPSIS
+ CALL GFA (N, X, Y)
+ .SH C-BINDING SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gksC/gclose_seg.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gclose_seg.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gclose_seg.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GCLOSE_SEG 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-gclose_seg (Close segment) - closes a GKS segment.
++gclose_seg  \- closes a GKS segment.
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/gclose_ws.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gclose_ws.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gclose_ws.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GCLOSE_WS 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-gclose_ws (Close workstation) - closes a workstation.
++gclose_ws \- closes a GKS workstation
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/gcopy_seg_ws.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gcopy_seg_ws.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gcopy_seg_ws.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GCOPY_SEG_WS 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-gcopy_seg_ws (Copy segment to workstation) - copies a GKS segment to a GKS 
+-workstation.
++gcopy_seg_ws \- copies a GKS segment to a GKS workstation
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/gcreate_seg.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gcreate_seg.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gcreate_seg.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GCREATE_SEG 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-gcreate_seg (Create segment) - creates a GKS segment.
++gcreate_seg \- creates a GKS segment
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/gdeactivate_ws.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gdeactivate_ws.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gdeactivate_ws.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GDEACTIVATE_WS 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-gdeactivate_ws (Deactivate workstation) - deactivates a workstation.
++gdeactivate_ws \- deactivates a GKS workstation
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/gdel_seg.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gdel_seg.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gdel_seg.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GDEL_SEG 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-gdel_seg (Delete segment) - deletes a GKS segment.
++gdel_seg \- deletes a GKS segment
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/gescape.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gescape.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gescape.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,6 +3,8 @@
+ .\"
+ .TH GESCAPE 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
++gescape \- Provide "Escape" mechanism for non-standard GKS features
++.SH DESCRIPTION
+ gescape (Escape) - provides a standard way of implementing nonstandard 
+ GKS features.  NCAR GKS has only two user-accessible escape functions
+ defined: one for changing the name of a metafile and another for
+Index: ncl-6.1.2/ncarg2d/man/gksC/geval_tran_matrix.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/geval_tran_matrix.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/geval_tran_matrix.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,6 +3,8 @@
+ .\"
+ .TH GEVAL_TRAN_MATRIX 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
++geval_tran_matrix \- Connstruct GKS segment by evaluating a transform matrix
++.SH DESCRIPTION
+ geval_tran_matrix (Evaluate transformation matrix) - Constructs a GKS segment
+ transformation matrix starting from a given point, a shift vector, a rotation
+ angle, and X and Y scale factors.
+Index: ncl-6.1.2/ncarg2d/man/gksC/gfill_area.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gfill_area.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gfill_area.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GFILL_AREA 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-gfill_area (Fill area) - output primitive for filling polygonal areas.
++gfill_area  \- output primitive for filling polygonal areas.
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_char_expan.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_char_expan.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_char_expan.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,6 +3,8 @@
+ .\"
+ .TH GINQ_CHAR_EXPAN 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
++ginq_char_expan \- Inquire Character expansion factor
++.SH DESCRIPTION
+ ginq_char_expan (Inquire character expansion factor) - retrieves the current
+ value of the character expansion factor.
+ .SH SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_char_ht.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_char_ht.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_char_ht.m	2014-03-01 11:05:28.372688320 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GINQ_CHAR_HT 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_char_ht (Inquire character height) - retrieves the current character height.
++ginq_char_ht \- retrieves the current character height.
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_char_space.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_char_space.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_char_space.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GINQ_CHAR_SPACE 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_char_space (Inquire character spacing) - retrieves the current value for 
+-character spacing.
++ginq_char_space \- retrieves the current value for character spacing
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_char_up_vec.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_char_up_vec.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_char_up_vec.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GINQ_CHAR_UP_VEC 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_char_up_vec (Inquire character up vector) - retrieves the current value of
+-the character up vector.
++ginq_char_up_vec \- retrieves the current value of the character up vector
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_clip.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_clip.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_clip.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,6 +3,8 @@
+ .\"
+ .TH GINQ_CLIP 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
++ginq_clip \- Inquire GKS clipping indicator
++.SH DESCRIPTION
+ ginq_clip (Inquire clipping indicator) - retrieves the current value of the
+ clipping indicator as well as the current clipping rectangle.
+ .SH SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_colr_rep.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_colr_rep.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_colr_rep.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,6 +3,8 @@
+ .\"
+ .TH GINQ_COLR_REP 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
++ginq_colr_rep \- Inquire GKS color representation
++.SH DESCRIPTION
+ ginq_colr_rep (Inquire color representation) - retrieves the color value associated
+ with a color index on a particular workstation.
+ .SH SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_cur_norm_tran_num.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_cur_norm_tran_num.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_cur_norm_tran_num.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,6 +3,8 @@
+ .\"
+ .TH GINQ_CUR_NORM_TRAN_NUM 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
++ginq_cur_norm_tran_num \- Inquire current normalization transformation number
++.SH DESCRIPTION
+ ginq_cur_norm_tran_num (Inquire current normalization transformation number) - retrieves
+ the number of the current normalization transformation.
+ .SH SYNOPSIS
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_fill_colr_ind.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_fill_colr_ind.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_fill_colr_ind.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GINQ_FILL_COLR_IND 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_fill_colr_ind (Inquire fill area color index) - retrieves the current fill
+-area color index.
++ginq_fill_colr_ind \- retrieves the current fill area color index
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_fill_int_style.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_fill_int_style.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_fill_int_style.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GINQ_FILL_INT_STYLE 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_fill_int_style (Inquire fill area interior style) - retrieves the current 
+-value for fill area interior style.
++ginq_fill_int_style \- retrieves the current value for fill area interior style
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_fill_style_ind.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_fill_style_ind.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_fill_style_ind.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GINQ_FILL_STYLE_IND 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_fill_style_ind (Inquire fill area style index) - retrieves the current value of
+-the fill area style index.
++ginq_fill_style_ind \- retrieve the current value of the fill area style index
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_line_colr_ind.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_line_colr_ind.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_line_colr_ind.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GINQ_LINE_COLR_ind 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_line_colr_ind (Inquire polyline color index) - gets the polyline color index.
++ginq_line_colr_ind \- gets the polyline color index
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_linetype.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_linetype.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_linetype.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GINQ_LINETYPE 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_linetype (Inquire line type) - retrieves the current setting for linetype.
++ginq_linetype \- retrieves the current setting for linetype
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_linewidth.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_linewidth.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_linewidth.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GINQ_LINEWIDTH 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_linewidth (Inquire linewidth scale factor) - retrieves the current setting of the
+-linewidth scale factor.
++ginq_linewidth \- retrieves the current setting of the linewidth scale factor
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_marker_colr_ind.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_marker_colr_ind.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_marker_colr_ind.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GINQ_MARKER_COLR_IND 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_marker_colr_ind (Inquire polymarker color index) - retrieves the polymarker color index.
++ginq_marker_colr_ind \- retrieves the polymarker color index
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_marker_size.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_marker_size.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_marker_size.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GINQ_MARKER_SIZE 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_marker_size (Inquire marker size scale factor) - retrieves the current value 
+-for the polymarker size scale factor.
++ginq_marker_size \- retrieves the current value for the polymarker size scale factor
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_marker_type.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_marker_type.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_marker_type.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GINQ_MARKER_TYPE 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_marker_type (Inquire marker type) - retrieves the current value for the marker type.
++ginq_marker_type \- retrieves the current value for the marker type
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_max_norm_tran_num.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_max_norm_tran_num.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_max_norm_tran_num.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,8 +3,9 @@
+ .\"
+ .TH GINQ_MAX_NORM_TRAN_NUM 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_max_norm_tran_num (Inquire maximum normalization transformation number) - retrieves 
+-the maximum number of supported normalization transformations.
++ginq_max_norm_tran_num \- Inquire maximum normalization transformation number
++.SH DESCRIPTION 
++ginq_max_norm_tran_num retrieves the maximum number of supported normalization transformations.
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_name_open_seg.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_name_open_seg.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_name_open_seg.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GINQ_NAME_OPEN_SEG 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_name_open_seg (Inquire name of open segment) - returns the name of the currently
+-open segment.
++ginq_name_open_seg \- returns the name of the currently open segment
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_norm_tran.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_norm_tran.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_norm_tran.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,6 +3,8 @@
+ .\"
+ .TH GINQ_NORM_TRAN 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
++ginq_norm_tran \- Inquire normalization transformation
++.SH DESCRIPTION
+ ginq_norm_tran (Inquire normalization transformation) - retrieves the 
+ window and viewport associated with a given normalization transformation. 
+ Users of NCAR Graphics are encouraged to use the SPPS routines c_set
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_op_st.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_op_st.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_op_st.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GINQ_OP_ST 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_op_st (Inquire operating state value) - returns the operating state
+-of GKS. 
++ginq_op_st \- returns the operating state of GKS
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_set_seg_names.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_set_seg_names.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_set_seg_names.m	2014-03-01 11:05:28.376688315 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GINQ_SET_SEG_NAMES 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_set_seg_names (Inquire set of segment names in use) - Retrieves what segment
+-names are currently in use.
++ginq_set_seg_names \- Retrieves what segment names are currently in use
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+Index: ncl-6.1.2/ncarg2d/man/gks/gopks.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gopks.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gopks.m	2014-03-01 11:18:17.466044363 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GOPKS 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GOPKS (Open GKS) - opens the GKS package
++gopks \- opens the GKS package
+ .SH SYNOPSIS
+ CALL GOPKS (ERRFIL, BUFA)
+ .SH C-BINDING SYNOPSIS
+@@ -12,11 +12,11 @@
+ void gopen_gks(const char *err_file, size_t mem_unit);
+ .SH DESCRIPTION
+ .IP ERRFIL 12
+-(Input, Integer) - The Fortran unit number to which 
++(Input, Integer) \- The Fortran unit number to which 
+ error messages are to be written. 
+ Typically this should be unit 6.
+ .IP BUFA 12
+-(Input, Integer) - The dimension of an internal buffer. 
++(Input, Integer) \- The dimension of an internal buffer. 
+ Currently in NCAR GKS-0A, BUFA is ignored.
+ .SH USAGE
+ To get output to any workstation,
+Index: ncl-6.1.2/ncarg2d/man/gks/gopwk.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gopwk.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gopwk.m	2014-03-01 11:18:41.534086800 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GOPWK 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GOPWK (Open workstation) - opens a GKS workstation.
++gopwk \- opens a GKS workstation
+ .SH SYNOPSIS
+ CALL GOPWK (WKID, CONID, WKTYPE)
+ .SH C-BINDING SYNOPSIS
+@@ -12,57 +12,57 @@
+ void gopen_ws(Gint ws_id, const char *conn_id, Gint ws_type);
+ .SH DESCRIPTION
+ .IP WKID 12
+-(Integer, Input) - A number assigned to a workstation as an identifier 
++(Integer, Input) \- A number assigned to a workstation as an identifier 
+ that is to be used in all subsequent calls to GKS functions that
+ require a workstation identifier.  In NCAR GKS, WKID can 
+ be any non-negative integer. 
+ .IP CONID 12
+-(Integer, Input) - A connection identifier that has different 
++(Integer, Input) \- A connection identifier that has different 
+ meanings for different workstation types (see the USAGE section
+ below).
+ .IP WKTYPE 12
+-(Integer, Input) - An identifier specifying
++(Integer, Input) \- An identifier specifying
+ the specific type of output device targeted.  Each GKS package has
+ an implementation-dependent set of workstation types that the
+ package supports.  The legal workstation types in NCAR GKS are:
+ .IP "             1" 18
+--  NCGM
++\-  NCGM
+ .IP "             3" 18
+--  WISS
++\-  WISS
+ .IP "             7" 18
+--  pre-existing X11 window.
++\-  pre-existing X11 window.
+ .IP "             8" 18
+--  non-existing X11 window.
++\-  non-existing X11 window.
+ .IP "            10" 18
+--  text dump of graphics output.
++\-  text dump of graphics output.
+ .IP "            11" 18
+--  PDF in portrait mode.
++\-  PDF in portrait mode.
+ .IP "            12" 18
+--  PDF in landscape mode.
++\-  PDF in landscape mode.
+ .IP "            20" 18
+--  color PostScript in portrait mode.
++\-  color PostScript in portrait mode.
+ .IP "            21" 18
+--  color Encapsulated PostScript (EPS) in portrait mode.
++\-  color Encapsulated PostScript (EPS) in portrait mode.
+ .IP "            22" 18
+--  color Encapsulated PostScript Interchange format (EPSI) in portrait mode.
++\-  color Encapsulated PostScript Interchange format (EPSI) in portrait mode.
+ .IP "            23" 18
+--  monochrome PostScript in portrait mode.
++\-  monochrome PostScript in portrait mode.
+ .IP "            24" 18
+--  monochrome Encapsulated PostScript (EPS) in portrait mode.
++\-  monochrome Encapsulated PostScript (EPS) in portrait mode.
+ .IP "            25" 18
+--  monochrome Encapsulated PostScript Interchange format (EPSI) in portrait mode.
++\-  monochrome Encapsulated PostScript Interchange format (EPSI) in portrait mode.
+ .IP "            26" 18
+--  color PostScript in landscape mode.
++\-  color PostScript in landscape mode.
+ .IP "            27" 18
+--  color Encapsulated PostScript (EPS) in landscape mode.
++\-  color Encapsulated PostScript (EPS) in landscape mode.
+ .IP "            28" 18
+--  color Encapsulated PostScript Interchange format (EPSI) in landscape mode.
++\-  color Encapsulated PostScript Interchange format (EPSI) in landscape mode.
+ .IP "            29" 18
+--  monochrome PostScript in landscape mode.
++\-  monochrome PostScript in landscape mode.
+ .IP "            30" 18
+--  monochrome Encapsulated PostScript (EPS) in landscape mode.
++\-  monochrome Encapsulated PostScript (EPS) in landscape mode.
+ .IP "            31" 18
+--  monochrome Encapsulated PostScript Interchange format (EPSI) in landscape mode.
++\-  monochrome Encapsulated PostScript Interchange format (EPSI) in landscape mode.
+ .SH USAGE
+ For workstation types of 1 (CGM) or 3 (WISS) 
+ the connection ID is used as a Fortran
+Index: ncl-6.1.2/ncarg2d/man/gks/gpl.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gpl.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gpl.m	2014-03-01 11:27:20.711005408 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GPL 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GPL (Polyline) - This output primitive draws
+-line segments connecting a sequence of user-specified coordinate pairs.
++gpl \- Draw line segments connecting a sequence of user-specified coordinate pairs
+ .SH SYNOPSIS
+ CALL GPL (N, X, Y)
+ .SH C-BINDING SYNOPSIS
+@@ -12,14 +11,15 @@
+ .sp
+ void gpolyline(const Gpoint_list *point_list);
+ .SH DESCRIPTION
++This output primitive draws line segments connecting a sequence of user-specified coordinate pairs.
+ .IP N 12
+-(Integer, Input) - The number of points in the line to 
++(Integer, Input) \- The number of points in the line to 
+ be drawn. N must be larger than one.
+ .IP "X (N)" 12
+-(Real Array, Input) - The X coordinates (specified in world
++(Real Array, Input) \- The X coordinates (specified in world
+ coordinates) of the N points to be connected by line segments.  
+ .IP "Y (N)" 12
+-(Real Array, Input) - The Y coordinates (specified in world coordinates)
++(Real Array, Input) \- The Y coordinates (specified in world coordinates)
+ of the N points to be connected by line segments.
+ .SH USAGE
+ Note that the coordinate pairs must be in world coordinates and not
+Index: ncl-6.1.2/ncarg2d/man/gks/gpm.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gpm.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gpm.m	2014-03-01 11:28:16.855101143 +0000
+@@ -3,8 +3,7 @@
+ .\"
+ .TH GPM 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GPM (Polymarker) - the polymarker output primitive draws selected
+-symmetric symbols to mark user-specified coordinate positions.
++gpm \- Polymarker output primitive to draw symmetric symbols
+ .SH SYNOPSIS
+ CALL GPM (N, X, Y)
+ .SH C-BINDING SYNOPSIS
+@@ -12,14 +11,16 @@
+ .sp
+ void gpolymarker(const Gpoint_list *point_list);
+ .SH DESCRIPTION
++GPM (Polymarker) \- the polymarker output primitive draws selected
++symmetric symbols to mark user-specified coordinate positions.
+ .IP N 12
+-(Integer, Input) - The number of markers to be drawn.  N must be
++(Integer, Input) \- The number of markers to be drawn.  N must be
+ greater than zero.
+ .IP "X (N)" 12
+-(Real Array, Input) - The X coordinates of the N markers to be 
++(Real Array, Input) \- The X coordinates of the N markers to be 
+ drawn, in world coordinates.
+ .IP "Y (N)" 12
+-(Real Array, Input) - The Y coordinates of the N markers to be 
++(Real Array, Input) \- The Y coordinates of the N markers to be 
+ drawn, in world coordinates.
+ .SH USAGE
+ By default, the polymarker type is an asterisk. To 
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_text_align.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_text_align.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_text_align.m	2014-03-01 11:15:39.149765216 +0000
+@@ -3,20 +3,21 @@
+ .\"
+ .TH GINQ_TEXT_ALIGN 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_text_align (Inquire text alignment) - retrieves the horizontal and vertical
+-text alignments.
++ginq_text_align \- retrieves the horizontal and vertical text alignments.
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+ void ginq_text_align(Gint *err_ind, Gtext_align *text_align);
+ .SH DESCRIPTION
++ginq_text_align (Inquire text alignment) \- retrieves the horizontal and vertical
++text alignments.
+ .IP err_ind 12
+-(Output) - If the inquired values cannot be returned correctly,
++(Output) \- If the inquired values cannot be returned correctly,
+ a non-zero error indicator is returned in err_ind, otherwise a zero is returned.
+ Consult "User's Guide for NCAR GKS-0A Graphics" for a description of the
+ meaning of the error indicators.
+ .IP text_align.hor 12
+-(Output) - Returns the current horizontal text alignment:
++(Output) \- Returns the current horizontal text alignment:
+ .RS
+ .IP GHOR_NORM
+ Normal (default)
+@@ -28,7 +29,7 @@
+ Right
+ .RE
+ .IP text_align.vert 12
+-(Output) - Returns the current vertical text alignment:
++(Output) \- Returns the current vertical text alignment:
+ .RS
+ .IP GVERT_NORM
+ Normal (default)
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_text_colr_ind.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_text_colr_ind.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_text_colr_ind.m	2014-03-01 11:15:59.757801552 +0000
+@@ -3,20 +3,19 @@
+ .\"
+ .TH GINQ_TEXT_COLR_IND 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_text_colr_ind (Inquire text color index) - retrieves the current text color
+-index.
++ginq_text_colr_ind \- retrieves the current text color index
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+ void ginq_text_colr_ind(Gint *err_ind, Gint *text_colr_ind);
+ .SH DESCRIPTION
+ .IP err_ind 12
+-(Output) - If the inquired value cannot be returned correctly,
++(Output) \- If the inquired value cannot be returned correctly,
+ a non-zero error indicator is returned in err_ind, otherwise a zero is returned.
+ Consult "User's Guide for NCAR GKS-0A Graphics" for a description of the
+ meaning of the error indicators.
+ .IP text_colr_ind 12
+-(Output) - Returns the current text color index as set by 
++(Output) \- Returns the current text color index as set by 
+ default or by a call to gset_text_colr_ind.
+ .SH ACCESS
+ To use the GKS C-binding routines, load the ncarg_gks and
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_text_font_prec.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_text_font_prec.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_text_font_prec.m	2014-03-01 11:16:24.485845153 +0000
+@@ -3,25 +3,24 @@
+ .\"
+ .TH GINQ_TEXT_FONT_PREC 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_text_font_prec (Inquire text font and precision) - retrieves the current setting
+-of the text font and precision values.
++ginq_text_font_prec \- retrieves the current setting of the text font and precision values
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+ void ginq_text_font_prec(Gint *err_ind, Gtext_font_prec *text_font_prec);
+ .SH DESCRIPTION
+ .IP err_ind 12
+-(Output) - If the inquired values cannot be returned correctly,
++(Output) \- If the inquired values cannot be returned correctly,
+ a non-zero error indicator is returned in err_ind, otherwise a zero is returned.
+ Consult "User's Guide for NCAR GKS-0A Graphics" for a description of the
+ meaning of the error indicators.
+ .IP text_font_prec.font 12
+-(Output) - 
++(Output) \- 
+ Gives the font number as set by default or by a call to
+ gset_text_font_prec.  Font number one is a simple default ASCII font. 
+ Values for font between -2 and -20 (inclusive) are Hershey fonts.
+ .IP text_font_prec.prec 12
+-(Output) - Gives the text precision as set by default or by a call to
++(Output) \- Gives the text precision as set by default or by a call to
+ gset_text_font_prec.  Possible values include:
+ .RS
+ .IP GPREC_STRING
+Index: ncl-6.1.2/ncarg2d/man/gksC/ginq_text_path.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/ginq_text_path.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/ginq_text_path.m	2014-03-01 11:16:48.069886703 +0000
+@@ -3,19 +3,19 @@
+ .\"
+ .TH GINQ_TEXT_PATH 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-ginq_text_path (Inquire text path) - retrieves the current text path.
++ginq_text_path \- retrieves the current text path
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+ void ginq_text_path(Gint *err_ind, Gtext_path *text_path);
+ .SH DESCRIPTION
+ .IP err_ind 12
+-(Output) - If the inquired value cannot be returned correctly,
++(Output) \- If the inquired value cannot be returned correctly,
+ a non-zero error indicator is returned in err_ind, otherwise a zero is returned.
+ Consult "User's Guide for NCAR GKS-0A Graphics" for a description of the
+ meaning of the error indicators.
+ .IP text_path 12
+-(Output) - Returns the current text path as set by default or
++(Output) \- Returns the current text path as set by default or
+ by a call to gset_text_path.  Legal values are:
+ .RS
+ .IP GPATH_RIGHT
+Index: ncl-6.1.2/ncarg2d/man/gksC/gopen_gks.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gopen_gks.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gopen_gks.m	2014-03-01 11:17:15.697935904 +0000
+@@ -3,17 +3,17 @@
+ .\"
+ .TH GOPEN_GKS 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-gopen_gks (Open GKS) - opens the GKS package
++gopen_gks \- opens the GKS package
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+ void gopen_gks(const char *err_file, size_t mem_unit);
+ .SH DESCRIPTION
+ .IP err_file 12
+-(Input) - The place to which error messages are to be written. 
++(Input) \- The place to which error messages are to be written. 
+ Typically this should be "stdout".
+ .IP mem_unit 12
+-(Input) - The dimension of an internal buffer. 
++(Input) \- The dimension of an internal buffer. 
+ Currently in NCAR GKS-0A, mem_unit is ignored.
+ .SH USAGE
+ To get output to any workstation,
+Index: ncl-6.1.2/ncarg2d/man/gksC/gopen_ws.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gopen_ws.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gopen_ws.m	2014-03-01 11:17:34.721968995 +0000
+@@ -3,64 +3,64 @@
+ .\"
+ .TH GOPEN_WS 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-gopen_ws (Open workstation) - opens a GKS workstation.
++gopen_ws \- opens a GKS workstation
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+ void gopen_ws(Gint ws_id, const char *conn_id, Gint ws_type);
+ .SH DESCRIPTION
+ .IP ws_id 12
+-(Input) - A number assigned to a workstation as an identifier 
++(Input) \- A number assigned to a workstation as an identifier 
+ that is to be used in all subsequent calls to GKS functions that
+ require a workstation identifier.  In NCAR GKS, ws_id can 
+ be any non-negative integer. 
+ .IP conn_id 12
+-(Input) - A connection identifier that has different 
++(Input) \- A connection identifier that has different 
+ meanings for different workstation types (see the USAGE section
+ below).
+ .IP ws_type 12
+-(Input) - An identifier specifying
++(Input) \- An identifier specifying
+ the specific type of output device targeted.  Each GKS package has
+ an implementation-dependent set of workstation types that the
+ package supports.  The legal workstation types in NCAR GKS are:
+ .IP "             1" 18
+--  NCGM
++\-  NCGM
+ .IP "             3" 18
+--  WISS
++\-  WISS
+ .IP "             7" 18
+--  pre-existing X11 window.
++\-  pre-existing X11 window.
+ .IP "             8" 18
+--  non-existing X11 window.
++\-  non-existing X11 window.
+ .IP "            10" 18
+--  text dump of graphics output.
++\-  text dump of graphics output.
+ .IP "            11" 18
+--  PDF in portrait mode.
++\-  PDF in portrait mode.
+ .IP "            12" 18
+--  PDF in landscape mode.
++\-  PDF in landscape mode.
+ .IP "            20" 18
+--  color PostScript in portrait mode.
++\-  color PostScript in portrait mode.
+ .IP "            21" 18
+--  color Encapsulated PostScript (EPS) in portrait mode.
++\-  color Encapsulated PostScript (EPS) in portrait mode.
+ .IP "            22" 18
+--  color Encapsulated PostScript Interchange format (EPSI) in portrait mode.
++\-  color Encapsulated PostScript Interchange format (EPSI) in portrait mode.
+ .IP "            23" 18
+--  monochrome PostScript in portrait mode.
++\-  monochrome PostScript in portrait mode.
+ .IP "            24" 18
+--  monochrome Encapsulated PostScript (EPS) in portrait mode.
++\-  monochrome Encapsulated PostScript (EPS) in portrait mode.
+ .IP "            25" 18
+--  monochrome Encapsulated PostScript Interchange format (EPSI) in portrait mode.
++\-  monochrome Encapsulated PostScript Interchange format (EPSI) in portrait mode.
+ .IP "            26" 18
+--  color PostScript in landscape mode.
++\-  color PostScript in landscape mode.
+ .IP "            27" 18
+--  color Encapsulated PostScript (EPS) in landscape mode.
++\-  color Encapsulated PostScript (EPS) in landscape mode.
+ .IP "            28" 18
+--  color Encapsulated PostScript Interchange format (EPSI) in landscape mode.
++\-  color Encapsulated PostScript Interchange format (EPSI) in landscape mode.
+ .IP "            29" 18
+--  monochrome PostScript in landscape mode.
++\-  monochrome PostScript in landscape mode.
+ .IP "            30" 18
+--  monochrome Encapsulated PostScript (EPS) in landscape mode.
++\-  monochrome Encapsulated PostScript (EPS) in landscape mode.
+ .IP "            31" 18
+--  monochrome Encapsulated PostScript Interchange format (EPSI) in landscape mode.
++\-  monochrome Encapsulated PostScript Interchange format (EPSI) in landscape mode.
+ .SH USAGE
+ For workstation types of 1 (CGM)
+ the connection ID is the name of the CGM file.
+Index: ncl-6.1.2/ncarg2d/man/gksC/gpolyline.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gpolyline.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gpolyline.m	2014-03-01 11:28:51.647162227 +0000
+@@ -3,17 +3,18 @@
+ .\"
+ .TH GPOLYLINE 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-gpolyline (Polyline) - This output primitive draws
+-line segments connecting a sequence of user-specified coordinate pairs.
++gpolyline Draw line segments connecting a sequence of user-specified coordinate pairs
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+ void gpolyline(const Gpoint_list *point_list);
+ .SH DESCRIPTION
++gpolyline (Polyline) \- This output primitive draws
++line segments connecting a sequence of user-specified coordinate pairs.
+ .IP point_list.num_points 12
+-(Gint, Input) - The number of points in the line to be drawn. Must be larger than one.
++(Gint, Input) \- The number of points in the line to be drawn. Must be larger than one.
+ .IP point_list.points 12
+-(Gint *, Input) - The X and Y coordinates (specified in world coordinates) of 
++(Gint *, Input) \- The X and Y coordinates (specified in world coordinates) of 
+ the point_list.num_points points to be connected by line segments.  
+ .SH USAGE
+ Note that the coordinate pairs must be in world coordinates and not
+Index: ncl-6.1.2/ncarg2d/man/other/ncargex.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/other/ncargex.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/other/ncargex.m	2014-03-01 11:05:28.380688305 +0000
+@@ -61,51 +61,52 @@
+ .sp
+ .SH OPTIONS
+ .sp
+-.IP \-W workstation_type " " ""
++.IP "             1" 18
++\-W workstation_type 
+ Specify the workstation type.  This argument can be specified as a number
+ or as a string, where the number has the same value you would use in a call
+ to GOPWK.  The following numbers are valid:
+ .IP "             1" 18
+--  NCGM
++\-  NCGM
+ .IP "             8" 18
+--  X11 window.
++\-  X11 window.
+ .IP "            10" 18
+--  text dump of graphics output.
++\-  text dump of graphics output.
+ .IP "            20" 18
+--  color PostScript in portrait mode.
++\-  color PostScript in portrait mode.
+ .IP "            21" 18
+--  color Encapsulated PostScript (EPS) in portrait mode.
++\-  color Encapsulated PostScript (EPS) in portrait mode.
+ .IP "            22" 18
+--  color Encapsulated PostScript Interchange format (EPSI) in portrait mode.
++\-  color Encapsulated PostScript Interchange format (EPSI) in portrait mode.
+ .IP "            23" 18
+--  monochrome PostScript in portrait mode.
++\-  monochrome PostScript in portrait mode.
+ .IP "            24" 18
+--  monochrome Encapsulated PostScript (EPS) in portrait mode.
++\-  monochrome Encapsulated PostScript (EPS) in portrait mode.
+ .IP "            25" 18
+--  monochrome Encapsulated PostScript Interchange format (EPSI) in portrait mode.
++\-  monochrome Encapsulated PostScript Interchange format (EPSI) in portrait mode.
+ .IP "            26" 18
+--  color PostScript in landscape mode.
++\-  color PostScript in landscape mode.
+ .IP "            27" 18
+--  color Encapsulated PostScript (EPS) in landscape mode.
++\-  color Encapsulated PostScript (EPS) in landscape mode.
+ .IP "            28" 18
+--  color Encapsulated PostScript Interchange format (EPSI) in landscape mode.
++\-  color Encapsulated PostScript Interchange format (EPSI) in landscape mode.
+ .IP "            29" 18
+--  monochrome PostScript in landscape mode.
++\-  monochrome PostScript in landscape mode.
+ .IP "            30" 18
+--  monochrome Encapsulated PostScript (EPS) in landscape mode.
++\-  monochrome Encapsulated PostScript (EPS) in landscape mode.
+ .IP "            31" 18
+--  monochrome Encapsulated PostScript Interchange format (EPSI) in landscape mode.
++\-  monochrome Encapsulated PostScript Interchange format (EPSI) in landscape mode.
+ 
+ .IP "" 0
+ If you want to specify the workstation as a string, then there are a
+ few ways this can be done.  For example, the following workstation types
+ are valid:
+ .IP "             ncgm" 18
+--  NCGM
++\-  NCGM
+ .IP "             x11" 18
+--  X11 window
++\-  X11 window
+ .IP "            text" 18
+--  text dump of graphics output
++\-  text dump of graphics output
+ 
+ .IP "" 0
+ For PostScript output, there are more attributes: the type of
+@@ -117,14 +118,14 @@
+ Each attribute can be entered in any order, separated by periods.  The
+ following are examples of valid PostScript workstation types: 
+ .IP "ps.color" 18
+-- color PostScript in portrait mode.  
++\- color PostScript in portrait mode.  
+ .IP "land.eps.mono" 18
+-- monochrome Encapsulated PostScript format (EPS) in
++\- monochrome Encapsulated PostScript format (EPS) in
+ landscape mode.
+ .IP "epsi" 18
+-- color Encapsulated PostScript Interchange format (EPSI) in portrait mode.
++\- color Encapsulated PostScript Interchange format (EPSI) in portrait mode.
+ .IP "port.mono.ps" 18
+--  monochrome PostScript in portrait mode.
++\-  monochrome PostScript in portrait mode.
+ .sp
+ Any combination of these three types of attributes can be used, as long
+ as one of them is the PostScript file type.
+Index: ncl-6.1.2/ncarview/man/cgm.m
+===================================================================
+--- ncl-6.1.2.orig/ncarview/man/cgm.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarview/man/cgm.m	2014-03-01 11:05:28.380688305 +0000
+@@ -203,9 +203,9 @@
+ to work with. Should the data length of a CGM instruction exceed 32760 bytes,
+ indicated by the boolean \fImore\fR flag,
+ the next invocation of \fBCGM_getInstr\fR will return the remaining data
+-upto the same limit. And so on... \fBCGMgetInstr\R requires a valid
+-\fICgm_fd\fR open for reading. For a description on CGM see the 
+-ANSI standard.
++up to the same limit, etc.
++\fBCGMgetInstr\fR requires a valid \fICgm_fd\fR open for reading. 
++For a description on CGM see the ANSI standard.
+ .IP CGM_flushGetInstr
+ Flush the input buffer used by \fBCGM_getInstr\fR. \fBCGM_getInstr\fR buffers
+ the contents of the CGM and only performs actual reads as necessary. If the
+Index: ncl-6.1.2/ncarview/man/med.m
+===================================================================
+--- ncl-6.1.2.orig/ncarview/man/med.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarview/man/med.m	2014-03-01 11:07:13.844874249 +0000
+@@ -438,7 +438,7 @@
+ option or enter the commands interactively.
+ .sp
+ .IP
+-.fb
++.br
+ r ncgm1
+ .br
+ r ncgm2
+@@ -446,7 +446,7 @@
+ r ncgm3
+ .br
+ w ncgm123
+-.fr
++.br
+ .sp
+ .LP
+ To Overlay the contents of frame
+Index: ncl-6.1.2/ngmath/man/natgrid/nnalg.m
+===================================================================
+--- ncl-6.1.2.orig/ngmath/man/natgrid/nnalg.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ngmath/man/natgrid/nnalg.m	2014-03-01 11:05:28.380688305 +0000
+@@ -5,7 +5,7 @@
+ .na
+ .nh
+ .SH NAME
+-nnalg - a tool for displaying features of the Natgrid algorithm
++nnalg \- a tool for displaying features of the Natgrid algorithm
+ .SH SYNOPSIS
+ nnalg algorithmic_data_file
+ .SH DESCRIPTION 
+@@ -34,7 +34,7 @@
+ .br
+   3. The Delaunay triangulation, derived from the natural
+      neighbor circumcircles 
+-.bo
++.br
+   4. The Voronoi polygons 
+ .br
+   5. The first order natural neighbors of a given 
+Index: ncl-6.1.2/ncarg2d/man/gks/gqchh.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gks/gqchh.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gks/gqchh.m	2014-03-01 11:30:07.431295943 +0000
+@@ -3,7 +3,7 @@
+ .\"
+ .TH GQCHH 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-GQCHH (Inquire character height) - retrieves the current character height.
++gqchh \- retrieves the current character height
+ .SH SYNOPSIS
+ CALL GQCHH (ERRIND, CHH)
+ .SH C-BINDING SYNOPSIS
+@@ -12,12 +12,12 @@
+ void ginq_char_ht(Gint *err_ind, Gdouble *char_ht);
+ .SH DESCRIPTION
+ .IP ERRIND 12
+-(Integer, Output) - If the inquired value cannot be returned correctly,
++(Integer, Output) \- If the inquired value cannot be returned correctly,
+ a non-zero error indicator is returned in ERRIND, otherwise a zero is returned.
+ Consult "User's Guide for NCAR GKS-0A Graphics" for a description of the
+ meaning of the error indicators.
+ .IP CHH 12
+-(Real, Output) - 
++(Real, Output) \- 
+ Contains the current character height as set by default or by GSCHH.
+ .SH ACCESS
+ To use GKS routines, load the NCAR GKS-0A library 
+Index: ncl-6.1.2/ncarg2d/man/gksC/gpolymarker.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/gksC/gpolymarker.m	2014-03-01 11:05:28.388688292 +0000
++++ ncl-6.1.2/ncarg2d/man/gksC/gpolymarker.m	2014-03-01 11:29:31.087234444 +0000
+@@ -3,17 +3,18 @@
+ .\"
+ .TH GPOLYMARKER 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
+ .SH NAME
+-gpolymarker (Polymarker) - the polymarker output primitive draws selected
+-symmetric symbols to mark user-specified coordinate positions.
++gpolymarker \- Otput primitive to draw selected symmetric symbols
+ .SH SYNOPSIS
+ #include <ncarg/gks.h>
+ .sp
+ void gpolymarker(const Gpoint_list *point_list);
+ .SH DESCRIPTION
++The polymarker output primitive draws selected
++symmetric symbols to mark user-specified coordinate positions.
+ .IP point_list.num_points 12
+-(Gint, Input) - The number of markers to be drawn.  Must be greater than zero.
++(Gint, Input) \- The number of markers to be drawn.  Must be greater than zero.
+ .IP point_list.points 12
+-(Gpoint *, Input) - The X and Y coordinates of the point_list.num_points 
++(Gpoint *, Input) \- The X and Y coordinates of the point_list.num_points 
+ markers to be drawn, in world coordinates.
+ .SH USAGE
+ By default, the polymarker type is an asterisk. To 
+Index: ncl-6.1.2/ncarg2d/man/other/findg.m
+===================================================================
+--- ncl-6.1.2.orig/ncarg2d/man/other/findg.m	2014-03-01 09:48:41.000000000 +0000
++++ ncl-6.1.2/ncarg2d/man/other/findg.m	2014-03-01 11:07:03.208855496 +0000
+@@ -2,7 +2,7 @@
+ .\"	$Id: findg.m,v 1.11 2008-07-27 03:34:10 haley Exp $
+ .\"
+ .\"	findg.l 3.00 11/15/89 NCAR Graphics
+-.TH FINDG lNCARG "NOVEMBER 1989" NCAR "NCAR Graphics"
++.TH FINDG 1NCARG "NOVEMBER 1989" NCAR "NCAR Graphics"
+ .SH NAME
+ findg \- locates calls to all entries in pre-GKS NCAR Graphics
+ .SH SYNOPSIS

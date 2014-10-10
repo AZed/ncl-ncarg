@@ -1,0 +1,138 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Silence false-alarm alerts on fprintf format=security error
+Last-Updated: 2014-01-01
+Forwarded: no
+
+Index: ncl-6.2.0/common/src/libncarg_c/options.c
+===================================================================
+--- ncl-6.2.0.orig/common/src/libncarg_c/options.c
++++ ncl-6.2.0/common/src/libncarg_c/options.c
+@@ -869,7 +869,7 @@ void	PrintOptionHelp(od, fp)
+ 			sprintf(sbf," arg0 .. arg%d",odr[i].arg_count-1);
+ 			(void) strcat(buf, sbf);
+ 		}
+-		(void) fprintf(fp, buf);
++		(void) fprintf(fp,"%s", buf);
+ 		for(j=strlen(buf); j<sizeof(buf); j++) {
+ 			putc(' ', fp);
+ 		}
+Index: ncl-6.2.0/ncarg2d/src/libncarg_gks/cdrivers/ps.c
+===================================================================
+--- ncl-6.2.0.orig/ncarg2d/src/libncarg_gks/cdrivers/ps.c
++++ ncl-6.2.0/ncarg2d/src/libncarg_gks/cdrivers/ps.c
+@@ -3430,8 +3430,8 @@ void ps_NcarLogo(GKSC *gksc,float x,floa
+                    scaling*(psa->dspace.urx), scaling*(psa->dspace.ury));
+   }
+ 
+-  (void) fprintf(fp, translate);
+-  (void) fprintf(fp, scale);
++  (void) fprintf(fp, "%s", translate);
++  (void) fprintf(fp, "%s", scale);
+   (void) fprintf(fp, "-40 33 translate\n");
+   (void) fprintf(fp, "1 -1 scale\n");
+   free(scale);
+Index: ncl-6.2.0/ncarg2d/src/libncarg_gks/cdrivers/pdf.c
+===================================================================
+--- ncl-6.2.0.orig/ncarg2d/src/libncarg_gks/cdrivers/pdf.c
++++ ncl-6.2.0/ncarg2d/src/libncarg_gks/cdrivers/pdf.c
+@@ -398,10 +398,10 @@ void PDFpreamble (PDFddp *psa, preamble_
+     object_pointer[0] = byte_count;
+ 
+     strn = "%%PDF-1.4\n";      /* Double % prints as a single % */
+-    (void) fprintf(fp, strn);  /* Double % prints as a single % */
++    (void) fprintf(fp, "%s", strn);  /* Double % prints as a single % */
+     byte_count += 9;           /* Double % prints as a single % */
+     strn = "%%\307\354\217\242\n";
+-    (void) fprintf(fp, strn);
++    (void) fprintf(fp, "%s", strn);
+     byte_count += 6;        
+   
+     object_number = 2;
+@@ -1783,7 +1783,7 @@ int PDFCloseWorkstation(GKSC *gksc)
+  */
+   object_pointer[1] = byte_count;
+   tstring = " 1 0 obj\n<<\n/Type /Pages\n/Kids [\n";
+-  fprintf(fp,tstring);
++  fprintf(fp,"%s", tstring);
+   byte_count += strlen(tstring);
+ 
+   for (i = 0; i < psa->page_number-1; i++) {
+@@ -1795,7 +1795,7 @@ int PDFCloseWorkstation(GKSC *gksc)
+   byte_count += 16;
+ 
+   tstring = ">>\nendobj\n";
+-  fprintf(fp,tstring);
++  fprintf(fp,"%s", tstring);
+   byte_count += strlen(tstring);
+ 
+ /*
+@@ -3646,7 +3646,7 @@ void PDFPutStream(FILE *fp) {
+   fprintf(fp, "%6d 0 obj\n<< /Length %10d >>\nstream\n",object_number+1,
+                stream_size);
+   for (i = 0; i < num_page_lines+1; i++) {
+-    fprintf(fp,page_lines[i]);
++    fprintf(fp,"%s",page_lines[i]);
+     fflush(fp);
+   }
+   fprintf(fp, "endstream\nendobj\n");
+Index: ncl-6.2.0/ni/src/ncl/NclGRIB.c
+===================================================================
+--- ncl-6.2.0.orig/ni/src/ncl/NclGRIB.c
++++ ncl-6.2.0/ni/src/ncl/NclGRIB.c
+@@ -2660,7 +2660,7 @@ GribFileRecord *therec;
+ 		if (cp && ! strcmp(cp,"_hours")) {
+ 			if ((NrmQuark)therec->options[GRIB_INITIAL_TIME_COORDINATE_TYPE_OPT].values == NrmStringToQuark("numeric"))
+ 				continue;
+-			sprintf(buffer,NrmQuarkToString(dimq));
++			sprintf(buffer,"%s",NrmQuarkToString(dimq));
+ 			cp = strrchr(buffer,'_');
+ 			*cp = '\0';
+ 			newdimq = NrmStringToQuark(buffer);
+Index: ncl-6.2.0/ncarg2d/src/bin/logos/ncarlogo2ps.c
+===================================================================
+--- ncl-6.2.0.orig/ncarg2d/src/bin/logos/ncarlogo2ps.c
++++ ncl-6.2.0/ncarg2d/src/bin/logos/ncarlogo2ps.c
+@@ -310,9 +310,9 @@ void InsertLogo(float angle, float size,
+   sprintf(rotate,"%10.2f ", angle);
+   sprintf(rotate+11,"rotate\n");
+ 
+-  (void) fprintf(fp, translate);
+-  (void) fprintf(fp, scale);
+-  (void) fprintf(fp, rotate);
++  (void) fprintf(fp, "%s", translate);
++  (void) fprintf(fp, "%s",scale);
++  (void) fprintf(fp, "%s", rotate);
+   free(translate);
+   free(scale);
+   free(rotate);
+Index: ncl-6.2.0/ni/src/mkwrap/wrapit_main.c
+===================================================================
+--- ncl-6.2.0.orig/ni/src/mkwrap/wrapit_main.c
++++ ncl-6.2.0/ni/src/mkwrap/wrapit_main.c
+@@ -267,7 +267,7 @@ main(int argc,char* argv[])
+ 	char *type = "NclANY";
+ 	
+ 
+-	fprintf(stdout,initial_fmt);
++	fprintf(stdout,"%s", initial_fmt);
+ 	if(!yyparse()) {
+ /*
+ 		tmp = wrap_list;
+@@ -277,7 +277,7 @@ main(int argc,char* argv[])
+ 			
+ 		}
+ */
+-		fprintf(stdout,init_fmt);
++		fprintf(stdout,"%s",init_fmt);
+ 		tmp = wrap_list;
+ 		while(tmp!= NULL) {
+ 			fprintf(stdout,"\tnargs = 0;\n");
+@@ -357,7 +357,7 @@ main(int argc,char* argv[])
+ 			}
+ 			tmp = tmp->next;
+ 		}
+-		fprintf(stdout,endf_fmt);
++		fprintf(stdout,"%s",endf_fmt);
+ 		exit(0);
+ 	} else {
+ 		fprintf(stdout,"Everything is NOT ok!\n");

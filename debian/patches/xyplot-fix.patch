@@ -1,0 +1,29 @@
+Author: Alastair McKinstry <mckinstry@debian.org>
+Description: Fix missing headers.
+Last-Updated: 2013-04-20
+Forwarded: no
+
+Index: ncl-6.1.2/ni/src/examples/xyplot/xy12c.c
+===================================================================
+--- ncl-6.1.2.orig/ni/src/examples/xyplot/xy12c.c	2014-02-24 16:28:21.000000000 +0000
++++ ncl-6.1.2/ni/src/examples/xyplot/xy12c.c	2014-02-24 16:28:29.000000000 +0000
+@@ -30,6 +30,7 @@
+ #include <ncarg/hlu/NcgmWorkstation.h>
+ #include <ncarg/hlu/XyPlot.h>
+ #include <ncarg/hlu/CoordArrTable.h>
++#include <ncarg/hlu/CairoWorkstation.h>
+ #include <Xm/Xm.h>
+ #include <Xm/AtomMgr.h>
+ #include <Xm/Protocols.h>
+Index: ncl-6.1.2/ni/src/examples/xyplot/xy13c.c
+===================================================================
+--- ncl-6.1.2.orig/ni/src/examples/xyplot/xy13c.c	2014-02-24 16:28:21.000000000 +0000
++++ ncl-6.1.2/ni/src/examples/xyplot/xy13c.c	2014-02-24 16:28:29.000000000 +0000
+@@ -27,6 +27,7 @@
+ #include <ncarg/hlu/App.h>
+ #include <ncarg/hlu/CoordArrTable.h>
+ #include <ncarg/hlu/XyPlot.h>
++#include <ncarg/hlu/CairoWorkstation.h>
+ #include <Xm/Xm.h>
+ #include <Xm/Protocols.h>
+ #include <Xm/Form.h>
