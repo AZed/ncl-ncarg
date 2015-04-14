@@ -1,0 +1,14 @@
+#
+#	$Id: yMakefile,v 1.6 2006/12/01 16:42:46 grubin Exp $
+#
+
+#define	IHaveSubdirs
+SUBDIRS = rgb colormaps udunits grib2_codetables
+
+DBFILES = NhlMapData
+
+InstallTarget($(DBFILES),$(INSTALL_DB),$(DBPATH))
+#ifdef BuildPyNGL
+InstallTarget($(DBFILES),$(INSTALL_DB),$(PYNGLNCARGPATH)/$(DBDIR))
+#endif
+

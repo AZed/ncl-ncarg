@@ -1,0 +1,1269 @@
+#!/bin/csh -f
+#
+#       $Id: ncl_convert2nc,v 1.12 2008/10/02 22:20:16 dbrown Exp $
+
+#       Copyright (C) 2005
+#       University Corporation for Atmospheric Research
+#       All Rights Reserved
+
+#       File:       ncl_convert2nc
+#       Author:     Rick Grubin
+#                   Original NCL code written by Dennis Shea
+#
+#       National Center for Atmospheric Research
+#       POB 3000, Boulder, Colorado
+
+# This script converts a NCL-supported file type (GRIB[1, 2], HDF, HDF-EOS) to a
+# netCDF-formatted file.
+# It does not handle CCM data.  See:  http://www.cgd.ucar.edu/cms/ccm3/tools.
+#
+# This script determines what data type it was invoked with based on the suffix of the data
+# file(s) provided to it.  Data must be of a type supported by NCL.  This information is
+# provided to the NCL portion of this script for data-dependent processing.
+#
+#   ncl_convert2nc inputFile [-i input_directory] [-o output_directory] [-v var1[,...]] [-t] [-c comment] [-d] [-h]
+#       inputFile             name of file [required]
+#       [-i input_directory]  location of input file  [default: current directory]
+#       [-o output_directory] location of output file [default: current directory]
+#       [-e extension]        file type, defined by extension, to convert
+#       [-u time_name]        name of the NCL-named time dimension to be UNLIMITED
+#       [-U new_time_name]    if -u is specified, will rename the NCL-named time dimension for netCDF 
+#       [-sed sed1[,...]]     GRIB files only; set single element dimensions [default: none]
+#                                choices are initial_time, forecast_time, level, ensemble,
+#                                probability, all, none"
+#       [-itime]              GRIB files only; set initial time as a single element dimension
+#                                (same as -sed initial_time)
+#       [-ftime]              GRIB files only; set forecast time as a single element dimension
+#                                  (same as -sed forecast_time)
+#       [-tps]                GRIB files only; remove suffix representing a time period (e.g. 2h)
+#                             from statistically processed variables, leaving only type of
+#                             processing as a suffix (e.g. _acc, _avg)
+#       [-v var1[,...]]       user specified subset of variables [default: all variables]
+#       [-L]                  support for writing large (>2Gb) netCDF files [default: no largefile support]
+#       [-c comment]          text to be included in netCDF file attribute [default: no comment]
+#       [-d]                  upon exit: print contents of each netCDF file [like ncdump -h]
+#       [-B] <file>           suppress informational messages; redirect messages to <file> if present [default: /dev/null]
+#       [-h]                  usage message
+
+onintr CLEANUP
+
+set progname = `basename $0`
+if ($#argv < 1) then
+    goto USAGE
+endif
+
+# Location to write temporary files
+set tmpdir = `ncargpath tmp`
+
+# Input and output directories default values
+set valid_file = 0
+set idirs = ()
+set hasdirin = 0
+set dirin = `pwd`
+set dirout = `pwd`
+
+#
+# Default values for script commandline parameters for NCL commands
+#
+set time_name = ""
+set TIME_NAME = ""
+unset tmnm_set
+unset TMNM_set
+
+unset vars
+set nvars = 0
+
+set ncdfcomment = ""
+set ncdflrgf_t = "classic"
+
+# Single Element Dimension variables
+set seDims_t = ""
+set singleElemDims = ""
+set sed_n = 0
+set sed_nt = 0
+set sed_args = ""
+set seds = ( '\(/'\\\"None\\\"'/\)' )
+
+# Time Period Suffix variables
+set tps = True
+
+#
+# Background/redirect mode
+#
+set fout = ""
+set d_fout = "/dev/null"
+set std_rd = ""
+set f_rdir = ""
+set redirect = 0
+
+# Display resultant netCDF file when done
+unset printonexit
+
+# Suffix for all file arguments provided (default == none provided)
+set have_esfx = 0
+
+# Tell NCL to not echo its copyright notice
+# This is not an advertised option
+set noCN = ""
+
+#
+# First argument should be the input file(s); if it's not, exit.
+# Check to see if the first argument contains a "-"
+#
+set hasdash = `echo $1 | awk '{print substr($0, 1, 1)}'`
+if ("$hasdash" == "-") then
+    goto USAGE
+endif
+
+#
+# Collect the file arguments, check them later -- need the "-i" ("dirin")
+# argument prior to checking for unqualified full/partial pathnames.  
+#
+# It's impossible to know if file arguments are valid at this point, so
+# assume that if an argument has a "-" as its first character, it's an
+# option and there are no (more) file arguments.
+#
+# NOTE: Bogus filenames are still *kept* at this point.
+#
+set nfiles = 0
+set ifiles_t = ()
+while ($#argv > 0)
+    set hasdash = `echo $1 | awk '{print substr($0, 1, 1)}'`
+    if ("$hasdash" != "-") then
+        set ifiles_t = ( $ifiles_t $1 )
+        @ nfiles += 1
+        shift
+    else
+        break
+    endif
+end
+
+#
+# Parse options/arguments
+#
+while ($#argv > 0)
+    switch ($1)
+        case "-i":
+        case "-in":
+        case "-input":
+            shift
+            set dirin = $1
+            set len = `echo $dirin | awk '{print length($0)}'`
+            if ($len > 0) then
+                shift
+                set hasdirin = 1
+            else
+                echo "${progname}: no input directory specified, defaulting to current directory."
+            endif
+            breaksw
+
+        case "-o":
+        case "-out":
+        case "-output":
+            shift
+            set dirout = $1
+            set len = `echo $dirout | awk '{print length($0)}'`
+            if ($len > 0) then
+                shift
+            else
+                echo "${progname}: no output directory specified, defaulting to current directory."
+            endif
+            breaksw
+
+        case "-e":
+        case "-ext":
+        case "-extension";
+            shift
+            set esfx = "$1"
+            set len = `echo $esfx | awk '{print length($0)}'`
+            if ($len > 0) then
+                set have_esfx = 1
+                shift
+            else
+                echo "${progname}: no file extension specified, ignoring."
+            endif
+            breaksw
+
+        case "-d"
+            set printonexit = 1
+            shift
+            breaksw
+
+        case "-u":
+        case "-unlim":
+            shift
+            set time_name = "$1"
+            set len = `echo $time_name | awk '{print length($0)}'`
+            if ($len > 0) then
+                shift
+                set tmnm_set = 1
+            else
+                echo "${progname}: no NCL unlimited time dimension specified, ignoring."
+            endif
+            breaksw
+
+        case "-U":
+            shift
+            set TIME_NAME = "$1"
+            set len = `echo $TIME_NAME | awk '{print length($0)}'`
+            if ($len > 0) then
+                shift
+                set TMNM_set
+            else
+                echo "${progname}: no NCL-named time dimension specified for renaming, ignoring."
+            endif
+            breaksw
+
+	case "-itime"
+            @ sed_n = ($sed_n + 1)
+            set seDims_t = `echo $seDims_t "initial_time"`
+            shift
+            breaksw
+ 
+        case "-ftime"
+             @ sed_n = ($sed_n + 1)
+             set seDims_t = `echo $seDims_t "forecast_time"`
+             shift
+             breaksw
+
+        case "-sed":
+        case "-singleelemdims":
+        case "-singleElemDims":
+            shift
+            set sed_args = "$1"
+
+            # Determine number of args (count commas)
+            set sed_nt = `echo $* | awk -F, '{print NF}'`
+            if ($sed_nt == 0) then
+                echo "${progname}: no single element dimension(s) specified." ; echo
+                breaksw
+            endif
+
+            set sac = `echo $* | sed 's/, /,/g'`
+            set sa = $sac[1]
+            shift
+
+            set sedline = `echo $sa | sed 's/,/ /g'`
+            set seds = ( '\(/' )
+            set n = 1
+            while ($n < $sed_nt)
+                set i  = `expr $n + 1`
+                set s = $sedline[$n]
+                set seds = ( $seds\\\"$s\\\"\',\' )
+                @ n = ($n + 1)
+            end
+            set s = $sedline[$n]
+            set seds = ( $seds\\\"$s\\\" )
+	    
+            breaksw
+
+        case "-tps":
+        case "-timeperiodsuffix":
+        case "-timePeriodSuffix":
+        case "-TimePeriodSuffix":
+            shift
+            set tps = False
+            breaksw
+
+        case "-v":
+        case "-var":
+        case "-vars":
+        case "-variable":
+        case "-variables":
+            shift
+
+            # Determine number of variables specified (count commas)
+            # set ncommas = `echo $* | tr -cd '\,' | wc -c`
+            # set ncommas = `echo $* | awk '{print(gsub(/,/, " "))}'`
+            set ncommas = `echo $* | awk -F, '{print NF - 1}'`
+            if ($ncommas == 0) then
+                # only one variable, or none?
+                set isopt = `echo $1 | grep -c '-'`
+                set isfile = `echo $1 | grep -c '\.'`
+                if ($isopt != 0  ||  $isfile != 0) then
+                    echo "${progname}: warning: no variable(s) specified." ; echo
+                    breaksw
+                endif
+            endif
+
+            set nvars = `expr $ncommas + 1`
+            # handle "space after commas" case
+            set psv = `echo $* | sed 's/, /,/g'`
+            set pvars = $psv[1]
+            shift
+
+            # Build array of variables as strings, quote so as to pass thru the shell
+            set vline = `echo $pvars | sed 's/,/ /g'`
+            set vars = ( '\(/' )
+            set n = 1
+            while ($n < $nvars)
+                set v = $vline[$n]
+                set vars = ( $vars\\\"$v\\\"\',\' )
+                @ n = ($n + 1)
+            end
+
+            # Catch the last variable
+            set vars = ( $vars\\\"$vline[$n]\\\"'/\)' )
+            breaksw
+
+        case "-L":
+            set ncdflrgf_t = "64bitoffset"
+            shift
+            breaksw
+
+        case "-c":
+        case "-comment":
+            shift
+            set ncdfcomment = "$1"
+            shift
+            breaksw
+
+        case "-B":
+        case "-redirect":
+            set fout = $d_fout
+            shift
+            if ("$1" == "") then
+                # no redirection file specified, use default
+                set std_rd = ">&! $fout &"
+                set f_rdir = "$tmpdir/tmp$$.rdr"
+                set redirect = 1
+                breaksw
+            else
+                set hasdash = `echo $1 | awk '{print substr($0, 1, 1)}'`
+                if ("$hasdash" != "-") then
+                    set fout = "$1"
+                    set std_rd = ">& $fout &"
+                    set f_rdir = "$tmpdir/tmp$$.rdr"
+                    set redirect = 1
+                shift
+                endif
+            endif
+            breaksw
+
+        case "-h":
+        case "-help":
+        case "--help":
+            goto USAGE
+            exit 0
+            breaksw
+
+        case "-Q":
+        case "-nocopyrightnotice":
+        case "-noCopyrightNotice":
+            shift
+            set noCN = "-Q"
+            breaksw
+
+        case "-*":
+            echo "${progname}: warning: '$1' is not a valid option, ignoring." ; echo
+            shift
+            breaksw
+
+        default:
+            echo "${progname}: warning: '$1' is not a valid argument, ignoring." ; echo
+            shift
+            breaksw
+    endsw
+end
+
+#
+# If "-U" (rename NCL-name time dimension) was specified, "-u" (UNLIMITED dimension)
+# had to also be specified.
+#
+if ($?tmnm_set && ! $?TMNM_set) then
+    echo "NCL-named time dimension '$time_name' specified for renaming, but"
+    echo "new netCDF time dimension not named; ignoring '$time_name'."
+endif
+
+if ($?TMNM_set && ! $?tmnm_set) then
+    echo "New netCDF time dimension '$TIME_NAME' specified but no NCL-named time"
+    echo "dimension to rename was specified; ignoring '$TIME_NAME'."
+endif
+
+#
+# Single Element Dimensions
+# set_nt has the count from the -sed option sed_n has count of -itime and -ftime
+
+if ($sed_nt > 0 && $sed_n > 0) then
+    @ i = 1
+    while ($i <= $sed_n)
+        set seds = ( $seds\',\'\\\"$seDims_t[$i]\\\" )
+        @ i = ($i + 1)
+    end
+else if ($sed_n > 0) then
+    @ i = 1
+    set seds = ( '\(/'\\\"$seDims_t[$i]\\\" )
+    @ i = ($i + 1)
+    while ($i <= $sed_n)
+        set seds = ( $seds\',\'\\\"$seDims_t[$i]\\\" )
+        @ i = ($i + 1)
+    end
+else if ($sed_nt == 0) then
+    set seds = ( '\(/'\\\"none\\\" )
+endif
+set seds = ( $seds'/\)' )
+
+#
+# Split filenames into (full, relative) paths and filenames.  This will
+# ensure that file arguments entered with full/relative paths are properly
+# accounted for.  Files without a path will be assigned the value given
+# with the "-i" switch (or its default if "-i" is not used).
+#
+# Check existence/readability of input file arguments; eliminate invalid entries.
+# Guarantees a one-to-one correspondence between input and output file entries.
+#
+# No check is performed to determine if a file contains valid data; it is assumed
+# that the user provides properly formatted data (regardless of filename).
+#
+set n = 1
+set nbadf = 0
+set ifiles = ()
+set ifiles_r = ()
+set ofiles = ()
+set ftypes = ()
+
+while ($n <= $nfiles)
+    #
+    # Was a URL provided?  This requires an OPeNDAP-enabled NCL.  If
+    # it's a URL, don't bother verifying the file suffix.
+    #
+    set http = `echo $ifiles_t[$n] | awk '{print index($0, "http")}'`
+    if ($http > 0) then
+        set dir = `dirname $ifiles_t[$n]`
+        #set $if = `echo $ifiles_t[$n] | awk -F\/ '{print $NF}'`
+        set if = `basename $ifiles_t[$n]`
+        set of = $if:r
+
+        set idirs = ( $idirs $dir )
+        set ifiles = ( $ifiles $if )
+        set ofiles = ( $ofiles $of )
+        # No definitive way to verify file type
+        set ftypes = ( $ftypes "OPeNDAP" )
+
+        # Keep the name of the file actually specified on the command line
+        set ifiles_r = ( $ifiles_r $ifiles_t[$n] )
+        @ n += 1
+
+        continue
+    endif
+
+    set valid_file = 0
+    set fil = `basename $ifiles_t[$n]`
+    if ($hasdirin == 1) then
+        set dir = $dirin
+    else
+        set dir = `dirname $ifiles_t[$n]`
+    endif
+
+    set relpath = `echo $dir | grep -c '.'`
+    set haspath = `echo $dir | grep -c '/'`
+
+    # Does the file exist, and is it readble, as named?
+    # Must account for different data directory if specified
+    # If an input file already has an extension, ignore "-e"
+    # for that file.
+    set sfxlen = `echo $fil:e | awk '{print length($0)}'`
+    if (((-e $ifiles_t[$n]) && (-r $ifiles_t[$n])) \
+            || ((-e $dirin/$ifiles_t[$n]) && (-r $dirin/$ifiles_t[$n]))) then
+        if ($have_esfx == 1) then
+            set psfx = $esfx
+            set fil = $fil.$psfx
+        endif
+
+        if ($sfxlen == 0) then
+            if ($have_esfx == 1) then
+                set psfx = $esfx
+            else
+                goto VALID_FILE
+            endif
+        else
+            set psfx = "$fil:e"
+        endif
+
+        # Does the file have a suffix (delineated by a ".") or
+        # was a suffix specified via command-line options? If
+        # yes, does the suffix indicate requested data type?
+        set lsfx = `echo $psfx | tr '[A-Z]' '[a-z]'`
+        switch ($lsfx)
+            case gr:
+            case gr1:
+            case grb:
+            case grib:
+            case grb1:
+            case grib1:
+            case gr2:
+            case grb2:
+            case grib2:
+                set ftype = "GRIB"
+                set if = $fil
+                set of = $fil:r
+
+                set valid_file = 1
+                goto VALID_FILE
+                breaksw
+
+            case hdf:
+                set ftype = "HDF"
+                set if = $fil
+                set of = $fil:r
+
+                set valid_file = 1
+                goto VALID_FILE
+                breaksw
+
+            case hdfeos:
+                set ftype = "HDFEOS"
+                set if = $fil
+                set of = $fil:r
+
+                set valid_file = 1
+                goto VALID_FILE
+                breaksw
+
+            case ccm:
+                echo "${progname}: file '${fil}': CCM files not supported.  Please use: ccm2nc"
+                echo "  Download at:  http://www.cgd.ucar.edu/cms/ccm3/tools"
+                echo
+                @ nbadf += 1
+                @ n += 1
+                continue
+                breaksw
+
+            default:
+                echo "${progname}: filetype '${lsfx}' not supported."
+                echo
+                @ nbadf += 1
+                @ n += 1
+                continue
+                breaksw
+        endsw
+    else
+        # The file, as named, doesn't exist or isn't readable.
+        # Check existence/readability as an incomplete file name
+        # (ex.: 'ruc.grb' ==> 'ruc' exists).  This emulates NCL's
+        # 'addfile()' functionality.  If found, keep it as input.
+
+        if ($have_esfx == 1) then
+            if (( (-e $ifiles_t[$n]:r.$esfx) && (-r $ifiles_t[$n]:r.$esfx)) \
+                    || ( (-e $dirin/$ifiles_t[$n]:r.$esfx) && (-r $dirin/$ifiles_t[$n]:r.$esfx))) then
+                set psfx = $esfx
+                set if = $ifiles_t[$n]
+                set of = $ifiles_t[$n]:r
+            endif
+        else
+            if (( !(-e $ifiles_t[$n]:r) && !(-r $ifiles_t[$n]:r)) \
+                    || ( !(-e $dirin/$ifiles_t[$n]:r) && !(-r $dirin/$ifiles_t[$n]:r))) then
+            goto VALID_FILE
+            endif
+        endif
+
+        if ($sfxlen == 0) then
+            goto VALID_FILE
+        else
+            set psfx = $ifiles_t[$n]:e
+        endif
+
+        set lsfx = `echo $psfx | tr '[A-Z]' '[a-z]'`
+
+        switch ($lsfx)
+            case gr:
+            case gr1:
+            case grb:
+            case grib:
+            case grb1:
+            case grib1:
+            case gr2:
+            case grb2:
+            case grib2:
+                set ftype = "GRIB"
+                set if = $fil:r.$lsfx
+                set of = $fil:r
+                set valid_file = 1
+                goto VALID_FILE
+                breaksw
+
+            case hdf:
+                set ftype = "HDF"
+                set if = $fil:r.$lsfx
+                set of = $fil:r
+                set valid_file = 1
+                goto VALID_FILE
+                breaksw
+
+            case hdfeos:
+                set ftype = "HDFEOS"
+                set if = $fil:r.$lsfx
+                set of = $fil:r
+                set valid_file = 1
+                goto VALID_FILE
+                breaksw
+
+            case ccm:
+                echo "${progname}: file '${fil}': CCM files not supported.  Please use: ccm2nc"
+                echo "  Download at:  http://www.cgd.ucar.edu/cms/ccm3/tools"
+                echo
+                @ nbadf += 1
+                @ n += 1
+                continue
+                breaksw
+        endsw
+    endif
+
+    # Is the file valid -- i.e., it exists/is readable, and has a valid name?
+    # If not, skip it, else set values for input/output filenames, and input 
+    # directory.  Output directory is set by "-o" or assumed to be the current
+    # working directory (default).
+VALID_FILE:
+#    if ($?valid_file) then
+    if ($valid_file == 0) then
+        echo "${progname}: file '$fil' not readable, does not contain recognized data, or doesn't exist, skipping."
+        echo
+        @ nbadf += 1
+        @ n += 1
+        continue
+    else
+        if (($haspath == 1) || ($relpath == 1)) then
+            set idirs = ( $idirs $dir )
+            set ifiles = ( $ifiles $if )
+            set ofiles = ( $ofiles $of )
+            set ftypes = ( $ftypes $ftype )
+        else
+            set idirs = ( $idirs $dirin )
+            set ifiles = ( $ifiles $if )
+            set ofiles = ( $ofiles $of )
+            set ftypes = ( $ftypes $ftype )
+        endif
+    endif
+
+    # Keep the name of the file actually specified on the command line
+    set ifiles_r = ( $ifiles_r $fil )
+    @ n += 1
+end
+
+unset ifiles_t
+
+# Account for any discarded files
+@ nfiles -= $nbadf
+
+#
+# Create temporary file to hold NCL script
+#
+set tmp_nclf = "$tmpdir/tmp$$.ncl"
+/bin/rm $tmp_nclf >& /dev/null
+
+cat << 'EOF_NCL' >! $tmp_nclf
+
+;***************************************************
+; GRIB, GRIB2, HDF, HDF-EOS to netcdf
+;***************************************************
+;
+; ncl_convert2nc inputFile
+;           [-i input_directory]
+;           [-o output_directory]
+;           [-e extension]
+;           [-u time_name]
+;           [-U new_time_name]
+;           [-sed sed1[,...]]
+;           [-tps]
+;           [-v var1[,...]]
+;           [-L]
+;           [-c comment]
+;           [-d]
+;           [-B] <file>
+;           [-h]
+;
+; inputFile             name of GRIB/HDF/HDF-EOS file [required]
+; [-i input_directory]  location of input file  [default: current directory] 
+; [-o output_directory] location of output file [default: current directory] 
+; [-e extension]        file type, defined by extension, to convert
+; [-u time_name]        name of the NCL-named time dimension to be UNLIMITED
+; [-U new_time_name]    if -u is specified, will rename the NCL-named time dimension for netCDF 
+; [-sed sed1[,...]]     set single element time record dimensions [default: None]
+;                         GRIB files only; choices are Initial_time, Forecast_time, Level,
+;                         Ensemble, Probability, All, None
+; [-tps]                GRIB files only; remove suffix representing a time period (e.g. 2h)
+;                         from statistically processed variables, leaving only type of
+;                         processing as a suffix (e.g. _acc, _avg)
+; [-v var1[,...]]       user specified subset of variables [default: all variables]
+;                       ncl_filedump can be used to determine desired variable names
+; [-L]                  support for writing large (>2Gb) netCDF files [default: no largefile support]"
+; [-c comment]          text to be included in netCDF file attribute [default: no comment] 
+; [-d]                  upon exit: print contents each netCDF file [like ncdump -h] 
+; [-B] <file>           suppress informational messages; redirect messages to <file> if present [default: /dev/null]
+; [-h]                  this usage message
+;
+; Sample Usage 
+;      (1) ncl_convert2nc U12345.grb
+;             => U12345.nc [location current directory]  
+;
+;      (2) ncl_convert2nc U12345 -e grb -t
+;             => apply ".grb" extension to input file(s)
+;             => time coordinate type set to "string"
+;
+;      (3) ncl_convert2nc U12345.hdf -i /my/input    
+;                [/my/input/U12345]
+;             => U12345.nc [location current directory] 
+;
+;      (4) ncl_convert2nc U12345.hdfeos -i /my/input -o /my/output 
+;             =>  /my/output/U12345.nc 
+;
+;      (5) ncl_convert2nc U12345.grb -i /my/input -o /my/output
+;             => /my/output/U12345.nc 
+;
+;      (6) ncl_convert2nc U12345.hdf -c 'Data Support Section: ds124.1'
+;             => /my/output/U12345.nc     [includes file attribute "ds124.1"] 
+;
+;      (7) ncl_convert2nc U12345.grb -o /my/output  \
+;                     -v gridlat_236,gridlon_236,PRES_236_SFC,NCPCP_236_SFC_acc1h
+;             => /my/output/U12345.nc    [contains 4 variables only] 
+;
+;      (8) ncl_convert2nc U12345.grb -v gridlat_236,gridlon_236,PRES_236_SFC -L
+;             => U12345.nc [location current directory]
+;                          [contains only three variables]
+;                          [supports large files (>2Gb) for netCDF]
+;
+;      (9) ncl_convert2nc U78677.grb -u initial_time0_hours
+;             => double initial_time0_hours(initial_time0_hours)       ; UNLIMITED
+;             => initial_time0_hours:units = "hours since 1800-01-01 00:00" 
+;             => float D_GDS4_HYBL_123(initial_time0_hours, lv_HYBL3, g4_lat_1, g4_lon_2) ;
+;
+;     (10) ncl_convert2nc U78677.grb -u initial_time0_hours -U time
+;             => double time(time) ;                            ; UNLIMITED
+;             => time:units = "hours since 1800-01-01 00:00" ;
+;             => float D_GDS4_HYBL_123(time, lv_HYBL3, g4_lat_1, g4_lon_2) ;
+;
+;     (11) ncl_convert2nc U78677.grb -sed initial_time,forecast_time
+;             => set Single Element Dimensions 'initial_time' and 'forecast_time'
+;
+;
+;***************************************************
+; Multiple files
+;  The driver shell script gets the expanded file
+;  names and invokes this script, one file at a time
+;***************************************************
+; Sample usage of the NCL script:
+;      (a) ncl 'fili="U12345.grb"' anyFile2nc.ncl_v1
+;      (b) ncl 'fili="U12345.hdf"' -t
+;      (c) ncl 'fili="U12345.hdfeos"'  ncDump=True anyFile2nc.ncl_v1
+;      (d) ncl 'fili="U12345.grb"' 'filo=Ugrib' anyFile2nc.ncl_v1
+;      (e) ncl 'fili="U12345.hdf"' 'diri="/my/input"' anyFile2nc.ncl_v1
+;      (f) ncl 'fili="U12345.hdfeos"' 'diri="/my/input"' 'diro="/my/output"' anyFile2nc.ncl_v1
+;      (g) ncl 'fili="U12345.grb"' 'diri="/my/input"' \
+;              'diro="/my/output"'\
+;              'comment="Data Support Section: ds124.1"' anyFile2nc.ncl_v1
+;      (h) ncl 'fili="U12345.grb"' 'varSelect=(/"gridlat_236","gridlon_236", \
+;                                           "PRES_236_SFC,"NCPCP_236_SFC_acc1h"/)  anyFile2nc.ncl_v1
+;      (h) ncl 'fili="U12345.grb"' 'varSelect=(/"gridlat_236","gridlon_236", \
+;                                           "PRES_236_SFC/) -L  anyFile2nc.ncl_v1
+;      (i) ncl 'fili="U78677.hdf"' -u "forecast_time0_hours"
+;      (j) ncl 'fili="U78677.hdfeos"' -u "initial_time0_hours -U time"
+;      (k) ncl 'fili="U78677.grb"'  'singleElemDims=(/"forecast_time", "initial_time"/)
+;***************************************************
+
+begin
+;    debug          = True
+    debug          = False
+
+;***************************************************
+; fili is *required*
+;***************************************************
+    if (.not. isvar("fili")) then
+        print(pname + ": REQUIRED input file name(s) missing, exiting.")
+        exit
+    end if
+
+;***************************************************
+; The following are optional command line variables
+;***************************************************
+    if (.not. isvar("diri")) then
+        diri  = "./"                     ; default input dir
+    else
+        diri = diri + "/"
+    end if
+
+    if (.not. isvar("diro")) then
+        diro  = "./"                     ; default output dir
+    else
+        diro = diro + "/"
+    end if
+
+    if (.not. isvar("comment")) then
+        comment = ""                     ; comment option
+    end if
+
+;***************************************************
+; Specify that COARDS style output desired
+; NOTE: [not yet implemented]
+;***************************************************
+    ;;setfileoption(f, "COARDS", True)   ; place holder
+
+;***************************************************
+; Specify the type of time coordinate
+; [default is 'numeric'] [obsolete]
+;
+; Specify the type(s) of time record dimension
+; NOTE: valid for GRIB files only
+;***************************************************
+    if (ftype .eq. "GRIB") then
+;        setfileoption(f, "InitialTimeCoordinateType", "numeric")
+
+        sed = singleElemDims
+        if (debug) then
+            print("Setting file option: SingleElementDimensions: " + sed)
+        end if
+
+        setfileoption("grib", "SingleElementDimensions", sed)
+
+        tps = timePeriodSuffix
+        if (debug) then
+            print("Setting file option: TimePeriodSuffix: " + tps)
+        end if
+
+        setfileoption("grib", "TimePeriodSuffix", tps)
+    end if
+
+;***************************************************
+; open file with appropriate extension
+;***************************************************
+    iFileName = diri + fili
+    f = addfile(iFileName, "r")     ; suffix ok 
+
+;***************************************************
+; Get all the global [file] attributes.  These will
+; be copied to the output file.
+; NOTE: GRIB files will return "missing"
+;***************************************************
+
+    fInAtts = getvaratts( f )
+
+;***************************************************
+; Get *all* variables names on the file 
+;     or
+; Specify a subset of variables. All variable names,
+; including coordinate variable names, must be
+; specified.
+;***************************************************
+;***************************************************
+; Get *all* variables names on the file 
+;     or
+; Specify a subset of variables. All variable names,
+; including coordinate variable names, must be
+; specified.
+;***************************************************
+    if (.not. isvar("nvars")) then    
+        fVarNames = getfilevarnames(f)     ; all files names 
+     else
+        fVarNames = vars                     ; user specified variables
+     end if
+     nfNames = dimsizes(fVarNames)
+
+     if (debug) then
+        print(nfNames)
+        print(fVarNames)
+    end if
+
+;***************************************************
+; optionally, create new names for the output netcdf
+; file.  Add variable renaming later.
+;***************************************************
+    ncVarNames  = fVarNames         ; default: netCDF names <==>  NCL names
+    if (time_name .ne. "" .and. TIME_NAME .ne. "") then
+        if (any(ncVarNames .eq. time_name)) then
+            tu_dim = ind(ncVarNames .eq. time_name)
+            ncVarNames(tu_dim) = TIME_NAME
+        end if
+    end if
+
+;***************************************************
+; open output netcdf file
+; Set for 'large file' netCDF support if specified
+;***************************************************
+    netcdfSizeType = ncdfSize
+    setfileoption("netcdf", "format", netcdfSizeType)
+
+    ncFileName = diro + filo + ".nc"      
+    system("/bin/rm -f " + ncFileName)  ; remove pre-existing file (if any)
+    fnc = addfile(ncFileName, "c")      ; "c"reate the netCDF file
+
+;***************************************************
+; define file options [version a033 and beyond]
+;***************************************************
+    setfileoption(fnc, "prefill", False)
+    setfileoption(fnc, "suppressclose", True)
+    setfileoption(fnc, "definemode", True)
+
+;***********************************************
+; assign standard file attributes [Sample]
+;***********************************************
+    fAtt               = True
+    title = "NCL: convert-" + ftype + "-to-netCDF"
+    fAtt@title         = title
+
+    if (ftype .eq. "GRIB") then
+        fAtt@grib_source   = fili
+    end if
+
+    if (ftype .eq. "HDF") then
+        fAtt@hdf_source   = fili
+    end if
+
+    if (ftype .eq. "HDFEOS") then
+        fAtt@hdfeos_source   = fili
+    end if
+
+    fAtt@conventions   = "None"
+    fAtt@system        = systemfunc("uname -a")
+    fAtt@NCL_Version   = get_ncl_version()
+    fAtt@creation_date = systemfunc ("date")
+    if (comment .ne. "") then
+        fAtt@comment   = comment 
+    end if
+
+;***********************************************
+; copy input file attributes to output file
+;***********************************************
+
+    if (.not. all(ismissing(fInAtts))) then
+        do i = 0, dimsizes(fInAtts) - 1
+            fAtt@$fInAtts(i)$ = f@$fInAtts(i)$
+        end do
+    end if
+
+    fileattdef(fnc, fAtt)
+
+;***********************************************
+; predefine the file's dimension names, sizes
+; and types
+;***********************************************
+    dimNames = getvardims(f)
+    dimSizes = getfiledimsizes(f)
+    dimUnlim = new(dimsizes(dimNames), "logical")
+    dimUnlim = False
+
+;***********************************************
+; file variable to make dimension as UNLIMITED
+;***********************************************
+    if (time_name .ne. "") then
+        if (any(dimNames .eq. time_name)) then
+            tu_dim = ind(dimNames .eq. time_name)
+            dimUnlim(tu_dim) = True
+            if (TIME_NAME .ne. "") then 
+                dimNames(tu_dim) = TIME_NAME
+            end if
+        end if
+    end if
+    filedimdef(fnc, dimNames, dimSizes, dimUnlim)
+
+    if (debug) then
+        print(dimNames)
+        print(dimSizes)
+        print(dimUnlim)
+    end if
+
+;***********************************************
+; determine the type of each variable
+;***********************************************
+    varType = getfilevartypes(f, fVarNames)
+
+;***********************************************
+; loop over each variable: skip variables of type
+; string [not allowed by netCDF v3.6.x]
+; (1) define name, type and dimension names
+; (2) rather than read in the variable [could be
+;     big and slow], read each attribute of a
+;     variable and assign to a dummy variable
+;***********************************************
+    do i = 0, nfNames - 1 
+        if (debug) then
+            print(" ")
+            print(i + "  ncl_name = " + fVarNames(i))
+            print(i + "  ncl_type = " + varType(i))
+            print(i + "  dim_names " + getfilevardims(f, fVarNames(i)))
+        end if
+
+        if (varType(i) .ne. "string") then      ; netCDF (currently no strings)
+                                                ; predefine variable
+            if (TIME_NAME .eq. "") then
+                filevardef(fnc, ncVarNames(i), varType(i), (/ getfilevardims(f, fVarNames(i)) /))
+            else
+                dimVarNames = getfilevardims(f, fVarNames(i))
+                if (any(dimVarNames .eq. time_name)) then
+                    tu_dim  = ind(dimVarNames .eq. time_name)
+                    dimVarNames(tu_dim) = TIME_NAME
+                end if
+
+                filevardef(fnc, ncVarNames(i), varType(i), dimVarNames)
+                delete(dimVarNames)
+            end if
+
+            varAtts = getfilevaratts(f, fVarNames(i))
+            nAtts   = dimsizes(varAtts)
+
+            dumAtts = new (1, varType(i))    ; dummy to attach varAtts 
+            delete(dumAtts@_FillValue)       ; delete auto assigned _FillValue
+
+            do j = 0, nAtts - 1
+                dumAtts@$varAtts(j)$ = f->$fVarNames(i)$@$varAtts(j)$
+            end do
+
+            if (debug) then                    ; can lead to much output
+                print(varAtts)
+                print(nAtts)
+                print(dumAtts) 
+            end if
+
+            ; define variable attributes
+            filevarattdef(fnc, ncVarNames(i) , dumAtts)
+
+            delete(varAtts)
+            delete(dumAtts)
+        end if
+    end do
+
+    setfileoption(fnc, "definemode", False) ; not necessary
+
+;***************************************************************************************
+; Write *only* data values to predefined locations.  If the variable exceeds a         *
+; certain size, perform the operation in a loop to save on core memory. There          *
+; is no way to get the size of a type in NCL (!!!).  The approach used could be        *
+; inefficient if the leftmost dimensions have more elements than the rightmost.        *
+; Hopefully that is a rare occurence -- certainly it would be very rare in GRIB files. *
+;***************************************************************************************
+    fvar_types = getfilevartypes(f,fVarNames)
+    threshold_size = 250000000
+    do i = 0, nfNames - 1
+        if (varType(i) .ne. "string") then
+            if (debug) then
+                print("write loop: i = " + i + "  " + fVarNames(i))
+            end if
+
+            dsizes = getfilevardimsizes(f,fVarNames(i))
+            type_size = 1
+            if (fvar_types(i) .eq. "double") then
+                type_size =  8
+            else if (fvar_types(i) .eq. "short") then
+                type_size = 2
+            else if (fvar_types(i) .ne. "byte" .and. fvar_types(i) .ne. "character") then
+                type_size = 4
+            end if
+            end if
+            end if
+
+            tsize = product(dsizes) * type_size
+            if (debug) then
+                print(fVarNames(i) + " : " + tsize  + " (size in bytes) :  " + dimsizes(dsizes) + " (number of dimensions)")
+            end if
+
+            ndims = dimsizes(dsizes)
+            ; no special handling for ndims greater than 6 or less than 3
+            if (tsize .lt. threshold_size .or. ndims .gt. 7 .or. ndims .lt. 3) then
+                fnc->$ncVarNames(i)$ = (/ f->$fVarNames(i)$ /)
+            else
+                if (ndims .eq. 7) then
+                    if (tsize / dsizes(0) .lt. threshold_size) then
+                        do j = 0, dsizes(0) - 1
+                            if (debug) then
+                                print("copying " + fVarNames(i) + "(" + j + ",:,:,:,:,:,:)")
+                            end if
+
+                            fnc->$ncVarNames(i)$(j,:,:,:,:,:,:) = (/ f->$fVarNames(i)$(j,:,:,:,:,:,:) /)
+                        end do
+                    else
+                        do j = 0, dsizes(0) - 1
+                            do k = 0, dsizes(1) -1
+                                if (debug) then
+                                    print("copying " + fVarNames(i) + "(" + j + "," + k +  ",:,:,:,:,:)")
+                                end if
+
+                                fnc->$ncVarNames(i)$(j,k,:,:,:,:,:) = (/ f->$fVarNames(i)$(j,k,:,:,:,:,:) /)
+                            end do
+                        end do
+                    end if
+                end if
+
+	        
+                if (ndims .eq. 6) then
+                    if (tsize / dsizes(0) .lt. threshold_size) then
+                        do j = 0, dsizes(0) - 1
+                            if (debug) then
+                                print("copying " + fVarNames(i) + "(" + j + ",:,:,:,:,:)")
+                            end if
+
+                            fnc->$ncVarNames(i)$(j,:,:,:,:,:) = (/ f->$fVarNames(i)$(j,:,:,:,:,:) /)
+                        end do
+                    else
+                        do j = 0, dsizes(0) - 1
+                            do k = 0, dsizes(1) - 1
+                                if (debug) then
+                                    print("copying " + fVarNames(i) + "(" + j + "," + k +  ",:,:,:,:)")
+                                end if
+
+                                fnc->$ncVarNames(i)$(j,k,:,:,:,:) = (/ f->$fVarNames(i)$(j,k,:,:,:,:) /)
+                            end do
+                        end do
+                    end if
+                end if
+
+                if (ndims .eq. 5) then
+                    if (tsize / dsizes(0) .lt. threshold_size) then
+                        do j = 0, dsizes(0) - 1
+                            if (debug) then
+                                print("copying " + fVarNames(i) + "(" + j + ",:,:,:,:)")
+                            end if
+
+                            fnc->$ncVarNames(i)$(j,:,:,:,:) = (/ f->$fVarNames(i)$(j,:,:,:,:) /)
+                        end do
+                    else
+                        do j = 0, dsizes(0) - 1
+                            do k = 0, dsizes(1) -1
+                                if (debug) then
+                                    print("copying " + fVarNames(i) + "(" + j + "," + k +  ",:,:,:)")
+                                end if
+
+                                fnc->$ncVarNames(i)$(j,k,:,:,:) = (/ f->$fVarNames(i)$(j,k,:,:,:) /)
+                            end do
+                        end do
+                    end if
+                end if
+
+                if (ndims .eq. 4) then
+                    if (tsize / dsizes(0) .lt. threshold_size) then
+                        do j = 0, dsizes(0) - 1
+                            if (debug) then
+                                print("copying " + fVarNames(i) + "(" + j + ",:,:,:)")
+                            end if
+
+                            fnc->$ncVarNames(i)$(j,:,:,:) = (/ f->$fVarNames(i)$(j,:,:,:) /)
+                        end do
+                    else
+                        do j = 0, dsizes(0) - 1
+                            do k = 0, dsizes(1) -1
+                                if (debug) then
+                                    print("copying " + fVarNames(i) + "(" + j + "," + k +  ",:,:)")
+                                end if
+
+                                fnc->$ncVarNames(i)$(j,k,:,:) = (/ f->$fVarNames(i)$(j,k,:,:) /)
+                            end do
+                        end do
+                    end if
+                end if
+
+                if (ndims .eq. 3) then
+                    if (tsize / dsizes(0) .lt. threshold_size) then
+                        do j = 0, dsizes(0) - 1
+                            if (debug) then
+                                print("copying " + fVarNames(i) + "(" + j + ",:,:)")
+                            end if
+
+                            fnc->$ncVarNames(i)$(j,:,:) = (/ f->$fVarNames(i)$(j,:,:) /)
+                        end do
+                    else
+                        do j = 0, dsizes(0) - 1
+                            do k = 0, dsizes(1) -1
+                                if (debug) then
+                                    print("copying " + fVarNames(i) + "(" + j + "," + k +  ",:)")
+                                end if
+
+                                fnc->$ncVarNames(i)$(j,k,:) = (/ f->$fVarNames(i)$(j,k,:) /)
+                            end do
+                        end do
+                    end if
+                end if
+            end if
+            
+            delete(dsizes)
+        end if
+    end do
+
+    delete(f)   ; not necessary
+ end 
+'EOF_NCL'
+
+#
+# Loop over input file(s), executing NCL script
+#
+set n = 1
+while ($n <= $nfiles)
+    if ("$redirect" == 0) then
+        echo "Processing file: $ifiles_r[$n]..."
+        if ($?vars) then
+            eval ncl $noCN -n pname=\\\"$progname\\\" ftype=\\\"$ftypes[$n]\\\" fili=\\\"$ifiles[$n]\\\" diri=\\\"$idirs[$n]\\\" diro=\\\"$dirout\\\" filo=\\\"$ofiles[$n]\\\" nvars=$nvars vars=$vars 'ncdfSize=\""$ncdflrgf_t"\"' singleElemDims=$seds 'timePeriodSuffix=$tps' 'time_name=\""$time_name"\"' 'TIME_NAME=\""$TIME_NAME"\"' 'comment=\""$ncdfcomment"\"' $tmp_nclf
+        else
+            eval ncl $noCN -n pname=\\\"$progname\\\" ftype=\\\"$ftypes[$n]\\\" fili=\\\"$ifiles[$n]\\\" diri=\\\"$idirs[$n]\\\" diro=\\\"$dirout\\\" filo=\\\"$ofiles[$n]\\\" 'ncdfSize=\""$ncdflrgf_t"\"' singleElemDims=$seds 'timePeriodSuffix=$tps' 'time_name=\""$time_name"\"' 'TIME_NAME=\""$TIME_NAME"\"' 'comment=\""$ncdfcomment"\"' $tmp_nclf
+        endif
+    else
+        # redirection requested
+        (echo "Processing file: $ifiles_r[$n]..." >&! $f_rdir)
+        if ($?vars) then
+            (eval ncl $noCN -n pname=\\\"$progname\\\" ftype=\\\"$ftypes[$n]\\\" fili=\\\"$ifiles[$n]\\\" diri=\\\"$idirs[$n]\\\" diro=\\\"$dirout\\\" filo=\\\"$ofiles[$n]\\\" nvars=$nvars vars=$vars 'ncdfSize=\""$ncdflrgf_t"\"' singleElemDims=$seds 'timePeriodSuffix=$tps' 'time_name=\""$time_name"\"' 'TIME_NAME=\""$TIME_NAME"\"' 'comment=\""$ncdfcomment"\"' $tmp_nclf >! $fout) >&! $f_rdir
+        else
+            (eval ncl $noCN -n pname=\\\"$progname\\\" ftype=\\\"$ftypes[$n]\\\" fili=\\\"$ifiles[$n]\\\" diri=\\\"$idirs[$n]\\\" diro=\\\"$dirout\\\" filo=\\\"$ofiles[$n]\\\" 'ncdfSize=\""$ncdflrgf_t"\"' singleElemDims=$seds 'timePeriodSuffix=$tps' 'time_name=\""$time_name"\"' 'TIME_NAME=\""$TIME_NAME"\"' 'comment=\""$ncdfcomment"\"' $tmp_nclf >! $fout &) >&! $f_rdir
+        endif
+    endif
+
+    # Display output if requested.
+    echo
+    if ($?printonexit) then
+        set fdump = `which ncl_filedump`
+        if ($? != 0) then
+            set fdump = `which ncdump`
+            if ($? != 0) then
+                echo "Can't locate 'ncl_filedump' or 'ncdump' to display output file."
+            endif
+        else
+            if (-e $dirout/$ofiles[$n].nc) then
+                echo "  Displaying $dirout/$ofiles[$n].nc"
+                sleep 2
+                $fdump -c "$dirout/$ofiles[$n].nc"
+                echo ; echo
+            endif
+        endif
+    endif
+
+INCR:
+    @ n += 1
+    if (($n > $#ifiles) || ($n > $#ofiles)) then
+        break
+    endif
+end
+
+
+#
+# Clean up
+#
+if ("$redirect" == 0) then
+    /bin/rm -f $tmp_nclf
+endif
+/bin/rm -f $f_rdir
+exit 0
+
+CLEANUP:
+/bin/rm -f $tmp_nclf
+/bin/rm -f $f_rdir
+exit 1
+
+USAGE:
+echo "${progname} inputFile(s) OPTIONS"
+echo "  inputFile(s)          name(s) of data file(s) [required] [valid types: GRIB1 GRIB2 HDF HDF-EOS]"
+echo "  [-i input_directory]  location of input file(s)  [default: current directory]"
+echo "  [-o output_directory] location of output file(s) [default: current directory]"
+echo "  [-e extension]        file type, defined by extension, to convert [example: grb]"
+echo "  [-u time_name]        name of the NCL-named time dimension to be UNLIMITED"
+echo "  [-U new_time_name]    if -u is specified: new name of UNLIMITED variable and dimension"
+echo "  [-sed sed1[,...]]     GRIB files only; set single element dimensions [default: none]"
+echo "                          choices are initial_time, forecast_time, level, ensemble,"
+echo "                          probability, all, none"
+echo "  [-itime]              GRIB files only; set initial time as a single element dimension"
+echo "                          (same as -sed initial_time)"
+echo "  [-ftime]              GRIB files only; set forecast time as a single element dimension"
+echo "                          (same as -sed forecast_time)"
+echo "  [-tps]                GRIB files only; remove suffix representing a time period (e.g. 2h)"
+echo "                          from statistically processed variables, leaving only type of"
+echo "                          processing as a suffix (e.g. _acc, _avg)"
+echo "  [-v var1[,...]]       user specified subset of variables [default: all variables]"
+echo "                        ncl_filedump can be used to determine desired variable names"
+echo "  [-L]                  support for writing large (>2Gb) netCDF files [default: no largefile support]"
+echo "  [-c comment]          text to be included in netCDF file attribute [default: no comment]"
+echo "  [-d]                  upon exit: print contents of each netCDF file [like ncdump -h]"
+echo "  [-B] <file>           suppress informational messages; redirect messages to <file> if present [default: /dev/null]"
+echo "  [-h]                  this usage message"
