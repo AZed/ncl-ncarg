@@ -1,6 +1,6 @@
 Name:           ncl
-Version:        6.0.0
-Release:        3%{?dist}
+Version:        6.1.2
+Release:        4%{?dist}
 Summary:        NCAR Command Language and NCAR Graphics
 
 Group:          Applications/Engineering
@@ -31,8 +31,6 @@ Patch1:         ncarg-4.4.1-deps.patch
 Patch2:         ncl-5.1.0-ppc64.patch
 # Add needed -lm to ictrans build, remove unneeded -lrx -lidn -ldl from ncl
 Patch3:         ncl-libs.patch
-# Patch to fix xwd driver on 64-bit (bug 839707)
-Patch4:         ncl-xwd.patch
 Patch7:         ncl-5.0.0-atlas.patch
 # don't have the installation target depends on the build target since
 # for library it implies running ranlib and modifying the library timestamp
@@ -46,7 +44,12 @@ Patch13:        ncl-5.1.0-includes.patch
 Patch16:        ncl-5.2.1-secondary.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:  /bin/csh, gcc-gfortran, netcdf-devel
+BuildRequires:  /bin/csh, gcc-gfortran
+%if 0%{?fedora} >= 17
+BuildRequires:  netcdf-fortran-devel
+%else
+BuildRequires:  netcdf-devel
+%endif
 BuildRequires:  cairo-devel
 BuildRequires:  gdal-devel
 BuildRequires:  hdf-static, hdf-devel >= 4.2r2, libjpeg-devel
@@ -126,7 +129,6 @@ Example programs and data using NCL.
 %patch1 -p1 -b .deps
 %patch2 -p1 -b .ppc64
 %patch3 -p1 -b .libs
-%patch4 -p1 -b .xwd
 %patch7 -p1 -b .atlas
 %patch10 -p1 -b .no_install_dep
 %patch11 -p1 -b .build_n_scripts
@@ -212,7 +214,6 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %files
-%defattr(-,root,root,-)
 %doc COPYING Copyright README
 %config(noreplace) %{_sysconfdir}/profile.d/ncarg.*sh
 %{_bindir}/ConvertMapData
@@ -266,7 +267,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/ncarg/graphcaps/
 
 %files common
-%defattr(-,root,root,-)
 %dir %{_datadir}/ncarg
 %{_datadir}/ncarg/colormaps/
 %{_datadir}/ncarg/data/
@@ -274,7 +274,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/ncarg/grib2_codetables.previous/
 %{_datadir}/ncarg/nclscripts/
 %{_datadir}/ncarg/ngwww/
-%{_datadir}/ncarg/sysresfile/
+%{_datadir}/ncarg/sysresfile
 %{_datadir}/ncarg/udunits
 %{_datadir}/ncarg/xapp/
 %dir %{_prefix}/lib/ncarg
@@ -292,7 +292,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/scrip_check_input
 
 %files devel
-%defattr(-,root,root,-)
 %{_bindir}/MakeNcl
 %{_bindir}/WRAPIT
 %{_bindir}/ncargcc
@@ -307,11 +306,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/ncarg/libcgm.a
 %{_libdir}/ncarg/libfftpack5_dp.a
 %{_libdir}/ncarg/libhlu.a
-%{_libdir}/ncarg/libhlu_cairo.a
 %{_libdir}/ncarg/libncarg.a
 %{_libdir}/ncarg/libncarg_c.a
 %{_libdir}/ncarg/libncarg_gks.a
-%{_libdir}/ncarg/libncarg_gks_cairo.a
 %{_libdir}/ncarg/libncarg_ras.a
 %{_libdir}/ncarg/libncl.a
 %{_libdir}/ncarg/libnclapi.a
@@ -324,7 +321,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man3/*.gz
 
 %files examples
-%defattr(-,root,root,-)
 %{_bindir}/ncargex
 %{_bindir}/ng4ex
 %{_datadir}/ncarg/examples/
@@ -342,22 +338,54 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
-* Mon Jul 17 2012 Orion Poplawski <orion@cora.nwra.com> - 6.0.0-3
+* Tue Aug 27 2013 Orion Poplawski - 6.1.2-4
+- Rebuild for gdal 1.10.0
+
+* Wed Jul 31 2013 Orion Poplawski <orion@cora.nwra.com> - 6.1.2-3
+- Build for arm
+
+* Thu May 16 2013 Orion Poplawski <orion@cora.nwra.com> - 6.1.2-2
+- Rebuild for hdf5 1.8.11
+
+* Thu Feb 7 2013 Orion Poplawski <orion@cora.nwra.com> - 6.1.2-1
+- Update to 6.1.2
+
+* Mon Jan 21 2013 Adam Tkac <atkac redhat com> - 6.1.0-2
+- rebuild due to "jpeg8-ABI" feature drop
+
+* Wed Oct 31 2012 Orion Poplawski <orion@cora.nwra.com> - 6.1.0-1
+- Update to 6.1.0
+- Drop xwd patch applied upstream
+
+* Fri Jul 20 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 6.0.0-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
+
+* Mon Jul 16 2012 Orion Poplawski <orion@cora.nwra.com> - 6.0.0-6
 - Don't link against librx, was causing memory corruption
 - Compile with -fno-strict-aliasing for now
 
-* Fri Jul 13 2012 Orion Poplawski <orion@cora.nwra.com> - 6.0.0-2
+* Fri Jul 13 2012 Orion Poplawski <orion@cora.nwra.com> - 6.0.0-5
 - Add patch to fix xwd driver on 64-bit (bug 839707)
 
-* Mon Jan 9 2012 - Orion Poplawski <orion@cora.nwra.com> - 6.0.0-1
-- Update to 6.0.0 final
-- Use system udunits by linking it into where ncl expects it, drop
-  udunits patch.  Fixes bug 742307.
-- Enable cairo and gdal support
+* Fri Jan 13 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 6.0.0-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
 
-* Thu Sep 29 2011 - Orion Poplawski <orion@cora.nwra.com> - 5.2.1-6.1
+* Tue Dec 06 2011 Adam Jackson <ajax@redhat.com> - 6.0.0-3
+- Rebuild for new libpng
+
+* Thu Sep 29 2011 - Orion Poplawski <orion@cora.nwra.com> - 6.0.0-2
 - Use system udunits by linking it into where ncl expects it, drop
   udunits patch.  Fixes bug 742307.
+
+* Thu Sep 1 2011 - Orion Poplawski <orion@cora.nwra.com> - 6.0.0-1
+- Update to 6.0.0 final
+
+* Wed May 18 2011 - Orion Poplawski <orion@cora.nwra.com> - 6.0.0-0.2.beta
+- Rebuild for hdf5 1.8.7
+
+* Thu Mar 31 2011 - Orion Poplawski <orion@cora.nwra.com> - 6.0.0-0.1.beta
+- Update to 6.0.0-beta
+- Enable cairo and gdal support
 
 * Fri Feb 18 2011 - Orion Poplawski <orion@cora.nwra.com> - 5.2.1-6
 - Rebuild for new g2clib - fix grib handling on 64-bit machines
