@@ -1,5 +1,5 @@
 /*
- *	$Id: gks_device.h,v 1.9 2008/07/23 17:29:43 haley Exp $
+ *	$Id: gks_device.h,v 1.11 2009/04/16 19:06:09 fred Exp $
  */
 /************************************************************************
 *                                                                       *
@@ -125,3 +125,11 @@ extern GKSdev	*GKS_GetPDFdev(
 	void
 #endif
 );
+
+#ifdef BuildCAIRO
+extern GKSdev	*GKS_GetCROdev(
+#ifdef	NeedFuncProto
+	void
+#endif
+);
+#endif

@@ -1,5 +1,5 @@
 /*
- *      $Id: yMakefile,v 1.39 2008/01/24 17:26:34 haley Exp $
+ *      $Id: yMakefile,v 1.42 2009/05/21 04:50:57 haley Exp $
  */
 /************************************************************************
 *									*
@@ -39,7 +39,7 @@ Info::
 
 Info::
 	@echo;\
-	echo "	NCAR Graphics - Version $(VERSION) Installation Configuration";\
+	echo "	NCL/NCAR Graphics - Version $(NCLVERSION) Installation Configuration";\
 	echo;\
 	echo "System File		"$(SYSTEM_INCLUDE);\
 	echo "Binary Install Directory	"$(BINPATH);\
@@ -201,6 +201,22 @@ PNGSTUFF:
 	@echo "y"
 #else
 PNGSTUFF:
+	@echo "n"
+#endif
+
+#ifdef	BuildCAIRO
+CAIROSTUFF:
+	@echo "y"
+#else
+CAIROSTUFF:
+	@echo "n"
+#endif
+
+#ifdef	BuildGDAL
+GDALSTUFF:
+	@echo "y"
+#else
+GDALSTUFF:
 	@echo "n"
 #endif
 

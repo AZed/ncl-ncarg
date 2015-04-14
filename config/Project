@@ -1,5 +1,5 @@
 /*
- *      $Id: Project,v 1.96 2008/12/27 12:44:28 haley Exp $
+ *      $Id: Project,v 1.108 2009/05/28 21:25:59 haley Exp $
  */
 
 /************************************************************************
@@ -17,15 +17,15 @@
  *			National Center for Atmospheric Research
  *			PO 3000, Boulder, Colorado
  *
- *	$Date: 2008/12/27 12:44:28 $
+ *	$Date: 2009/05/28 21:25:59 $
  *
  *	Description:	This file sets up defaults for all variables specific
  *			to the ncarg project.  System defaults - ie compilers
  *			etc are in the Template file.
  */
 
-#define NcargVersion 5.1.0
-#define NclVersion 5.1.0
+#define NcargVersion 5.1.1
+#define NclVersion 5.1.1
 
 #ifndef	BuildNCL
 #define	BuildNCL
@@ -34,6 +34,14 @@
 #undef	BuildNCL
 #endif
 #endif	/* BuildNCL */
+
+#ifndef    BuildNetCDF4
+#define    BuildNetCDF4
+#else
+#if    !BuildNetCDF4
+#undef BuildNetCDF4
+#endif
+#endif /* BuildNetCDF4 */
 
 #ifndef	BuildHDFEOS
 #define	BuildHDFEOS
@@ -74,6 +82,15 @@
 #undef BuildV5D
 #endif
 #endif /* BuildV5D */
+
+/* Cairo and GDAL support are not yet built by default. */
+#if !BuildCAIRO
+#undef BuildCAIRO
+#endif
+
+#if !BuildGDAL
+#undef BuildGDAL
+#endif
 
 #ifndef	BuildRasterHDF
 #define	BuildRasterHDF
@@ -177,9 +194,25 @@
 #define	PNGlib	-lpng -lz
 #endif	/* PNGlib */
 
+#ifdef BuildCAIRO
+#ifndef CAIROlib
+#define CAIROlib  -lcairo -lfreetype
+#endif
+#else
+#define CAIROlib
+#endif
+
 #ifndef	HDFEOSlib
 #define	HDFEOSlib   -lhdfeos -lGctp
 #endif	/* HDFEOSlib */
+
+#ifdef BuildGDAL
+#ifndef	GDALlib
+#define	GDALlib   -lgdal -lproj
+#endif
+#else
+#define GDALlib
+#endif
 
 #ifndef	GRIB2lib
 #define       GRIB2lib   -lgrib2c -ljasper -lpng -lz
@@ -197,9 +230,9 @@
 #define	UdUnitslib	-ludunits
 #endif	/* UdUnitslib */
 
-# ifndef    V5Dlib
-# define    V5Dlib  -lv5d
-# endif /* V5Dlib */
+#ifndef    V5Dlib
+#define    V5Dlib  -lv5d
+#endif /* V5Dlib */
 
 #ifndef	XdrLibrary
 #define	XdrLibrary	/**/
@@ -353,6 +386,7 @@ NGENV_DESCRIPT	= \
 		"sysresfile",NULL,"ncarg",NULL,NULL,		\
 		"sysappres",NULL,"ncarg",NULL,NULL,		\
 		"grib2_codetables","NIO_GRIB2_CODETABLES","ncarg",NULL,NULL, \
+		"ftfonts",NULL,"database",NULL,NULL,            \
 		NULL}
 
 NGENVDEF	=	-DENV_DEFS=$(NGENV_DESCRIPT)
@@ -518,9 +552,11 @@ NETCDFLIB	=
 
 NCDFLIBS	= NetCDFlib
 PNGLIB		= PNGlib
+CAIROLIB	= CAIROlib
 HDFLIB		= HDFlib
 NETCDF4LIB      = NetCDF4lib
 HDFEOSLIB	= HDFEOSlib
+GDALLIB		= GDALlib
 GRIB2LIB	= GRIB2lib
 UDUNITSLIB	= UdUnitslib
 V5DLIB      = V5Dlib

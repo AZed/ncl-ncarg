@@ -534,7 +534,7 @@ begin
   dims = dimsizes(varin)
   nd = dimsizes(dims)
 
-  if ( unstagDim .eq. "X" ) then
+  if ( unstagDim .eq. "X" .or. unstagDim .eq. "U" ) then
     dimU = dims(nd-1)
     if ( nd .eq. 5 ) then
       varout = 0.5*(varin(:,:,:,:,:dimU-2) + varin(:,:,:,:,1:dimU-1))
@@ -558,7 +558,7 @@ begin
     varout@stagger = " "
   end if
 
-  if ( unstagDim .eq. "Y" ) then
+  if ( unstagDim .eq. "Y" .or. unstagDim .eq. "V" ) then
     dimV = dims(nd-2)
     if ( nd .eq. 5 ) then
       varout = 0.5*(varin(:,:,:,:dimV-2,:)+varin(:,:,:,1:dimV-1,:))
@@ -603,7 +603,7 @@ begin
     varout@stagger = " "
   end if
 
-  if( any( unstagDim .eq. (/"X","Y","Z"/) ) ) then
+  if( any( unstagDim .eq. (/"X","U","Y","V","Z"/) ) ) then
     return(varout) 
   else
     print("Warning: Input field was not unstaggered")
@@ -1863,6 +1863,7 @@ end
 ;--------------------------------------------------------------------------------
 ;--------------------------------------------------------------------------------
 
+undef("_SetMainTitle")
 procedure _SetMainTitle(nc_file:file,wks[1]:graphic,cn[1]:graphic,opts)
  
 ; This procedure checks the input data for certain attributes, and
@@ -2070,6 +2071,7 @@ end
 
 ;--------------------------------------------------------------------------------
 ;--------------------------------------------------------------------------------
+undef ("wrf_contour_ps")
 function wrf_contour_ps(nc_file:file,wks[1]: graphic, data[*][*]:numeric, \
                      opt_args[1]:logical)
 
@@ -2134,6 +2136,7 @@ begin
 return (cn)
 end
 ;--------------------------------------------------------------------------------
+undef ("wrf_vector_ps")
 function wrf_vector_ps(nc_file:file,wks[1]: graphic, \
                        data_u[*][*]:numeric, data_v[*][*]:numeric, \
                        opt_args[1]:logical)

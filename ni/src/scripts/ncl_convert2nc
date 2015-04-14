@@ -1,6 +1,6 @@
 #!/bin/csh -f
 #
-#       $Id: ncl_convert2nc,v 1.12 2008/10/02 22:20:16 dbrown Exp $
+#       $Id: ncl_convert2nc,v 1.17 2009/05/29 01:39:15 haley Exp $
 
 #       Copyright (C) 2005
 #       University Corporation for Atmospheric Research
@@ -503,6 +503,7 @@ while ($n <= $nfiles)
                 breaksw
 
             case hdf:
+            case h4:
                 set ftype = "HDF"
                 set if = $fil
                 set of = $fil:r
@@ -512,6 +513,8 @@ while ($n <= $nfiles)
                 breaksw
 
             case hdfeos:
+            case he2:
+            case he4:
                 set ftype = "HDFEOS"
                 set if = $fil
                 set of = $fil:r
@@ -527,6 +530,39 @@ while ($n <= $nfiles)
                 @ nbadf += 1
                 @ n += 1
                 continue
+                breaksw
+
+            case shp:
+            case mif:
+            case gmt:
+            case rt1:   # The possible TIGER suffixes...
+            case rt2:
+            case rt3:
+            case rt4:
+            case rt5:
+            case rt6:
+            case rt7:
+            case rt8:
+            case rt9:
+            case rta:
+            case rtb:
+            case rtc:
+            case rte:
+            case rth:
+            case rti:
+            case rtm:
+            case rtp:
+            case rtr:
+            case rts:
+            case rtt:
+            case rtu:
+            case rtz:
+                set ftype = "OGR"
+                set if = $fil
+                set of = $fil:r
+
+                set valid_file = 1
+                goto VALID_FILE
                 breaksw
 
             default:
@@ -583,6 +619,7 @@ while ($n <= $nfiles)
                 breaksw
 
             case hdf:
+            case h4:
                 set ftype = "HDF"
                 set if = $fil:r.$lsfx
                 set of = $fil:r
@@ -591,6 +628,8 @@ while ($n <= $nfiles)
                 breaksw
 
             case hdfeos:
+            case he2:
+            case he4:
                 set ftype = "HDFEOS"
                 set if = $fil:r.$lsfx
                 set of = $fil:r
@@ -605,6 +644,38 @@ while ($n <= $nfiles)
                 @ nbadf += 1
                 @ n += 1
                 continue
+                breaksw
+
+            case shp:
+            case mif:
+            case gmt:
+            case rt1:   # The possible TIGER suffixes...
+            case rt2:
+            case rt3:
+            case rt4:
+            case rt5:
+            case rt6:
+            case rt7:
+            case rt8:
+            case rt9:
+            case rta:
+            case rtb:
+            case rtc:
+            case rte:
+            case rth:
+            case rti:
+            case rtm:
+            case rtp:
+            case rtr:
+            case rts:
+            case rtt:
+            case rtu:
+            case rtz:
+                set ftype = "OGR"
+                set if = $fil:r.$lsfx
+                set of = $fil:r
+                set valid_file = 1
+                goto VALID_FILE
                 breaksw
         endsw
     endif
@@ -997,26 +1068,29 @@ begin
             end if
 
             varAtts = getfilevaratts(f, fVarNames(i))
-            nAtts   = dimsizes(varAtts)
+            if (.not. all(ismissing(varAtts))) then
+                nAtts   = dimsizes(varAtts)
 
-            dumAtts = new (1, varType(i))    ; dummy to attach varAtts 
-            delete(dumAtts@_FillValue)       ; delete auto assigned _FillValue
+                dumAtts = new (1, varType(i))    ; dummy to attach varAtts 
+                delete(dumAtts@_FillValue)       ; delete auto assigned _FillValue
 
-            do j = 0, nAtts - 1
-                dumAtts@$varAtts(j)$ = f->$fVarNames(i)$@$varAtts(j)$
-            end do
+                do j = 0, nAtts - 1
+                    dumAtts@$varAtts(j)$ = f->$fVarNames(i)$@$varAtts(j)$
+                end do
 
-            if (debug) then                    ; can lead to much output
-                print(varAtts)
-                print(nAtts)
-                print(dumAtts) 
+                if (debug) then                    ; can lead to much output
+                    print(varAtts)
+                    print(nAtts)
+                    print(dumAtts) 
+                end if
+
+                ; define variable attributes
+                filevarattdef(fnc, ncVarNames(i) , dumAtts)
+
+                delete(dumAtts)
             end if
-
-            ; define variable attributes
-            filevarattdef(fnc, ncVarNames(i) , dumAtts)
-
             delete(varAtts)
-            delete(dumAtts)
+
         end if
     end do
 

@@ -1,6 +1,15 @@
 #include <stdio.h>
 #include "wrapper.h"
 
+extern void NGCALLF(vinth2pecmwf,VINTH2PECMWF)(double *dati, double *dato, 
+				     double *hbcofa, double *hbcofb, 
+				     double *p0, double *plevi, 
+				     double *plevo, int *intyp, int *ilev, 
+				     double *psfc, double *spvl, int *kxtrp,
+				     int *imax, int *nlat, int *nlevi, 
+				     int *nlevip1, int *nlevo, int *varflg,
+				     double *tbot, double *phis);
+
 NhlErrorTypes vinth2p_ecmwf_W
 #if NhlNeedProto
 (void)
@@ -100,6 +109,7 @@ NhlErrorTypes vinth2p_ecmwf_W
     NclTypeClass plevo_type_class;
     
     int ncase, ntime, nlev, nlat, nlon;  /* The 5 possible dims of datai */
+    int nlevp1;
 
     val = _NclGetArg(0,12,DONT_CARE);
 /*
@@ -472,7 +482,8 @@ NhlErrorTypes vinth2p_ecmwf_W
       phis_elem *= phis_dimsizes[i];
     }
 
-    plevi = (double*)NclMalloc((nlev+1)*sizeof(double));
+    nlevp1 = nlev+1;
+    plevi = (double*)NclMalloc(nlevp1*sizeof(double));
     if(not_double) {
       datao = (char*)NclMalloc(total * nblk_out * sizeof(float));
       tmp_datai = (double*)NclMalloc(nblk * sizeof(double));
@@ -514,7 +525,7 @@ NhlErrorTypes vinth2p_ecmwf_W
           NGCALLF(vinth2pecmwf,VINTH2PECMWF)(tmp_datai,tmp_datao,hbcofa,hbcofb,
                                              p0,plevi,plevo,intyp,ilev,psfc_d,
                                              &missing,kxtrp,
-                                             &nlon,&nlat,&nlev,&nlev,
+                                             &nlon,&nlat,&nlev,&nlevp1,
                                              &(plevo_dimsizes),varflg,
                                              tbot_d,phis_d);
           for(j = 0; j< nblk_out; j++) {
@@ -586,7 +597,7 @@ NhlErrorTypes vinth2p_ecmwf_W
                                                (((char*)psfc_d)+
                                                 sizeof(double)*psf_blk*i),
                                                &missing,kxtrp,
-                                               &nlon,&nlat,&nlev,&nlev,
+                                               &nlon,&nlat,&nlev,&nlevp1,
                                                &(plevo_dimsizes),varflg,
                                                (((char*)tbot_d)+
                                                 sizeof(double)*psf_blk*i),
@@ -605,7 +616,7 @@ NhlErrorTypes vinth2p_ecmwf_W
                                                (((char*)psfc_d)+
                                                 sizeof(double)*psf_blk*i),
                                                &missing,kxtrp,
-                                               &nlon,&nlat,&nlev,&nlev,
+                                               &nlon,&nlat,&nlev,&nlevp1,
                                                &(plevo_dimsizes),varflg,
                                                (((char*)tbot_d)+
                                                 sizeof(double)*psf_blk*i),

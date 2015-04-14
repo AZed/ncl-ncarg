@@ -1,5 +1,5 @@
 ;
-;      $Id: contributed.ncl,v 1.197 2009/02/19 14:47:16 shea Exp $
+;      $Id: contributed.ncl,v 1.229 2009/05/28 21:25:49 shea Exp $
 ;
 ;
 ; -------------- added Feb 14 2002
@@ -269,6 +269,49 @@ begin
                 end if
             end  do
         end if
+  end if
+end
+;************************************************************
+; M. Haley
+; Copy the coordinate variables from one variable to another,
+;    except for the indicated dimension(s).  
+; Used internally, based on copy_VarCoords_1
+
+undef ("copy_VarCoords_n")
+procedure copy_VarCoords_n(var_from,var_to,dims[*]:integer)  
+local dimt, dimf, rfrom, rto, i, dName, ndims
+begin                      
+
+  dimf  = dimsizes(var_from)            
+  dimt  = dimsizes(var_to)
+  rfrom = dimsizes(dimf)      ; rank of var_from
+  rto   = dimsizes(dimt)      ; rank of var_to
+  ndims = dimsizes(dims)
+
+  dName = getvardims(var_from)               ; Oct 18, 2005
+
+  if (.not.all(ismissing(dName))) then
+       ;if (rto.eq.(rfrom-1)) then
+                do i = 0,dims(0)-1            ; don't use dims' dimensions
+                   if (.not.ismissing(dName(i)).and.dimf(i).eq.dimt(i)) then  
+                        var_to!i = var_from!i
+                        if(iscoord(var_from,var_from!i))
+                                var_to&$var_to!i$ = var_from&$var_from!i$
+                        end if
+                   end if
+                end  do
+                do i = dims(ndims-1)+1,rfrom-1  ; don't use dims' dimensions
+                   i1 = i-ndims
+                   if (.not.ismissing(dName(i)).and.dimf(i).eq.dimt(i1)) then  
+                        var_to!i1 = var_from!i
+                        if(iscoord(var_from,var_from!i))
+                                var_to&$var_to!i1$ = var_from&$var_from!i$
+                        end if
+                   end if
+                end  do
+       ;else
+       ;        print("ERROR: copy_VarCoords_n: rank problem")
+       ;end if
   end if
 end
 ;****************************************
@@ -786,6 +829,9 @@ end
 ; D.Shea
 ; Change case of each character in a string to the opposite case
 
+; This function was deprecated in V5.1.1 and replaced with
+; the built-in function "str_switch".
+
 ; input strings may be scalar [sample="An apple a day"]
 ;                   or 1D     [sample=new( 10, string) ]
 ;                              sample(0)="apple", (1)="ARTICHOKE", ...
@@ -797,52 +843,18 @@ end
 undef ("changeCaseChar")
 function changeCaseChar (x:string)
 
-local low, up, xc, lowc, upc, dimxc, ndim, i, j 
 begin
-  low  = (/"a","b","c","d","e","f","g","h","i","j","k","l","m" \
-          ,"n","o","p","q","r","s","t","u","v","w","x","y","z" /)
-  up   = (/"A","B","C","D","E","F","G","H","I","J","K","L","M" \
-          ,"N","O","P","Q","R","S","T","U","V","W","X","Y","Z" /)
-
-  xc    = stringtochar(x)
-  dimxc = dimsizes (xc)
-  ndim  = dimsizes (dimxc)
-
-  lowc = stringtochar (low) 
-  upc  = stringtochar (up) 
-
-  if (ndim.eq.1) then
-      do i=0,dimxc-2         ; ignore end-of-string character
-         if (any(lowc(:,0).eq.xc(i))) then
-             xc(i) = upc(ind(lowc(:,0).eq.xc(i)),0)
-         else
-             if (any(upc(:,0).eq.xc(i))) then
-                 xc(i) = lowc(ind(upc(:,0).eq.xc(i)),0)
-             end if
-         end if
-      end do
-  end if
-
-  if (ndim.eq.2) then
-      do i=0,dimxc(0)-1      ; loop thru each string
-       do j=0,dimxc(1)-1     ; loop thry each char in string
-          if (any(lowc(:,0).eq.xc(i,j))) then
-              xc(i,j) = upc(ind(lowc(:,0).eq.xc(i,j)),0)
-          else
-              if (any(upc(:,0).eq.xc(i,j))) then
-                  xc(i,j) = lowc(ind(upc(:,0).eq.xc(i,j)),0)
-              end if
-          end if
-       end do
-      end do
-  end if
-
-  return (chartostring(xc))
+  print("changeCaseChar: this function has been deprecated.")
+  print("                Will use str_switch.")
+  return(str_switch(x))
 end
 ; *****************************************************************
 ; D.Shea
 ; Change case: (1) "low" [change all to lower case] 
 ;              (2) "up"  [change all to upper case]
+
+; This function was deprecated in V5.1.1 and replaced with
+; the built-in functions "str_lower" and "str_upper".
 
 ; input strings may be scalar [sample="An apple a day"]
 ;                   or 1D     [sample=new( 10, string) ]
@@ -853,73 +865,29 @@ end
 undef ("changeCase")
 function changeCase (x:string, opt:string)
 
-local low, up, xc, dimxc, ndim, oldc, newc, i, j 
 begin
-  low  = (/"a","b","c","d","e","f","g","h","i","j","k","l","m" \
-          ,"n","o","p","q","r","s","t","u","v","w","x","y","z" /)
-  up   = (/"A","B","C","D","E","F","G","H","I","J","K","L","M" \
-          ,"N","O","P","Q","R","S","T","U","V","W","X","Y","Z" /)
-
-  xc   = stringtochar(x)
-  dimxc= dimsizes (xc)
-  ndim = dimsizes (dimxc)
-
-
+  print("changeCase: this function has been deprecated.")
+  print("            Will use str_lower or str_upper.")
   if (opt.eq."low") then
-      oldc = stringtochar (up)
-      newc = stringtochar (low)
-  else     ; must be upper-to-lower
-      oldc = stringtochar (low) 
-      newc = stringtochar (up) 
+    return (str_lower(x))
+  else
+    return (str_upper(x))
   end if
-
-  if (ndim.eq.1) then
-      do i=0,dimxc-2          ; ignore end-of-string character
-         if (any(oldc(:,0).eq.xc(i))) then
-             xc(i) = newc(ind(oldc(:,0).eq.xc(i)),0)
-         end if
-      end do
-  end if
-
-  if (ndim.eq.2) then
-      do i=0,dimxc(0)-1       ; loop thru each string
-        do j=0,dimxc(1)-1     ; loop thry each char in string
-           if (any(oldc(:,0).eq.xc(i,j))) then
-               xc(i,j) = newc(ind(oldc(:,0).eq.xc(i,j)),0)
-           end if
-        end do
-      end do
-  end if
-
-  return (chartostring(xc))
 end
 ; *****************************************************
 ; D. Shea
 ; trim trailing (rightmost) blanks from one or more strings
+
+; This function was deprecated in V5.1.1 and replaced with
+; the built-in function "str_right_strip".
+
 ;
 undef("trimBlankRight")
 function trimBlankRight (s[*]:string)
-local nRow, str, cBlank, n, kChar
 begin
-  nRow = dimsizes(s)            ; # rows/strings
-  str  = new (nRow, "string")   ; return string(s)
-
-  cBlank = inttochar(32)        ; character blank
-  
-  do n=0,nRow-1
-     chr   = stringtochar(s(n))
-     kChar = dimsizes(chr)-2    ; ignore end-of-line
-     if (kChar.ge.0) then
-         do k=kChar,0,1
-           ;print ("k="+k+"  chr(k)="+chr(k)+"$ c2i="+chartoint(chr(k)))
-            if (chr(k).ne.cBlank) then
-                str(n) = chartostring(chr(0:k))
-                break
-            end if
-         end do
-     end if
-  end do
-  return(str)
+  print("trimBlankRight: this function has been deprecated.")
+  print("                Will use str_right_strip.")
+  return(str_right_strip(s))
 end
 ; *****************************************************************
 ; D. Shea
@@ -1278,17 +1246,17 @@ undef ("int2flt")
 function int2flt(i:integer)
 local dimi, fi
 begin
-  dimi = dimsizes(i)
-  fi   = new( dimi, "float")
-  fi   = i                    ; values + meta data
-  if (isatt(i,"_FillValue")) then
-      fi@_FillValue = i@_FillValue
-  else
-     delete(fi@_FillValue)
-  end if
-  return (fi)
+   dimi = dimsizes(i)
+   if (isatt(i,"_FillValue")) then
+     fi = new( dimi, "float", i@_FillValue)
+   else
+     fi = new( dimi, "float","No_FillValue")
+   end if
 
+   fi   = i                    ; values + meta data
+   return (fi)
 end
+
 
 ;*************************************************************
 ; D. Shea
@@ -1472,8 +1440,7 @@ begin
  oNames = (/"add_offset", "offset", "OFFSET", "Offset", "_offset" \
            ,"Intercept", "intercept"/)
  sNames = (/"scale", "SCALE", "Scale", "_scale", "scale_factor" \
-           ,"Scale_factor", "Slope" , "slope" /)
-
+           ,"Scale_factor", "Slope" , "slope", "ScaleFactor", "Scale_Factor" /)
 
  offset = 0.0   ; establish as type float
  scale  = 1.0
@@ -1560,7 +1527,7 @@ begin
  oNames = (/"add_offset", "offset", "OFFSET", "Offset", "_offset" \
            ,"Intercept", "intercept"/)
  sNames = (/"scale", "SCALE", "Scale", "_scale", "scale_factor" \
-           ,"Scale_factor", "Slope" , "slope" /)
+           ,"Scale_factor", "Slope" , "slope", "ScaleFactor", "Scale_Factor" /)
 
 
  offset = 0.0   ; establish as type float
@@ -1609,11 +1576,11 @@ begin
      xF = xB*scale + offset 
  end if
 
- if (isatt(xB,"valid_range") .and. typeof(xB@valid_range).eq."short") then
+ if (isatt(xB,"valid_range") .and. typeof(xB@valid_range).eq."byte") then
      vrB = xB@valid_range
      vrF = new ( dimsizes(vrB), float)
      vrF = vrB*scale + offset 
-     delete(xF@valid_range)    ; delete the "short" valid_range
+     delete(xF@valid_range)    ; delete the "byte" valid_range
      xF@valid_range = vrF      ; recreate with float
  end if
 
@@ -1655,7 +1622,7 @@ begin
  oNames = (/"add_offset", "offset", "OFFSET", "Offset", "_offset" \
            ,"Intercept", "intercept"/)
  sNames = (/"scale", "SCALE", "Scale", "_scale", "scale_factor" \
-           ,"Scale_factor", "Slope" , "slope" /)
+           ,"Scale_factor", "Slope" , "slope", "ScaleFactor", "Scale_Factor" /)
 
 
  offset = 0.0   ; establish as type float
@@ -1745,7 +1712,7 @@ begin
  oNames = (/"add_offset", "offset", "OFFSET", "Offset", "_offset" \
            ,"Intercept", "intercept"/)
  sNames = (/"scale", "SCALE", "Scale", "_scale", "scale_factor" \
-           ,"Scale_factor", "Slope" , "slope" /)
+           ,"Scale_factor", "Slope" , "slope", "ScaleFactor", "Scale_Factor" /)
 
 
  offset = 0.0   ; establish as type float
@@ -1794,11 +1761,11 @@ begin
      xF = scale*(xB - offset) 
  end if
 
- if (isatt(xB,"valid_range") .and. typeof(xB@valid_range).eq."short") then
+ if (isatt(xB,"valid_range") .and. typeof(xB@valid_range).eq."byte") then
      vrB = xB@valid_range
      vrF = new ( dimsizes(vrB), float)
      vrF = vrB*scale + offset 
-     delete(xF@valid_range)    ; delete the "short" valid_range
+     delete(xF@valid_range)    ; delete the "byte" valid_range
      xF@valid_range = vrF      ; recreate with float
  end if
 
@@ -1920,10 +1887,43 @@ begin
 end
 
 ; *******************************************************************
+; M. Haley
+; Constructs a string with dim names to return with the _Wrap fcns
+; str - name of function being used
+; val - variable containing possible dimension names
+; dims - dimensions whose dim names we want to use (if they exist)
+
+undef("dimWrapString")
+function dimWrapString(str[1]:string,val:numeric,dims[*]:integer)
+local any_valid_dims, i, strcat, dnames
+begin
+ dnames        = getvardims(val)
+ any_valid_dims = False
+ if(.not.all(ismissing(dnames))) then
+   strcat = str + " over dimension(s): "
+   do i=0,dimsizes(dims)-1
+     if(.not.ismissing(val!dims(i))) then   
+       if(.not.any_valid_dims) then
+         strcat = strcat + val!dims(i)
+         any_valid_dims = True
+       else
+         strcat = strcat + "," + val!dims(i)
+       end if
+      end if
+   end do
+ end if
+ if(any_valid_dims) then
+   return(strcat)
+ else
+   return(str + " function was applied")
+ end if
+end
+
+; *******************************************************************
 ; D. Shea
 ; Compute a dimension average of "x" [x may have many dimensions]
 ; return with one less dimension
-; Copies over all the attribures and coordinate variables
+; Copies over all the attributes and coordinate variables
 ; x    - multidimensional variable 
 
 
@@ -1934,26 +1934,43 @@ begin
 
  xave = dim_avg(x)          ; arithmetic ave [no meta data]
  
- copy_VarAtts (x, xave)     ; copy attributes
-                            ; copy dim  names and coord  variables
  dimx = dimsizes(x)         ; size of each dimension
  Ndx  = dimsizes(dimx)      ; number of dimensions
  copy_VarCoords_1 (x, xave) ; one less dimension 
                                        ; add an extra attribute
  Ndx1 = Ndx-1                          ; last dimension
- if (.not.ismissing(x!Ndx1)) then   
-      xave@average_op_ncl= "dim_avg over dimension: "+x!Ndx1
- else
-      xave@average_op_ncl= "dim_avg function was applied"
- end if
+ xave@average_op_ncl = dimWrapString("dim_avg",x,Ndx1)
  
+ return (xave)
+end
+; *******************************************************************
+; M. Haley
+; Compute a dimension average of "x" [x may have many dimensions]
+; return with one less dimension. Based on dim_avg_Wrap.
+; Copies over all the attributes and coordinate variables
+; x    - multidimensional variable 
+; dims - dimension(s) to do average across
+
+undef ("dim_avg_n_Wrap")
+function dim_avg_n_Wrap (x:numeric,dims[*]:integer)
+local xave
+begin
+
+ xave = dim_avg_n(x,dims)   ; arithmetic ave [no meta data]
+ 
+ copy_VarAtts (x, xave)     ; copy attributes
+                            ; copy dim names and coord variables
+ copy_VarCoords_n (x, xave, dims)
+                                       ; add an extra attribute
+ xave@average_op_ncl = dimWrapString("dim_avg_n",x,dims)
+
  return (xave)
 end
 ; *******************************************************************
 ; D. Shea
 ; Compute a wgted average of the rightmost dimension of "x" 
 ; return with one less dimension
-; Copies over all the attribures and coordinate variables
+; Copies over all the attributes and coordinate variables
 ; x    - multidimensional variable 
 
 undef ("dim_avg_wgt_Wrap")
@@ -1970,19 +1987,40 @@ begin
  copy_VarCoords_1 (x, xave) ; one less dimension 
                                        ; add an extra attribute
  Ndx1 = Ndx-1                          ; last dimension
- if (.not.ismissing(x!Ndx1)) then   
-      xave@average_op_ncl= "dim_avg_wgt over dimension: "+x!Ndx1
- else
-      xave@average_op_ncl= "dim_avg_wgt function was applied"
- end if
+ xave@average_op_ncl =  dimWrapString("dim_avg_wgt",x,Ndx1)
  
+ return (xave)
+end
+
+; *******************************************************************
+; M. Haley
+; Compute a wgted average of the dims' dimensions of "x" 
+; return with one less dimension. Based on dim_avg_wgt_Wrap.
+; Copies over all the attributes and coordinate variables
+; x    - multidimensional variable 
+; dims - dimension(s) to do wgted average across
+
+undef ("dim_avg_wgt_n_Wrap")
+function dim_avg_wgt_n_Wrap (x:numeric, w[*]:numeric, opt[1]:integer, \
+                             dims[*]:integer)
+local xave
+begin
+
+ xave = dim_avg_wgt_n(x,w,opt,dims); weighted ave [no meta data]
+ 
+ copy_VarAtts (x, xave)     ; copy attributes
+                            ; copy dim  names and coord  variables
+ copy_VarCoords_n (x, xave, dims)
+                                       ; add an extra attribute
+ xave@average_op_ncl = dimWrapString("dim_avg_wgt_n",x,dims)
+
  return (xave)
 end
 ; *******************************************************************
 ; D. Shea
 ; Compute a dimension variance of "x" [x may have many dimensions]
 ; return with one less dimension
-; Copies over all the attribures and coordinate variables
+; Copies over all the attributes and coordinate variables
 ; x    - multidimensional variable 
 
 
@@ -2000,19 +2038,38 @@ begin
  copy_VarCoords_1 (x, xvar) ; one less dimension 
                                        ; add an extra attribute
  Ndx1 = Ndx-1                          ; last dimension
- if (.not.ismissing(x!Ndx1)) then   
-      xvar@variance_op_ncl= "dim_variance over dimension: "+x!Ndx1
- else
-      xvar@variance_op_ncl= "dim_variance function was applied"
- end if
+ xvar@variance_op_ncl = dimWrapString("dim_variance",x,Ndx1)
  
+ return (xvar)
+end
+; *******************************************************************
+; M. Haley
+; Compute a dimension variance of "x" [x may have many dimensions]
+; return with one less dimension. Based on dim_variance_Wrap
+; Copies over all the attributes and coordinate variables
+; x    - multidimensional variable 
+; dims - dimension(s) to do variance across
+
+undef ("dim_variance_n_Wrap")
+function dim_variance_n_Wrap (x:numeric, dims[*]:integer)
+local xvar
+begin
+
+ xvar = dim_variance_n(x,dims)     ; arithmetic ave [no meta data]
+ 
+ copy_VarAtts (x, xvar)     ; copy attributes
+                            ; copy dim  names and coord  variables
+ copy_VarCoords_n (x, xvar, dims)
+                                       ; add an extra attribute
+ xvar@variance_op_ncl = dimWrapString("dim_variance_n",x,dims)
+
  return (xvar)
 end
 ; *******************************************************************
 ; D. Shea
 ; Compute a dimension standard dev of "x" [x may have many dimensions]
 ; return with one less dimension
-; Copies over all the attribures and coordinate variables
+; Copies over all the attributes and coordinate variables
 ; x    - multidimensional variable 
 
 
@@ -2030,11 +2087,30 @@ begin
  copy_VarCoords_1 (x, xstd) ; one less dimension 
                                        ; add an extra attribute
  Ndx1 = Ndx-1                          ; last dimension
- if (.not.ismissing(x!Ndx1)) then   
-      xstd@stddev_op_ncl= "dim_stddev over dimension: "+x!Ndx1
- else
-      xstd@stddev_op_ncl= "dim_stddev function was applied"
- end if
+ xstd@stddev_op_ncl = dimWrapString("dim_stddev",x,Ndx1)
+ 
+ return (xstd)
+end
+; *******************************************************************
+; M. Haley
+; Compute a dimension standard dev of "x" [x may have many dimensions]
+; return with one less dimension. Based on dim_stddev_Wrap
+; Copies over all the attributes and coordinate variables
+; x    - multidimensional variable 
+; dims - dimension(s) to do sum across
+
+undef ("dim_stddev_n_Wrap")
+function dim_stddev_n_Wrap (x:numeric,dims[*]:integer)
+local xstd
+begin
+
+ xstd = dim_stddev_n(x,dims); arithmetic ave [no meta data]
+ 
+ copy_VarAtts (x, xstd)     ; copy attributes
+                            ; copy dim  names and coord  variables
+ copy_VarCoords_n (x, xstd, dims) 
+                                  ; add an extra attribute
+ xstd@stddev_op_ncl = dimWrapString("dim_stddev_n",x,dims)
  
  return (xstd)
 end
@@ -2042,7 +2118,7 @@ end
 ; D. Shea
 ; Compute a dimension sum of "x" [x may have many dimensions]
 ; return with one less dimension
-; Copies over all the attribures and coordinate variables
+; Copies over all the attributes and coordinate variables
 ; x    - multidimensional variable 
 
 
@@ -2060,19 +2136,39 @@ begin
  copy_VarCoords_1 (x, xsum) ; one less dimension 
                                        ; add an extra attribute
  Ndx1 = Ndx-1                          ; last dimension
- if (.not.ismissing(x!Ndx1)) then   
-      xsum@sum_op_ncl= "dim_sum over dimension: "+x!Ndx1
- else
-      xsum@sum_op_ncl= "dim_sum function was applied"
- end if
+ xsum@sum_op_ncl = dimWrapString("dim_sum",x,Ndx1)
  
  return (xsum)
 end
 ; *******************************************************************
+; M. Haley
+; Compute a dimension sum of "x" [x may have many dimensions]
+; return with one less dimension. Based on dim_sum_Wrap.
+; Copies over all the attributes and coordinate variables
+; x    - multidimensional variable 
+; dims - dimension(s) to do sum across
+
+undef ("dim_sum_n_Wrap")
+function dim_sum_n_Wrap (x:numeric,dims[*]:integer)
+local xsum
+begin
+
+ xsum = dim_sum_n(x,dims)   ; arithmetic sum [no meta data]
+ 
+ copy_VarAtts (x, xsum)     ; copy attributes
+                            ; copy dim names and coord variables
+ copy_VarCoords_n (x, xsum, dims)
+                                       ; add an extra attribute
+ xsum@sum_op_ncl = dimWrapString("dim_sum_n",x,dims)
+
+ return (xsum)
+end
+
+; *******************************************************************
 ; D. Shea
 ; Compute a dimension sum of "x" [x may have many dimensions]
 ; return with one less dimension
-; Copies over all the attribures and coordinate variables
+; Copies over all the attributes and coordinate variables
 ; x    - multidimensional variable 
 
 
@@ -2090,18 +2186,38 @@ begin
  copy_VarCoords_1 (x, xsum) ; one less dimension 
                                        ; add an extra attribute
  Ndx1 = Ndx-1                          ; last dimension
- if (.not.ismissing(x!Ndx1)) then   
-      xsum@sum_op_ncl= "dim_sum_wgt over dimension: "+x!Ndx1
- else
-      xsum@sum_op_ncl= "dim_sum_wgt function was applied"
- end if
+ xsum@sum_op_ncl = dimWrapString("dim_sum_wgt",x,Ndx1)
+ 
+ return (xsum)
+end
+; *******************************************************************
+; M. Haley
+; Compute a dimension wgted sum of "x" [x may have many dimensions]
+; return with one less dimension. Based on dim_sum_wgt_Wrap
+; Copies over all the attributes and coordinate variables
+; x    - multidimensional variable 
+; dims - dimension(s) to do calculation on
+
+undef ("dim_sum_wgt_n_Wrap")
+function dim_sum_wgt_n_Wrap (x:numeric, w[*]:numeric, opt[1]:integer, \
+                            dims[*]:numeric )  
+local xsum
+begin
+
+ xsum = dim_sum_wgt_n(x, w, opt, dims) ; arithmetic weighted  sum 
+ 
+ copy_VarAtts (x, xsum)     ; copy attributes
+                            ; copy dim  names and coord  variables
+ copy_VarCoords_n (x, xsum, dims) 
+                                       ; add an extra attribute
+ xsum@sum_op_ncl = dimWrapString("dim_sum_wgt_n",x,dims)
  
  return (xsum)
 end
 ; *******************************************************************
 ; D. Shea
 ; Remove means of each rightmost dimension
-; Copies over all the attribures and coordinate variables
+; Copies over all the attributes and coordinate variables
 ; x    - multidimensional variable 
 ;
 undef ("dim_rmvmean_Wrap")
@@ -2121,36 +2237,120 @@ begin
  
  dimx = dimsizes(x)
  Ndx  = dimsizes(dimx)      ; number of dimensions
- if (.not.ismissing(x!(Ndx-1))) then   
-      xAnom@rmvmean_op_NCL= "dim_rmvmean over dimension: "+x!(Ndx-1)
- else
-      xAnom@rmvmean_op_NCL= "dim_rmvmean function was applied"
- end if
+ xAnom@rmvmean_op_NCL = dimWrapString("dim_rmvmean",x,Ndx-1)
 
  return (xAnom)
 end
 ; *******************************************************************
+; M. Haley
+; Remove means of all but the dims' dimensions.
+;      Based on dim_rmvmean_Wrap
+; Copies over all the attributes and coordinate variables
+; x    - multidimensional variable 
+; dims - dimension(s) to do calculation on
+
+undef ("dim_rmvmean_n_Wrap")
+function dim_rmvmean_n_Wrap (x:numeric,dims[*]:integer)
+local xAnom
+begin
+
+ xAnom = dim_rmvmean_n(x,dims)
+ copy_VarAtts(x, xAnom)
+ copy_VarCoords(x, xAnom)
+ 
+ if (isatt(x,"long_name")) then
+     xAnom@long_name = "Anomalies: "+getLongName(x)
+ else
+     xAnom@long_name = "Deviation from mean"
+ end if
+   
+ xAnom@rmvmean_op_NCL = dimWrapString("dim_rmvmean_n",x,dims)
+
+ return (xAnom)
+end
+; *******************************************************************
+; M. Haley
+; Remove median of all but the dims' dimensions.
+;      Based on dim_rmvmean_Wrap
+; Remove median of each rightmost dimension
+; Copies over all the attributes and coordinate variables
+; x    - multidimensional variable 
+;
+undef ("dim_rmvmed_Wrap")
+function dim_rmvmed_Wrap (x:numeric)     
+local xRmvMed, dimx, Ndx
+begin
+
+ xRmvMed = x                   ; copy metadata
+ xRmvMed = dim_rmvmed(x)     
+ 
+ dimx = dimsizes(x)
+ Ndx  = dimsizes(dimx)      ; number of dimensions
+ xRmvMed@rmvmed_op_NCL = dimWrapString("dim_rmvmed",x,Ndx-1)
+
+ return (xRmvMed)
+end
+; *******************************************************************
+; M. Haley
+; Remove median of all but the dims' dimensions.
+;      Based on dim_rmvmed_Wrap
+; Copies over all the attributes and coordinate variables
+; x    - multidimensional variable 
+; dims - dimension(s) to do calculation on
+undef ("dim_rmvmed_n_Wrap")
+function dim_rmvmed_n_Wrap (x:numeric,dims[*]:integer)
+local xRmvMed
+begin
+
+ xRmvMed = x                   ; copy metadata
+ xRmvMed = dim_rmvmed_n(x,dims)
+ 
+ xRmvMed@rmvmed_op_NCL = dimWrapString("dim_rmvmed_n",x,dims)
+
+ return (xRmvMed)
+end
+; *******************************************************************
 ; D. Shea
 ; Standardize by the st. dev of each rightmost dimension
-; Copies over all the attribures and coordinate variables
+; Copies over all the attributes and coordinate variables
 ; x    - multidimensional variable 
 
 
 undef ("dim_standardize_Wrap")
 function dim_standardize_Wrap (x:numeric, opt:integer)     
-local xStd, dimx, Ndx
+local xStd, dimx, Ndx, Ndx1
 begin
 
- xStd = x
- xStd = dim_standardize(x, opt)     
+ xStd = x                   ; copy metadata
+ xStd = dim_standardize(x, opt)
  
- dimx = dimsizes(x)
+ dimx = dimsizes(x)         ; size of each dimension
  Ndx  = dimsizes(dimx)      ; number of dimensions
- if (.not.ismissing(x!(Ndx-1))) then   
-      xStd@standardize_op_ncl= "dim_standardize over dimension: "+x!(Ndx-1)
- else
-      xStd@standardize_op_ncl= "dim_standardize function was applied"
- end if
+ Ndx1 = Ndx-1               ; last dimension
+ xStd@standardize_op_ncl = dimWrapString("dim_standardize",x,Ndx1)
+ 
+ return (xStd)
+end
+
+; *******************************************************************
+; M. Haley
+; Standardize by the st. dev of each dims' dimensions
+;    Based on dim_standardize_Wrap
+; Copies over all the attributes and coordinate variables
+; x    - multidimensional variable 
+; dims - dimension(s) to do calculation on
+
+
+undef ("dim_standardize_n_Wrap")
+function dim_standardize_n_Wrap (x:numeric, opt:integer, dims[*]:integer)
+local xStd
+begin
+
+ xStd = x                   ; copy metadata
+ xStd = dim_standardize_n(x, opt, dims)
+ 
+                            ; add an extra attribute
+ xStd@standardize_op_ncl= dimWrapString("dim_standardize_n",x,dims)
  
  return (xStd)
 end
@@ -2159,7 +2359,7 @@ end
 ; D. Shea
 ; Compute average root-mean-square-difference between "x" and "y" 
 ; return with one less dimension
-; Copies over all the attribures and coordinate variables
+; Copies over all the attributes and coordinate variables
 ; x,y    - 1D or multidimensional variables (must have same size) 
 
 undef ("dim_rmsd_Wrap")
@@ -2181,11 +2381,7 @@ begin
      copy_VarCoords_1 (x, xrmsd); one less dimension 
                                            ; add an extra attribute
      Ndx1 = Ndx-1                          ; last dimension
-     if (.not.ismissing(x!Ndx1)) then   
-          xrmsd@rmsd_op_ncl= "dim_rmsd applied to dimension: "+x!Ndx1
-     else
-          xrmsd@rmsd_op_ncl= "dim_rmsd function was applied "+Ndx1
-     end if
+     xrmsd@rmsd_op_ncl = dimWrapString("dim_rmsd",x,Ndx1)
 
      return (xrmsd)
  else
@@ -2196,10 +2392,47 @@ begin
  end if
  
 end
+;**********************************************************
+; M. Haley
+; Compute average root-mean-square-difference between "x" and "y" 
+;      Based on dim_rmsd_Wrap
+; return with one less dimension
+; Copies over all the attributes and coordinate variables
+; x,y    - 1D or multidimensional variables (must have same size) 
+; dims - dimension(s) to do calculation on
+
+undef ("dim_rmsd_n_Wrap")
+function dim_rmsd_n_Wrap (x:numeric, y:numeric, dims[*]:integer)
+local xrmsd, dimx, dimy
+begin
+ dimx  = dimsizes(x)
+ dimy  = dimsizes(y)
+ if (all(dimx.eq.dimy)) then
+
+     xrmsd = dim_rmsd_n(x,y,dims)     ; rmsd values only [no meta data]
+     
+     copy_VarAtts (x, xrmsd)    ; copy attributes
+     if (isatt(xrmsd,"long_name")) then
+         xrmsd@long_name = "RMSD: "+getLongName(x)
+     end if
+                                ; copy dim  names and coord  variables
+     copy_VarCoords_n (x, xrmsd, dims)
+                                           ; add an extra attribute
+     xrmsd@rmsd_op_ncl = dimWrapString("dim_rmsd_n",x,dims)
+
+     return (xrmsd)
+ else
+     print ("--------------------------------------------------------")
+     print ("---> dim_rmsd_n_Wrap: error: x,y dimension mismatch <---")
+     print ("--------------------------------------------------------")
+     exit
+ end if
+ 
+end
 ; *******************************************************************
 ; D. Shea
 ; returns cumulative sum of each rightmost dimension
-; Copies over all the attribures and coordinate variables
+; Copies over all the attributes and coordinate variables
 ; x    - multidimensional variable 
 ; opt  - option argument, must be 0, 1, or 2
 ;
@@ -2209,6 +2442,32 @@ local xCumSum
 begin
 
  xCumSum = dim_cumsum(x,opt)
+ copy_VarAtts(x, xCumSum)
+ copy_VarCoords(x, xCumSum)
+ 
+ if (isatt(x,"long_name")) then
+     xCumSum@long_name = "Cumulative Sum: "+getLongName(x)
+ else
+     xCumSum@long_name = "Cumulative Sum"
+ end if
+ 
+ return (xCumSum)
+end
+; *******************************************************************
+; M. Haley
+; returns cumulative sum at the given  dimension
+;    Based on dim_cumsum_Wrap 
+; Copies over all the attributes and coordinate variables
+; x    - multidimensional variable 
+; opt  - option argument, must be 0, 1, or 2
+; dims - dimensions to do calculations on
+
+undef ("dim_cumsum_n_Wrap")
+function dim_cumsum_n_Wrap (x:numeric,opt:integer,dims[1]:integer)
+local xCumSum
+begin
+
+ xCumSum = dim_cumsum_n(x,opt,dims)
  copy_VarAtts(x, xCumSum)
  copy_VarCoords(x, xCumSum)
  
@@ -3393,9 +3652,12 @@ end
 ; **********************************************************************
 ; D. Shea
 ; create different view of variable
+; The undocumented func had 2 arguments (yyyymmdd[*], opt[1]:logical)
+; This was changed when this function was made part of the official 
+; distribution 5.1.1
 
 undef("yyyymmdd_to_yyyyddd")
-function yyyymmdd_to_yyyyddd (yyyymmdd[*]:integer, opt[1]:logical)
+function yyyymmdd_to_yyyyddd (yyyymmdd[*]:integer)
 local yyyy, mmdd, mm, dd, yyyyddd
 begin
  yyyy = yyyymmdd/10000
@@ -3408,6 +3670,64 @@ begin
  yyyyddd@long_name = "yyyy and day_of_year"
  yyyyddd@units = "yyyyddd"
  return(yyyyddd)
+end
+
+; **********************************************************************
+; D. Shea
+; create different view of variable
+
+undef("yyyyddd_to_yyyymmdd")
+function yyyyddd_to_yyyymmdd ( yyyyddd[*]:integer )
+; convert yyyyddd (year|day_of_year) to yyyymmdd
+
+local nTime, yyyy, ddd, days, yyyymmdd, nt, iyr \
+    , ndyr, skip, nmo, ndy, ndymo, foo
+begin
+  nTime    = dimsizes( yyyyddd )
+  yyyy     = yyyyddd/1000
+  ddd      = yyyyddd - yyyy*1000
+           ; non leap and leap
+  days     = (/ (/31,28,31,30,31,30,31,31,30,31,30,31/) \    ; [2] x [12]
+              , (/31,29,31,30,31,30,31,31,30,31,30,31/) /)
+
+  yyyymmdd = new (nTime, "integer", -999)
+
+  do nt=0,nTime-1
+     iyr   = 0
+     if (isleapyear(yyyy(nt))) then
+         iyr   = 1
+     end if
+
+     ndyr = 0            ; day of year
+     skip = False        ; use to bounce out of loops
+
+     do nmo=1,12
+       do ndymo=1,days(iyr,(nmo-1))
+          ndyr = ndyr+1      ; increment day of year
+          if (ndyr.eq.ddd(nt)) then
+              yyyymmdd(nt) = yyyy(nt)*10000 + nmo*100 + ndymo
+              skip = True
+              break      ; bounce out of ndy loop
+          end if
+       end do
+        foo = 1
+        if (skip) then
+            break        ; bounce out of nmo loop
+        end if
+     end do
+
+   end do
+
+   if (.not.any(ismissing(yyyymmdd))) then
+       delete(yyyymmdd@_FillValue)
+   end if
+
+   yyyymmdd!0 = "time"
+   yyyymmdd@long_name = "current date"
+   yyyymmdd@units     = "YYYYMMDD" 
+   yyyymmdd@info      = "converted from YYYYDDD" 
+
+   return(yyyymmdd) 
 end
 
 ; **********************************************************************
@@ -7008,24 +7328,16 @@ end
 ;Within a string:  replace one character with another
 ; usage:   s = "apples are good"
 ;          replaceSingleChar(s, " ", "_")   ; ==> s="apples_are_good""
+
+; This function was deprecated in V5.1.1 and replaced with
+; the built-in function "str_sub_str".
+
 undef("replaceSingleChar")
 procedure replaceSingleChar (s[*]:string, oldStr[1]:string, newStr[1]:string)
-local cOld, cNew, ns, n, c, i
 begin
-  cOld = stringtochar( oldStr )
-  cNew = stringtochar( newStr )
-  ns   = dimsizes( s )
-
-  do n=0,ns-1
-     c  = stringtochar( s(n) )
-     i  = ind( c.eq.cOld(0)  )
-     if (.not.(any(ismissing(i)))) then
-         c(i) = cNew(0)
-         s(n) = chartostring( c )
-     end if
-     delete(i)   ;may change size next iteration
-     delete(c)  
-  end do
+  print("replaceSingChar: this function has been deprecated.")
+  print("                 Will use str_sub_str.")
+  s = str_sub_str(s,oldStr,newStr)
 end
 
 ;*************************************************************************
@@ -7076,13 +7388,20 @@ begin
    
    return (sTF)
 end
-
+; ----------------------
 undef("indStrSubset")
 function indStrSubset(S[1]:string, s[1]:string)
 ; return the indices of the characters
 ; of "S" of which "s" is a subset. 
 local SC, sc, nsc, nSC, n, ii
 begin
+
+   if (ismissing(S) .or. ismissing(s)) then
+       print("indStrSubset: missing string")
+       ii = (/-999,-999/)
+       ii@_FillValue = -999
+       return(ii)
+   end if
 
    SC  = stringtochar(S)     ; main
    sc  = stringtochar(s)     ; subset
@@ -7115,22 +7434,11 @@ function getSubString (s[*]:string, iStrt:integer, iLast:integer)
 ;     A = (/ "vorticity", "flux", "divergence" /)
 ;     As= getSubString(A, 0, 4)  ; ==> As = (/"vort","flux","dive"/)
 
-local N, sChr, sSub, n
+; This function was deprecated in V5.1.1 and replaced with
+; the built-in function "str_get_cols".
+
 begin
-  N   = dimsizes(s)
-  if (N.eq.1) then
-      sChr = stringtochar(s)
-      return( chartostring((/sChr(iStrt:iLast)/)) ) 
-  else
-      sSub = new ( N, "string")
-      delete(sSub@_FillValue)
-      do n=0,N-1
-         sChr = stringtochar(s(n))
-         sSub(n) = stringtochar( (/sChr(iStrt:iLast)/) )
-         delete(sChr)   ; size may change
-      end do
-      return (sSub)
-  end if
+  return(str_get_cols(s,iStrt,iLast))
 end
 
 undef("wallClockElapseTime")
@@ -9420,9 +9728,10 @@ end
 ;**************************************************************
 ; Calculate the PDF of an array
 ; Original source IDL code by Andrew Gettleman
-
-undef("pdfx")
-function pdfx(x:numeric, nbin[1]:integer, opt:logical)
+; pdfx_v510 is to provide backward compatibility for the 5.1.0 version
+;
+undef("pdfx_v510")
+function pdfx_v510(x:numeric, nbin[1]:integer, opt:logical)
 local nGood, nbins, xMin, xMax, mnmxint, xSpace \
      ,bin, pdf, nTot
 begin
@@ -9475,7 +9784,6 @@ begin
   end do
 
   nTot = num(x.ge.xMin .and. x.le.xMax)   ; actual number used
- ;nTot = nGood
   pdf  = pdf/nTot              ; frequency
 
   pdf@bin_center     = binCenter
@@ -9492,6 +9800,339 @@ begin
   pdf@units          = "frequency"
   
   return( pdf )
+end
+;***********************************************
+; binning consistent with the "pdfxy" function
+;
+undef("pdfx")
+function pdfx(x:numeric, nbin[1]:integer, opt:logical)
+local nGood, nbins, xMin, xMax, mnmxint, xSpace \
+     ,bin, pdf, nTot, XMIN, XMAX
+begin
+
+  if (opt .and. isatt(opt, "v510") .and. opt@v510) then
+      pdf = pdfx_v510(x, nbin, opt) ; different binning
+      return(pdf)
+  end if
+
+  if (nbin.le.2) then
+      nbins = 25             ; default 
+  else
+      nbins = nbin
+  end if
+
+  nGood = num(.not.ismissing(x))
+  if (nGood.lt.3) then
+      print("pdfx: nGood="+nGood+" : Need more non-missing points")
+      pdf = new( nbins, "double", getFillValue(x))
+      return( pdf )
+  end if
+
+  XMIN = min(x)*1d0   ; min/max for ENTIRE array             
+  XMAX = max(x)*1d0   ; force "double" [*1d0]
+
+  xMin = 0.0d         ; prototype as double
+  xMax = 0.0d
+
+  if (opt .and. isatt(opt,"bin_min")) then  
+      xMin = opt@bin_min                    ; user set
+  else
+      xMin = XMIN                           ; calculate
+  end if
+
+  if (opt .and. isatt(opt,"bin_max")) then  
+      xMax = opt@bin_max                    ; user set
+  else
+      xMax = XMAX                           ; calculate
+  end if
+
+  if (opt .and. isatt(opt,"bin_nice")) then ; nice xMin, xMax
+      outside = False
+      if (isatt(opt,"bin_nice_outside")) then
+          outside = opt@bin_nice_outside
+      end if
+      mnmxint = nice_mnmxintvl( XMIN, XMAX, nbins, outside)
+      xMin    = mnmxint(0)
+      xMax    = mnmxint(1)
+      xSpace  = mnmxint(2)
+      nbins   = round( (xMax-xMin)/xSpace , 3) 
+  end if
+
+  dbin        = (xMax-xMin)/(nbins-1)   
+  binBound    = xMin + ispan(0,nbins,1)*dbin
+  binCenter   = (binBound(0:nbins-1) + binBound(1:nbins))*0.5d 
+
+  binBoundMin = binBound(0)          ; convenience
+  binBoundMax = binBound(nbins)   
+
+  pdf         = new( nbins, "double", getFillValue(x))
+  pdf         = 0.0d
+
+  do nb=0,nbins-1      
+     pdf(nb) = num( x.ge.binBound(nb) .and. x.lt.binBound(nb+1) )
+  end do
+
+  pdf!0    = "x"
+  pdf&x    = binCenter
+                                       ; max possible in data     
+  nMax     = num(x.ge.XMIN .and. x.le.XMAX)
+                                       ; actual number used
+  nUse     = num(x.ge.binBoundMin .and. x.le.binBoundMax)
+
+  pdf      = 1d2*pdf/nMax              ; percent frequency
+
+  pdf@bin_center     = binCenter
+  pdf@bin_bounds     = binBound
+  pdf@bin_bound_min  = binBoundMin
+  pdf@bin_bound_max  = binBoundMax
+  pdf@bin_spacing    = dbin            ; binBound(2)-binBound(1)
+  pdf@nbins          = nbins
+  pdf@nMax           = nMax
+  pdf@nUse           = nUse
+
+  pdf@long_name      = "PDF"
+  if (isatt(x,"long_name")) then
+      pdf@long_name  = "PDF: "+x@long_name
+  end if
+  pdf@units          = "%"
+  
+  return( pdf )
+end
+;**************************************************************
+; Calculate the "joint PDF [%]" of arrays "x" and "y"
+;**************************************************************
+undef("pdfxy")
+function pdfxy(x:numeric, y:numeric, nbinx[1]:integer, nbiny[1]:integer, opt:logical)
+local nGood_x, nbinsx, xMin, xMax, mnmxint, binx, binxBound, binxCenter, nbx \
+     ,nGood_y, nbinsy, yMin, yMax, ySpace , biny, binyBound, binyCenter, nby \
+     ,outside, mnmxint, pdf2, nTot, dimx, dimy, rankx, ranky, x1d, y1d, iy, warnFlag\
+     ,xMIN, xMAX, yMIN, yMAX, binxBoundMin, binxBoundMax, binyBoundMin, binyBoundMax\
+     ,nMax, nUse, nxLoOut, nxHiOut, nyLoOut, nyHiOut, popt
+begin
+
+  if (nbinx.le.2) then
+      nbinsx = 25             ; default
+  else
+      nbinsx = nbinx          ; user sprecified
+  end if
+
+  if (nbiny.le.2) then
+      nbinsy = 25             ; default
+  else
+      nbinsy = nbiny          ; user specified
+  end if
+                              ; error check
+  warnFlag = True             ; default ... print warning messages
+  if (opt .and. isatt(opt,"WarningMsg") .and. .not.opt@WarningMsg) then
+      warnFlag = False
+  end if
+
+  if (warnFlag) then
+      nGood_x = num(.not.ismissing(x))
+      if (nGood_x.lt.3) then
+          print("pdfxy: nGood(x)="+nGood_x+" : Need more non-missing points")
+      end if
+    
+      nGood_y = num(.not.ismissing(y))
+      if (nGood_y.lt.3) then
+          print("pdfxy: nGood(y)="+nGood_y+" : Need more non-missing points")
+      end if
+    
+      if (nGood_x.lt.3 .or. nGood_y.lt.3) then
+          print("pdfxy: exit error: not enough points")
+          pdf2 = new( (/nbinsy,nbinsx/), "double", 1d20)
+          return( pdf2 )
+      end if
+  end if              ; warnFlag
+
+  xMIN = min(x)*1d0   ; min/max for ENTIRE array             
+  xMAX = max(x)*1d0   ; force "double" [*1d0]
+  yMIN = min(y)*1d0   
+  yMAX = max(y)*1d0  
+                                             ; max number possible
+  nMax = num(x.ge.xMIN .and. x.le.xMAX .and. \
+             y.ge.yMIN .and. y.le.yMAX) 
+
+  if (nMax.lt.3) then                        
+      print("pdfxy: exit error: nMax.lt.3")
+      pdf2 = new( (/nbinsy,nbinsx/), "double", 1d20)
+      return( pdf2 )
+  end if
+
+  xMin = 0.0d         ; prototype as "double"    
+  xMax = 0.0d
+  yMin = 0.0d     
+  yMax = 0.0d
+                      ; User may want different min/max used
+  if (opt .and. isatt(opt,"binx_min")) then  
+      xMin = opt@binx_min                   ; user
+  else
+      xMin = xMIN                           ; calculated
+  end if
+
+  if (opt .and. isatt(opt,"binx_max")) then  
+      xMax = opt@binx_max                   ; user
+  else
+      xMax = xMAX                                         
+  end if
+
+  if (opt .and. isatt(opt,"biny_min")) then  
+      yMin = opt@biny_min                   ; user
+  else
+      yMin = yMIN
+  end if
+
+  if (opt .and. isatt(opt,"biny_max")) then  
+      yMax = opt@biny_max                   ; user
+  else
+      yMax = yMAX  
+  end if
+                                            
+  if (opt.and.isatt(opt,"binx_nice")) then  ; nice xMin, xMax
+      outside = False                       
+      if (isatt(opt,"binx_nice_outside")) then
+          outside = opt@binx_nice_outside
+      end if
+      mnmxint = nice_mnmxintvl( xMIN, xMAX, nbinsx, outside)
+      xMin    = mnmxint(0)
+      xMax    = mnmxint(1)
+      xSpace  = mnmxint(2)
+      nbinsx  = round( (xMax-xMin)/xSpace , 3) 
+      delete(mnmxint)
+  end if
+
+  if (opt .and. isatt(opt,"biny_nice")) then ; nice yMin, yMax
+      outside = False
+      if (isatt(opt,"biny_nice_outside")) then
+          outside = opt@biny_nice_outside
+      end if
+      mnmxint = nice_mnmxintvl( yMIN, yMAX, nbinsy, outside)
+      yMin    = mnmxint(0)
+      yMax    = mnmxint(1)
+      ySpace  = mnmxint(2)
+      nbinsy  = round( (yMax-yMin)/ySpace , 3) 
+      delete(mnmxint)
+  end if
+
+  dbinx       = (xMax-xMin)/(nbinsx-1)
+  binxBound   = xMin + ispan(0,nbinsx,1)*dbinx
+  binxCenter  = (binxBound(0:nbinsx-1) + binxBound(1:nbinsx))*0.5d 
+
+  dbiny       = (yMax-yMin)/(nbinsy-1)
+  binyBound   = yMin + ispan(0,nbinsy,1)*dbiny
+  binyCenter  = (binyBound(0:nbinsy-1) + binyBound(1:nbinsy))*0.5d 
+
+  binxBoundMin= binxBound(0)          ; convenience
+  binxBoundMax= binxBound(nbinsx)   
+  binyBoundMin= binyBound(0)   
+  binyBoundMax= binyBound(nbinsy)   
+
+  pdf2        = new( (/nbinsy,nbinsx/), "double", 1d20)
+  pdf2        = 0.0d                  ; initialize
+  
+  dimx        = dimsizes(x)
+  dimy        = dimsizes(y)
+  rankx       = dimsizes(dimx)
+  ranky       = dimsizes(dimy)
+
+  popt          = True
+  popt@fraction = False     ; False means to return %
+  pdf2 = pdfxy_bin(x,y, binxBound,binyBound, popt)
+                          ; all NCL [original code]
+    ;;x1d  = ndtooned(x)  ; requires more memory
+    ;;y1d  = ndtooned(y)
+
+    ;;do nby=0,nbinsy-1
+    ;;   iy = ind(y1d.ge.binyBound(nby) .and. y1d.lt.binyBound(nby+1))
+    ;;   if (.not.ismissing(iy(0))) then
+    ;;       do nbx=0,nbinsx-1
+    ;;          pdf2(nby,nbx) = num(x1d(iy).ge.binxBound(nbx) .and. \
+    ;;                              x1d(iy).lt.binxBound(nbx+1)     )
+    ;;       end do
+    ;;   end if
+    ;;   delete(iy)      ; size may change
+    ;;end do
+
+  if (popt .and. isatt(popt,"fraction") .and. popt@fraction) then
+      pdf2 = 1d2*pdf2                ; frequency [%]
+  end if
+
+  pdf2!0   = "y"         ; arbitrary name
+  pdf2!1   = "x"
+  pdf2&x   =  binxCenter 
+  pdf2&y   =  binyCenter
+                                             ; actual number used
+  nUse     = num(x.ge.binxBoundMin .and. x.le.binxBoundMax .and. \
+                 y.ge.binyBoundMin .and. y.le.binyBoundMax)
+
+  if (nMax.eq.nUse) then
+      nxLoOut  = 0
+      nxHiOut  = 0
+      nyLoOut  = 0
+      nyHiOut  = 0
+  else
+      nxLoOut  = num(x.lt.binxBoundMin)
+      nxHiOut  = num(x.ge.binxBoundMax)
+      nyLoOut  = num(y.lt.binyBoundMin)
+      nyHiOut  = num(y.ge.binyBoundMax)
+  end if
+
+  pdf2@nMax            = nMax
+  pdf2@nUse            = nUse
+  pdf2@nOut            = nxLoOut + nxHiOut + nyLoOut + nyHiOut
+  if (nMax.gt.0) then
+      pdf2@pcUse       = (1e2*nUse)/nMax         ; percent [pc]
+      pdf2@pcOut       = (1e2*pdf2@nOut)/nMax
+  else
+      pdf2@pcUse       = -999                                   
+      pdf2@pcOut       = -999
+  end if
+
+  pdf2@xMIN            = xMIN 
+  pdf2@xMAX            = xMAX 
+  pdf2@binx_center     = binxCenter
+  pdf2@binx_bounds     = binxBound
+  pdf2@binx_bound_min  = binxBoundMin
+  pdf2@binx_bound_max  = binxBoundMax
+  pdf2@binx_spacing    = dbinx   ; binxBound(2)-binxBound(1)
+  pdf2@nbinsx          = nbinsx
+ ;pdf2@nxLoOut         = nxLoOut
+ ;pdf2@nxHiOut         = nxHiOut
+  
+  if (nMax.gt.0) then
+      pdf2@pcxLoOut    = (1e2*nxLoOut)/nMax         ; %
+      pdf2@pcxHiOut    = (1e2*nxHiOut)/nMax
+  else
+      pdf2@pcxLoOut    = -999
+      pdf2@pcxHiOut    = -999                
+  end if
+
+  pdf2@yMIN            = yMIN 
+  pdf2@yMAX            = yMAX 
+  pdf2@biny_center     = binyCenter
+  pdf2@biny_bounds     = binyBound
+  pdf2@biny_bound_min  = binyBoundMin
+  pdf2@biny_bound_max  = binyBoundMax
+  pdf2@biny_spacing    = dbiny   ; binyBound(2)-binyBound(1)
+  pdf2@nbinsy          = nbinsy
+ ;pdf2@nyLoOut         = nyLoOut
+ ;pdf2@nyHiOut         = nyHiOut
+  if (nMax.gt.0) then
+      pdf2@pcyLoOut        = (1e2*nyLoOut)/nMax         ; %
+      pdf2@pcyHiOut        = (1e2*nyHiOut)/nMax
+  else
+      pdf2@pcyLoOut        = -999
+      pdf2@pcyHiOut        = -999 
+  end if
+
+ ;pdf2@long_name      = "Joint PDF"
+ ;if (isatt(x,"long_name") .and. isatt(y,"long_name")) then
+ ;    pdf2@long_name  = "Joint PDF: "+x@long_name+" | " \
+ ;                                   +y@long_name
+ ;end if
+ ;pdf2@units          = "frequency"
+  
+  return( pdf2 )
 end
 ; ----
 undef ("genNormalDist")
@@ -10046,4 +10687,167 @@ begin
   end if
  
   return(zGrid)
+end
+;----------------------------------------------------------------------------
+; Calculate a 'bunch' of dispersion statistics (25)
+; 
+undef("stat_dispersion")
+function stat_dispersion (x:numeric, opt[1]:logical )
+; Robust dispersion statistics
+; 
+local nStat, nx, sFillV, nFill, one, statx, work, nwork, x1d, ivalid
+begin
+   nx = product( dimsizes(x) )
+   nFill = 0
+  
+   if (isatt(x,"_FillValue")) then  
+       sFillV = x@_FillValue
+       nFill  = num(ismissing(x))
+       if (nFill.gt.0) then
+           x1d    = ndtooned(x) 
+           ivalid = ind(.not.ismissing(x1d))
+           work   = x1d(ivalid)
+           delete(x1d)
+       else
+           work = ndtooned(x) 
+       end if
+   else
+       work  = ndtooned(x) 
+       if (typeof(x).eq."double") then
+           sFillV = 1d20
+       else
+           sFillV = 1e20
+       end if
+   end if
+
+   if (typeof(x).eq."double") then
+       one    = 1.0d
+   else
+       one    = 1.0
+   end if
+
+   nwork    = dimsizes(work)  
+
+   nStat    = 30
+   statx    = new ( nStat, typeof(sFillV), sFillV) 
+   statx(0) = avg(x)                ; mean
+   statx(1) = stddev(x)             ; std. deviation
+   if (nwork.ge.10) then 
+       qsort( work )                    ; sort into ascending order
+       statx(2) = min ( work )
+                                        ; -1 ... NCL zero based 
+       statx(3) = work( nwork/10-1 )    ; lower dectile
+       statx(4) = work( nwork/8 -1 )    ; lower octtile
+       statx(5) = work( nwork/6 -1 )    ; lower sextile
+       statx(6) = work( nwork/4 -1 )    ; lower quartile
+       statx(7) = work( nwork/3 -1 )    ; lower 3tile
+       if (nwork%2 .eq.0) then          ; median even
+           statx(8) = (work(nwork/2-1)+work(nwork/2))*0.5  
+       else
+           statx(8) = work( nwork/2   ) ; median odd  
+       end if
+       statx(9) = work((nwork*2)/3 -1)  ; upper 3tile
+       statx(10)= work((nwork*3)/4 -1)  ; upper quartile
+       statx(11)= work((nwork*5)/6 -1)  ; upper sextile
+       statx(12)= work((nwork*7)/8 -1)  ; upper octtile
+       statx(13)= work((nwork*9)/10-1)  ; upper dectile
+       statx(14)= max ( work )      
+       statx(15)= statx(14)-statx(2)    ; range
+       if (statx(1).gt.0) then
+           statx(16)= statx(15)/statx(1); a measure of dispersion
+       end if
+       statx(17)= sqrt(sum((work-statx(0))^2)/nwork) ; root mean sq anomaly
+   end if
+       statx(18)= nx
+       statx(19)= nwork
+       statx(20)= nFill
+       statx(21)= 100*(one - (one*(nx-nFill))/nx)
+
+   statx@long_name = "Robust Dispersion Statistics"
+   if (isatt(x,"long_name")) then
+       statx@long_name = statx@long_name +": "+ x@long_name
+   else
+       if (isatt(x,"hdfeos5_name")) then
+           statx@long_name = statx@long_name +": "+ x@hdfeos5_name
+       end if
+   end if
+   if (isatt(x,"units")) then
+       statx@units     = x@units
+   end if
+
+   if (isatt(statx,"No_FillValue")) then
+       if (typeof(x).eq."double") then
+           statx@_FillValue = 1d20
+       else
+           statx@_FillValue = 1e20
+       end if
+   end if
+
+   if (opt .and. opt@PrintStat) then 
+       print(" ")
+       print("   ===> "+statx@long_name+" <===")
+       print(" [0]            Mean="+statx(0)  ) 
+       print(" [1]          StdDev="+statx(1)  ) 
+       print(" [2]             Min="+statx(2)  ) 
+       print(" [3]          LowDec="+statx(3)  ) 
+       print(" [4]          LowOct="+statx(4)  ) 
+       print(" [5]          LowSex="+statx(5)  ) 
+       print(" [6]     LowQuartile="+statx(6)  ) 
+       print(" [7]          LowTri="+statx(7)  ) 
+       print(" [8]          Median="+statx(8)  ) 
+       print(" [9]         HighTri="+statx(9)  ) 
+       print(" [10]   HighQuartile="+statx(10) ) 
+       print(" [11]        HighSex="+statx(11) ) 
+       print(" [12]        HighOct="+statx(12) ) 
+       print(" [13]        HighDec="+statx(13) ) 
+       print(" [14]            Max="+statx(14) ) 
+       print(" [15]          Range="+statx(15) ) 
+       print(" [16]     Dispersion="+statx(16) ) 
+       print(" [17]    RMS Anomaly="+statx(17) ) 
+       print(" [18]      #   Total="+statx(18) ) 
+       print(" [19]      #    Used="+statx(19) ) 
+       print(" [20]      # Missing="+statx(20) ) 
+       print(" [21]      % Missing="+statx(21) ) 
+       print(" ")
+   end if
+
+   return(statx)
+end
+; **********************************************************************
+; D. Shea
+; wrapper for NCL procedure "int2p"  that copies attributes and coordinate 
+; vars.  It adds the longitude and latitude coordinates.
+
+undef("int2p_Wrap")
+function int2p_Wrap (xi:numeric, fi:numeric, xo[*]:numeric, linlog[1]:integer)
+
+; wrapper for NCL function "int2p"  that copies attributes and coordinate vars.
+local fo, dimfi, nDim, n, nD
+begin
+
+  fo   = int2p (xi,fi, xo, linlog)              ; perform interpolation 
+                                                ; shea_misc functions
+  dimfi= dimsizes(fi)
+  nDim = dimsizes(dimsizes(fo))                 ; number of dimensions
+
+  copy_VarAtts (fi, fo)                         ; copy variable attributes
+  copy_VarCoords_1 (fi, fo)                     ; copy coord variables  
+                                                ; except for rightmost
+
+  nD   = nDim-1                                 ; last dimension
+                                                ; create a new coord for
+  if (.not.ismissing(xo!0)) then
+      fo!nD = xo!0                              ; if present, use xo name
+  else 
+      if (.not.ismissing(fi!nD)) then
+          fo!nD = str_switch(fi!nD)             ; if present, use same name
+        ;;fo!nD = changeCaseChar(fi!nD)         ; if present, use same name
+      else                                      ; but change case 
+          fo!nD = "X"                           ; default dimension name
+      end if                
+  end if
+                                                ; assign coordinates
+  fo&$fo!nD$ = xo                               ; rightmost dim
+   
+  return (fo)
 end

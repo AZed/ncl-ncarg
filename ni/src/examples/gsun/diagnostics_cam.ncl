@@ -1830,6 +1830,7 @@ begin
 
   res@tmXBLabelsOn            = True
   res@tmXBOn                  = True
+  res@tmXBFormat              = "f"                 ; remove trailing .0s
 
   res@xyLineColor             = "green"         
   res@xyLineThicknessF        = 2.                  ; 1 is default
@@ -2984,6 +2985,24 @@ begin
           res@cnLineLabelsOn = False
       end if
   end if
+  if (isatt(opt,"cnLevelSelectionMode")) then
+      res@cnLevelSelectionMode  = opt@cnLevelSelectionMode
+  end if
+  if (isatt(opt,"cnLevelSelectionMode")) then
+      res@cnLevelSelectionMode  = opt@cnLevelSelectionMode
+  end if
+  if (isatt(opt,"cnMinLevelValF")) then
+      res@cnMinLevelValF  = opt@cnMinLevelValF
+  end if
+  if (isatt(opt,"cnMaxLevelValF")) then
+      res@cnMaxLevelValF  = opt@cnMaxLevelValF
+  end if
+  if (isatt(opt,"cnLevelSpacingF")) then
+      res@cnLevelSpacingF  = opt@cnLevelSpacingF
+  end if
+  if (isatt(opt,"cnLevels")) then
+      res@cnLevels  = opt@cnLevels
+  end if
   
   NW = 6
   if (isatt(opt,"maxWavePlot")) then     ; wave [Y] axis
@@ -3020,15 +3039,34 @@ begin
 
   tres       =  True
   tres@txFontHeightF = 0.0175
-
-  day   = 30
+                                                    ; orig code rename
+  if (opt .and. (isatt(opt,"dayLine") .or. isatt(opt,"dayLines"))) then
+      if (opt .and. (isatt(opt,"dayLines"))) then
+          day = min(opt@dayLines)
+      else
+          day = min(opt@dayLine)
+      end if
+  else
+       day = 30         ; default 
+  end if
   fline = 1./day
- ;resp@gsLineLabelString= day+"d"                    ; adds a line label string
+
+ ;resp@gsLineLabelString= day+"d"                   ; adds a line label string
   gsn_polyline(wks,plot,(/fline,fline/),(/ 0.,NW/), resp)      
   gsn_text(wks,plot, (day+"d"),fline+0.005,0.93*NW,tres)
 
-  day   = 80 
-  fline = 1/day
+                                                    ; orig code rename
+  if (opt .and. (isatt(opt,"dayLine") .or. isatt(opt,"dayLines"))) then
+      if (opt .and. (isatt(opt,"dayLines"))) then
+          day = max(opt@dayLines)
+      else
+          day = max(opt@dayLine)
+      end if
+  else
+       day = 80  
+  end if
+  fline = 1./day
+
  ;resp@gsLineLabelString= day+"d"                    ; adds a line label string
   gsn_polyline(wks,plot,(/fline,fline/),(/ 0.,NW/), resp)      
   gsn_text(wks,plot, (day+"d"),fline+0.005,0.93*NW,tres)

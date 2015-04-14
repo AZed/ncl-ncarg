@@ -1,6 +1,6 @@
 
 /*
- *      $Id: AddBuiltIns.c,v 1.82 2008/05/20 22:16:38 grubin Exp $
+ *      $Id: AddBuiltIns.c,v 1.85 2009/03/20 02:01:32 haley Exp $
  */
 /************************************************************************
 *                                                                       *
@@ -135,6 +135,11 @@ extern NhlErrorTypes _NclIdim_stddev(
 void
 #endif
 );
+extern NhlErrorTypes _NclIdim_stddev_n(
+#if NhlNeedProto
+void
+#endif
+);
 extern NhlErrorTypes _NclIstddev(
 #if NhlNeedProto
 void
@@ -147,6 +152,13 @@ extern NhlErrorTypes _NclIdim_variance(
 void
 #endif
 );
+
+extern NhlErrorTypes _NclIdim_variance_n(
+#if NhlNeedProto
+void
+#endif
+);
+
 extern NhlErrorTypes _NclIvariance(
 #if NhlNeedProto
 void
@@ -183,7 +195,17 @@ extern NhlErrorTypes _Ncldim_max(
 void
 #endif
 );
+extern NhlErrorTypes _Ncldim_max_n(
+#if NhlNeedProto
+void
+#endif
+);
 extern NhlErrorTypes _Ncldim_min(
+#if NhlNeedProto
+void
+#endif
+);
+extern NhlErrorTypes _Ncldim_min_n(
 #if NhlNeedProto
 void
 #endif
@@ -234,12 +256,22 @@ extern NhlErrorTypes _Ncldim_product(
 void
 #endif
 );
+extern NhlErrorTypes _Ncldim_product_n(
+#if NhlNeedProto
+void
+#endif
+);
 extern NhlErrorTypes _Nclproduct(
 #if NhlNeedProto
 void
 #endif
 );
 extern NhlErrorTypes _Ncldim_sum(
+#if NhlNeedProto
+void
+#endif
+);
+extern NhlErrorTypes _Ncldim_sum_n(
 #if NhlNeedProto
 void
 #endif
@@ -255,6 +287,13 @@ extern NhlErrorTypes _Ncldim_cumsum(
 void
 #endif
 );
+
+extern NhlErrorTypes _Ncldim_cumsum_n(
+#if NhlNeedProto
+void
+#endif
+);
+
 extern NhlErrorTypes _Nclcumsum(
 #if NhlNeedProto
 void
@@ -262,6 +301,12 @@ void
 );
 
 extern NhlErrorTypes _Ncldim_avg(
+#if NhlNeedProto
+void
+#endif
+);
+
+extern NhlErrorTypes _Ncldim_avg_n(
 #if NhlNeedProto
 void
 #endif
@@ -1392,14 +1437,36 @@ void _NclAddBuiltIns
 	NclRegisterFunc( _Ncldim_product,args,"dim_product",nargs);
 
 	nargs = 0;
+	args = NewArgs(2);
+	SetArgTemplate(args,nargs,"numeric",0,NclANY); nargs++;
+	dimsizes[0] = 1;
+	SetArgTemplate(args,nargs,"integer",1,NclANY); nargs++;
+	NclRegisterFunc(_Ncldim_product_n,args,"dim_product_n",nargs);
+
+	nargs = 0;
 	args = NewArgs(1);
 	SetArgTemplate(args,nargs,"numeric",0,NclANY); nargs++;
 	NclRegisterFunc( _Ncldim_sum,args,"dim_sum",nargs);
 
 	nargs = 0;
+	args = NewArgs(2);
+	SetArgTemplate(args,nargs,"numeric",0,NclANY); nargs++;
+	dimsizes[0] = 1;
+	SetArgTemplate(args,nargs,"integer",1,NclANY); nargs++;
+	NclRegisterFunc(_Ncldim_sum_n,args,"dim_sum_n",nargs);
+
+	nargs = 0;
 	args = NewArgs(1);
 	SetArgTemplate(args,nargs,"numeric",0,NclANY); nargs++;
 	NclRegisterFunc( _Nclsum,args,"sum",nargs);
+
+	nargs = 0;
+	args = NewArgs(3);
+	dimsizes[0] = 1;
+	SetArgTemplate(args,nargs,"numeric",0,NclANY); nargs++;
+	SetArgTemplate(args,nargs, "integer", 1, dimsizes);  nargs++;
+	SetArgTemplate(args,nargs, "integer", 1, dimsizes);  nargs++;
+	NclRegisterFunc( _Ncldim_cumsum_n,args,"dim_cumsum_n",nargs);
 
 	nargs = 0;
 	args = NewArgs(2);
@@ -1424,6 +1491,12 @@ void _NclAddBuiltIns
 	args = NewArgs(1);
 	SetArgTemplate(args,nargs,"numeric",0,NclANY); nargs++;
 	NclRegisterFunc( _Ncldim_avg,args,"dim_avg",nargs);
+
+	nargs = 0;
+	args = NewArgs(2);
+	SetArgTemplate(args,nargs,"numeric",0,NclANY); nargs++;
+	SetArgTemplate(args,nargs,"integer",1,NclANY); nargs++;
+	NclRegisterFunc( _Ncldim_avg_n,args,"dim_avg_n",nargs);
 
 	nargs = 0;
 	args = NewArgs(1);
@@ -1504,9 +1577,23 @@ void _NclAddBuiltIns
 	NclRegisterFunc( _Ncldim_max,args,"dim_max",nargs);
 
 	nargs = 0;
+	args = NewArgs(2);
+	SetArgTemplate(args,nargs,"numeric",0,NclANY); nargs++;
+	dimsizes[0] = 1;
+	SetArgTemplate(args,nargs,"integer",1,NclANY); nargs++;
+	NclRegisterFunc( _Ncldim_max_n,args,"dim_max_n",nargs);
+
+	nargs = 0;
 	args = NewArgs(1);
 	SetArgTemplate(args,nargs,"numeric",0,NclANY); nargs++;
 	NclRegisterFunc( _Ncldim_min,args,"dim_min",nargs);
+
+	nargs = 0;
+	args = NewArgs(2);
+	SetArgTemplate(args,nargs,"numeric",0,NclANY); nargs++;
+	dimsizes[0] = 1;
+	SetArgTemplate(args,nargs,"integer",1,NclANY); nargs++;
+	NclRegisterFunc( _Ncldim_min_n,args,"dim_min_n",nargs);
 
 	nargs = 0;
 	NclRegisterProc( _NclIExit,args,"exit",nargs);
@@ -1656,6 +1743,13 @@ void _NclAddBuiltIns
 	NclRegisterFunc(_NclIdim_variance,args,"dim_variance",nargs);
 
 	nargs = 0;
+	args = NewArgs(2);
+	SetArgTemplate(args,0,"numeric",0,NclANY);nargs++;
+        dimsizes[0] = 1; 
+	SetArgTemplate(args,1,"integer",1,NclANY);nargs++;
+	NclRegisterFunc(_NclIdim_variance_n,args,"dim_variance_n",nargs);
+
+	nargs = 0;
 	args = NewArgs(1);
 	SetArgTemplate(args,0,"numeric",0,NclANY);nargs++;
 	NclRegisterFunc(_NclIstddev,args,"stddev",nargs);
@@ -1664,6 +1758,13 @@ void _NclAddBuiltIns
 	args = NewArgs(1);
 	SetArgTemplate(args,0,"numeric",0,NclANY);nargs++;
 	NclRegisterFunc(_NclIdim_stddev,args,"dim_stddev",nargs);
+
+	nargs = 0;
+	args = NewArgs(2);
+	SetArgTemplate(args,0,"numeric",0,NclANY);nargs++;
+        dimsizes[0] = 1;
+	SetArgTemplate(args,1,"integer",1,NclANY);nargs++;
+	NclRegisterFunc(_NclIdim_stddev_n,args,"dim_stddev_n",nargs);
 
 	nargs = 0;
 	NclRegisterFunc(_NclINhlGetWorkspaceObjectId,args,"NhlGetWorkspaceObjectId",nargs);
