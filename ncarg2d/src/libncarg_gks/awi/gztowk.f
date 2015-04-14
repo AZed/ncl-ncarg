@@ -1,5 +1,5 @@
 C
-C	$Id: gztowk.f,v 1.20 2010/02/08 06:01:29 fred Exp $
+C	$Id: gztowk.f,v 1.20 2010-02-08 06:01:29 fred Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

@@ -1,5 +1,5 @@
 /*
- *      $Id: Fsplit.c,v 1.4 2008/07/23 17:06:38 kennison Exp $
+ *      $Id: Fsplit.c,v 1.4 2008-07-23 17:06:38 kennison Exp $
  */
 
 #include <stdio.h>

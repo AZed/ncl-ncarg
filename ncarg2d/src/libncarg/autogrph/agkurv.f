@@ -1,5 +1,5 @@
 C
-C $Id: agkurv.f,v 1.9 2008/07/27 00:14:34 haley Exp $
+C $Id: agkurv.f,v 1.9 2008-07-27 00:14:34 haley Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

@@ -1,5 +1,5 @@
 C
-C $Id: tdez1d.f,v 1.2 2008/07/27 03:40:25 haley Exp $
+C $Id: tdez1d.f,v 1.2 2008-07-27 03:40:25 haley Exp $
 C                                                                      
 C                Copyright (C)  2001
 C        University Corporation for Atmospheric Research

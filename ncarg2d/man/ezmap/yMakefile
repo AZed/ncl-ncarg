@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.14 1998/05/24 01:26:10 kennison Exp $
+#	$Id: yMakefile,v 1.14 1998-05-24 01:26:10 kennison Exp $
 #
 
 MAN =   ezmap ezmap_params ezmapa mapaci mapbla mapblm mapdrw mapeod mapfst \

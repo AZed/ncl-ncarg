@@ -1,5 +1,5 @@
 C
-C $Id: dsuser_f.f,v 1.4 2008/07/27 03:10:09 haley Exp $
+C $Id: dsuser_f.f,v 1.4 2008-07-27 03:10:09 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.8 2005/08/23 22:08:34 kennison Exp $
+#       $Id: yMakefile,v 1.8 2005-08-23 22:08:34 kennison Exp $
 #
 
 MYNAME  = tdpack

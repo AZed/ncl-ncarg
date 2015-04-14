@@ -1,5 +1,5 @@
 C
-C $Id: ftitle.f,v 1.6 2008/07/27 00:17:26 haley Exp $
+C $Id: ftitle.f,v 1.6 2008-07-27 00:17:26 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

@@ -1,5 +1,5 @@
 Sh
-.\"     $Id: c_shgeti.m,v 1.4 2008/07/27 03:35:41 haley Exp $
+.\"     $Id: c_shgeti.m,v 1.4 2008-07-27 03:35:41 haley Exp $
 .\"
 .TH c_shgeti 3NCARG "September 1999" UNIX "NCAR GRAPHICS"
 .na

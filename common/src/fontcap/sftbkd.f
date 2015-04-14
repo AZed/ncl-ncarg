@@ -1,5 +1,5 @@
 C
-C	$Id: sftbkd.f,v 1.5 2008/07/27 12:23:42 haley Exp $
+C	$Id: sftbkd.f,v 1.5 2008-07-27 12:23:42 haley Exp $
 C
 C                                                                      
 C			     Copyright (C)  1997

@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.18 2008/12/19 22:11:42 kennison Exp $
+#       $Id: yMakefile,v 1.18 2008-12-19 22:11:42 kennison Exp $
 #
 
 DBFILES = EzmapAreaInfo.CO EzmapAreaInfo.PO EzmapAreaInfo.PS EzmapAreaInfo.US \

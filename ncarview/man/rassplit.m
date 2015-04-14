@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: rassplit.m,v 1.17 2008/12/23 00:04:16 haley Exp $
+.\"	$Id: rassplit.m,v 1.17 2008-12-23 00:04:16 haley Exp $
 .\"
 .TH RASSPLIT 1NCARG "January 1993" NCARG "NCAR VIEW"
 .SH \fBNAME\fP

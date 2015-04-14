@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: graphcap.m,v 1.22 2008/12/23 00:03:52 haley Exp $
+.\"	$Id: graphcap.m,v 1.22 2008-12-23 00:03:52 haley Exp $
 .\"
 .\" @(#)f77.1 1.4 86/07/31 SMI; 
 .TH GRAPHCAP 5NCARG "March 1994" NCAR "NCAR GRAPHICS"

@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.9 2004/04/08 21:29:33 kennison Exp $
+#       $Id: yMakefile,v 1.9 2004-04-08 21:29:33 kennison Exp $
 #
 
 MYNAME  = econpt

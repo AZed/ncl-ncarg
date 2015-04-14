@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.7 2004/06/29 19:23:30 kennison Exp $
+#       $Id: yMakefile,v 1.7 2004-06-29 19:23:30 kennison Exp $
 #
 MYNAME	= softfill
 

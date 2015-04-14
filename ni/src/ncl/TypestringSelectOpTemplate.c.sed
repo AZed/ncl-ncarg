@@ -1,6 +1,6 @@
 
 /*
- *      $Id: TypestringSelectOpTemplate.c.sed,v 1.1 1995/01/28 01:53:21 ethan Exp $
+ *      $Id: TypestringSelectOpTemplate.c.sed,v 1.1 1995-01-28 01:53:21 ethan Exp $
  */
 /************************************************************************
 *									*

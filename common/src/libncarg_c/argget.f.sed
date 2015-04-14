@@ -1,5 +1,5 @@
 C
-C	$Id: argget.f.sed,v 1.2 2008/07/27 12:23:44 haley Exp $
+C	$Id: argget.f.sed,v 1.2 2008-07-27 12:23:44 haley Exp $
 C                                                                      
 C			     Copyright (C)  2000
 C	     University Corporation for Atmospheric Research

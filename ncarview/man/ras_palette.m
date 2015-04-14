@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: ras_palette.m,v 1.18 2008/12/23 00:04:16 haley Exp $
+.\"	$Id: ras_palette.m,v 1.18 2008-12-23 00:04:16 haley Exp $
 .\"
 .TH RAS_PALETTE 5NCARG "January 1993" NCARG "NCAR GRAPHICS"
 .SH \fBNAME\fP

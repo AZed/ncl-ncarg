@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.5 2005/08/19 19:51:11 haley Exp $
+#	$Id: yMakefile,v 1.5 2005-08-19 19:51:11 haley Exp $
 #
 
 InstallTarget(ranfdata,$(INSTALL_DB),$(DBPATH))

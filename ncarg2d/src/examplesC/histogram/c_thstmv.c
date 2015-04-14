@@ -1,5 +1,5 @@
 /*
- *	$Id: c_thstmv.c,v 1.2 2003/03/03 16:16:24 haley Exp $
+ *	$Id: c_thstmv.c,v 1.2 2003-03-03 16:16:24 haley Exp $
  */
 #include <math.h>
 #include <stdio.h>

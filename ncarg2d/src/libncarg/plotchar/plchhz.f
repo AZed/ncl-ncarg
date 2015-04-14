@@ -1,5 +1,5 @@
 C
-C $Id: plchhz.f,v 1.2 2008/07/27 00:17:20 haley Exp $
+C $Id: plchhz.f,v 1.2 2008-07-27 00:17:20 haley Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

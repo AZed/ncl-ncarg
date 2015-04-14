@@ -1,5 +1,5 @@
 C
-C $Id: ngezlogo.f,v 1.3 2008/07/27 00:17:17 haley Exp $
+C $Id: ngezlogo.f,v 1.3 2008-07-27 00:17:17 haley Exp $
 C                                                                      
 C                Copyright (C)  2002
 C        University Corporation for Atmospheric Research

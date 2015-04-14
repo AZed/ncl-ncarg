@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.7 2005/06/07 17:47:41 haley Exp $
+#       $Id: yMakefile,v 1.7 2005-06-07 17:47:41 haley Exp $
 #
 
 MYNAME  = polypack

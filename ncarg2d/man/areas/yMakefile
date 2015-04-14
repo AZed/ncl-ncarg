@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.10 1994/04/08 22:00:33 haley Exp $
+#	$Id: yMakefile,v 1.10 1994-04-08 22:00:33 haley Exp $
 #
 
 MAN = ardbpa ardrln areas areas_params aredam argeti argetr argtai arinam \

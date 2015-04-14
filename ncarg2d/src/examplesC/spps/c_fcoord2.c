@@ -1,5 +1,5 @@
 /*
- * $Id: c_fcoord2.c,v 1.3 1995/06/14 14:00:03 haley Exp $
+ * $Id: c_fcoord2.c,v 1.3 1995-06-14 14:00:03 haley Exp $
  */
 
 #include <stdio.h>

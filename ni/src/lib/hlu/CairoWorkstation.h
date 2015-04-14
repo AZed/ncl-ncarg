@@ -1,5 +1,5 @@
 /*
- *      $Id: CairoWorkstation.h,v 1.6 2010/03/16 20:31:29 brownrig Exp $
+ *      $Id: CairoWorkstation.h,v 1.6 2010-03-16 20:31:29 brownrig Exp $
  */
 
 # ifndef    _NCarioWorkstation_h

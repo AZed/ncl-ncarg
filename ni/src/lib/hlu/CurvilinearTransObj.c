@@ -1,5 +1,5 @@
 /*
- *      $Id: CurvilinearTransObj.c,v 1.4 2004/12/23 22:42:29 dbrown Exp $
+ *      $Id: CurvilinearTransObj.c,v 1.4 2004-12-23 22:42:29 dbrown Exp $
  */
 /************************************************************************
 *									*

@@ -1,5 +1,5 @@
 /*
- *  $Id: c_ftex07.c,v 1.1 2002/08/03 00:37:30 fred Exp $
+ *  $Id: c_ftex07.c,v 1.1 2002-08-03 00:37:30 fred Exp $
  */
 #include <stdio.h>
 #include <ncarg/ncargC.h>

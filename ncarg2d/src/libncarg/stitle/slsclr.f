@@ -1,5 +1,5 @@
 C
-C $Id: slsclr.f,v 1.4 2008/07/27 00:17:27 haley Exp $
+C $Id: slsclr.f,v 1.4 2008-07-27 00:17:27 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

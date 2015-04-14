@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.6 2004/11/16 21:30:32 kennison Exp $
+#       $Id: yMakefile,v 1.6 2004-11-16 21:30:32 kennison Exp $
 #
 
 MYNAME  = dashpack

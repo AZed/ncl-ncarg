@@ -1,5 +1,5 @@
 /*
- *      $Id: c_srex01.c,v 1.4 2004/08/17 21:02:19 kennison Exp $
+ *      $Id: c_srex01.c,v 1.4 2004-08-17 21:02:19 kennison Exp $
  */
 #include <stdio.h>
 #include <math.h>

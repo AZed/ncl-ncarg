@@ -1,5 +1,5 @@
 C
-C     $Id: saxpy.f,v 1.1 1994/08/11 23:17:30 boote Exp $
+C     $Id: saxpy.f,v 1.1 1994-08-11 23:17:30 boote Exp $
 C
       SUBROUTINE SAXPY(N,SA,SX,INCX,SY,INCY)
 C

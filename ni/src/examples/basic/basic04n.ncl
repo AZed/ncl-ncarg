@@ -1,4 +1,4 @@
-; $Id: basic04n.ncl,v 1.7 1995/06/29 17:16:04 scheitln Exp $
+; $Id: basic04n.ncl,v 1.7 1995-06-29 17:16:04 scheitln Exp $
 ;
 ; This example demonstrates how to select and change the workstation
 ; device for drawing your output to an NCGM file or an X workstation window.

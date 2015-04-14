@@ -1,6 +1,6 @@
 #!/bin/csh -f
 #
-#   $Id: MakeNcl.csh,v 1.5 2008/07/27 04:12:48 haley Exp $
+#   $Id: MakeNcl.csh,v 1.5 2008-07-27 04:12:48 haley Exp $
 #                                                                      
 #                Copyright (C)  2004
 #        University Corporation for Atmospheric Research

@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: ncargex.m,v 1.66 2008/12/15 22:36:53 kennison Exp $
+.\"	$Id: ncargex.m,v 1.66 2008-12-15 22:36:53 kennison Exp $
 .\"
 .\" @(#)f77.1 1.4 86/07/31 SMI; 
 .TH NCARGEX 1NCARG "June 1998" NCAR "NCAR GRAPHICS"

@@ -1,5 +1,5 @@
 C
-C $Id: agscan.f,v 1.9 2008/07/27 00:14:35 haley Exp $
+C $Id: agscan.f,v 1.9 2008-07-27 00:14:35 haley Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

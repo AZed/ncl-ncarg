@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.7 2004/06/23 16:04:42 haley Exp $
+#	$Id: yMakefile,v 1.7 2004-06-23 16:04:42 haley Exp $
 #
 MYNAME	= pgks
 

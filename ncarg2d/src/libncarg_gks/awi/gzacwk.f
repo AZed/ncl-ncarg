@@ -1,5 +1,5 @@
 C
-C	$Id: gzacwk.f,v 1.4 2008/07/27 00:21:03 haley Exp $
+C	$Id: gzacwk.f,v 1.4 2008-07-27 00:21:03 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

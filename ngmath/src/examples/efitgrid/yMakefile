@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.5 2003/08/06 15:36:18 haley Exp $
+#	$Id: yMakefile,v 1.5 2003-08-06 15:36:18 haley Exp $
 #
 
 MYNAME	= edsgrid

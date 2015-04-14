@@ -1,6 +1,6 @@
 
 /*
- *      $Id: NclMultiDValnclfileData.h,v 1.1 1995/01/28 01:51:53 ethan Exp $
+ *      $Id: NclMultiDValnclfileData.h,v 1.1 1995-01-28 01:51:53 ethan Exp $
  */
 /************************************************************************
 *									*

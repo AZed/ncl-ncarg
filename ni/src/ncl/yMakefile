@@ -1,5 +1,5 @@
 #
-#      $Id: yMakefile,v 1.171 2010/03/16 02:01:01 haley Exp $
+#      $Id: yMakefile,v 1.171 2010-03-16 02:01:01 haley Exp $
 #
 ###########################################################################
 #			   Copyright (C)  1993			 	  #
@@ -14,7 +14,7 @@
 #				National Center for Atmospheric Research
 #				POB 3000, Boulder, Colorado
 #
-#	Date:		$Date: 2010/03/16 02:01:01 $
+#	Date:		$Date: 2010-03-16 02:01:01 $
 #
 #	Description:	
 #

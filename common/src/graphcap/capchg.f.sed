@@ -1,5 +1,5 @@
 C
-C	$Id: capchg.f.sed,v 1.3 2008/07/27 12:23:43 haley Exp $
+C	$Id: capchg.f.sed,v 1.3 2008-07-27 12:23:43 haley Exp $
 C                                                                      
 C			     Copyright (C)  1997
 C	     University Corporation for Atmospheric Research

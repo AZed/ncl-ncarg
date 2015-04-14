@@ -1,5 +1,5 @@
 C
-C     $Id: sgefa.f,v 1.1 1994/08/11 23:17:32 boote Exp $
+C     $Id: sgefa.f,v 1.1 1994-08-11 23:17:32 boote Exp $
 C
 
 

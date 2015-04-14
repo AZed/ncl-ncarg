@@ -1,5 +1,5 @@
 C
-C $Id: hlumapeod.f,v 1.13 2008/09/18 00:42:16 kennison Exp $
+C $Id: hlumapeod.f,v 1.13 2008-09-18 00:42:16 kennison Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

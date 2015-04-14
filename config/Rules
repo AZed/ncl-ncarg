@@ -1,5 +1,5 @@
 /*
- *	$Id: Rules,v 1.43 2004/08/18 16:39:11 haley Exp $
+ *	$Id: Rules,v 1.43 2004-08-18 16:39:11 haley Exp $
  */
 /* 
    This file contains Makefile macros.  Proper spacing is achieved

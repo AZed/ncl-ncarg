@@ -1,5 +1,5 @@
 /*
- *      $Id: NcgmWorkstation.c,v 1.40 2003/11/25 22:41:18 dbrown Exp $
+ *      $Id: NcgmWorkstation.c,v 1.40 2003-11-25 22:41:18 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -283,6 +283,13 @@ static NhlErrorTypes NcgmWorkstationInitialize
 	if(!tfname){
 		tfname = DEFAULT_META_NAME;
 	}
+	if (strlen(tfname) > _NhlMAXLLUPATHLEN) {
+		NhlPError(NhlFATAL,NhlEUNKNOWN,
+			  "%s: Filepath %s exceeds maximum length of %d", func,
+			  tfname,_NhlMAXLLUPATHLEN);
+		return NhlFATAL;
+	}
+
         if (wclass->ncgm_class.last_base_meta_name &&
             ! strcmp(tfname,wclass->ncgm_class.last_base_meta_name)) {
                 char suffix[8];

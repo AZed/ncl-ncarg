@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.6 1994/04/08 22:24:26 haley Exp $
+#	$Id: yMakefile,v 1.6 1994-04-08 22:24:26 haley Exp $
 #
 
 MAN =	cfux cfuy clsgks cmfx cmfy cmux cmuy cpfx cpfy cpux cpuy cufx cufy \

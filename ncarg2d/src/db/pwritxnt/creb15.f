@@ -1,5 +1,5 @@
 C
-C	$Id: creb15.f,v 1.5 2008/07/27 01:04:31 haley Exp $
+C	$Id: creb15.f,v 1.5 2008-07-27 01:04:31 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

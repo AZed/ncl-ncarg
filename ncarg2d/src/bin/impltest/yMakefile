@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.9 1993/11/12 02:44:53 boote Exp $
+#	$Id: yMakefile,v 1.9 1993-11-12 02:44:53 boote Exp $
 #
 
 MYNAME	= impltest

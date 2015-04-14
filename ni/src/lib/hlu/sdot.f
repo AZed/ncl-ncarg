@@ -1,5 +1,5 @@
 C
-C     $Id: sdot.f,v 1.1 1994/08/11 23:17:31 boote Exp $
+C     $Id: sdot.f,v 1.1 1994-08-11 23:17:31 boote Exp $
 C
       REAL FUNCTION SDOT(N,SX,INCX,SY,INCY)
 C

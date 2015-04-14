@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.11 2004/06/29 19:12:49 kennison Exp $
+#       $Id: yMakefile,v 1.11 2004-06-29 19:12:49 kennison Exp $
 #
 
 MYNAME	= areas

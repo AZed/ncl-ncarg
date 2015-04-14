@@ -1,6 +1,6 @@
 
 /*
- *      $Id: TypeXorOpTemplate.c.sed,v 1.3 2009/07/10 19:54:06 huangwei Exp $
+ *      $Id: TypeXorOpTemplate.c.sed,v 1.3 2009-07-10 19:54:06 huangwei Exp $
  */
 /************************************************************************
 *									*

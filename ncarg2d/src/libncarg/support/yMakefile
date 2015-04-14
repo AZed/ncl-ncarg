@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.12 2004/08/12 22:20:27 haley Exp $
+#	$Id: yMakefile,v 1.12 2004-08-12 22:20:27 haley Exp $
 #
 MYNAME	= support
 

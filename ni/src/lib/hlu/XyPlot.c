@@ -1,5 +1,5 @@
 /*
- *      $Id: XyPlot.c,v 1.94 2008/06/17 00:01:48 dbrown Exp $
+ *      $Id: XyPlot.c,v 1.94 2008-06-17 00:01:48 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -2047,7 +2047,7 @@ SetUpDataSpec
 	int				num_data;
 	int				i,j;
 	int				index;
-	char				buffer[80];
+	char				buffer[_NhlMAXRESNAMLEN];
 	NhlCoordArrTableFloatLayer	datal;
 	NhlXyDataSpecLayer		dataspec;
 	NhlXyDataSpecLayerPart		*dsp;

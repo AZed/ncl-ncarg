@@ -1,5 +1,5 @@
 C
-C     $Id: isamax.f,v 1.1 1994/08/11 23:17:28 boote Exp $
+C     $Id: isamax.f,v 1.1 1994-08-11 23:17:28 boote Exp $
 C
 
 

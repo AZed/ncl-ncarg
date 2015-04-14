@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.7 1994/04/11 17:34:52 haley Exp $
+#	$Id: yMakefile,v 1.7 1994-04-11 17:34:52 haley Exp $
 #
 
 MAN =	ezvec fx fy vectors vectors_params velvct velvec vvectr vvgetc vvgeti \

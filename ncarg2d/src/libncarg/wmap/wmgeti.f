@@ -1,5 +1,5 @@
 C
-C	$Id: wmgeti.f,v 1.18 2010/01/05 03:52:14 fred Exp $
+C	$Id: wmgeti.f,v 1.18 2010-01-05 03:52:14 fred Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

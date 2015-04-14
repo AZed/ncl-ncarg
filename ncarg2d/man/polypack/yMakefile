@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.1 1995/04/03 17:35:10 kennison Exp $
+#       $Id: yMakefile,v 1.1 1995-04-03 17:35:10 kennison Exp $
 #
 
 MAN = polypack ppdipo ppditr ppinpo ppintr ppplcl ppppap ppunpo ppuntr

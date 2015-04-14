@@ -1,5 +1,5 @@
 C
-C       $Id: vvgetc.f,v 1.15 2008/07/27 00:17:35 haley Exp $
+C       $Id: vvgetc.f,v 1.15 2008-07-27 00:17:35 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

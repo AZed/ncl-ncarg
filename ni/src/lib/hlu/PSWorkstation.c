@@ -1,5 +1,5 @@
 /*
- *      $Id: PSWorkstation.c,v 1.21 2010/03/29 16:30:03 brownrig Exp $
+ *      $Id: PSWorkstation.c,v 1.21 2010-03-29 16:30:03 brownrig Exp $
  */
 /************************************************************************
 *									*
@@ -410,6 +410,13 @@ static NhlErrorTypes PSWorkstationInitialize
 		}
 		tfname = buff;
 	}
+	if (strlen(tfname) > _NhlMAXLLUPATHLEN) {
+		NhlPError(NhlFATAL,NhlEUNKNOWN,
+			  "%s: Filepath %s exceeds maximum length of %d", func,
+			  tfname,_NhlMAXLLUPATHLEN);
+		return NhlFATAL;
+	}
+		
 	np->filename = NhlMalloc(strlen(tfname)+1);
 	if(!np->filename){
 		NHLPERROR((NhlFATAL,ENOMEM,NULL));

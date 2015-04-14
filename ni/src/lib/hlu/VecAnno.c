@@ -1,5 +1,5 @@
 /*
- *      $Id: VecAnno.c,v 1.14 2005/08/16 23:15:50 dbrown Exp $
+ *      $Id: VecAnno.c,v 1.14 2005-08-16 23:15:50 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -453,7 +453,7 @@ VecAnnoInitialize
 	NhlVecAnnoLayerPart *vap = (NhlVecAnnoLayerPart *) &vanew->vecanno;
 	NhlVecAnnoLayerPart *rvap = (NhlVecAnnoLayerPart *) &vareq->vecanno;
 
-	char		name[128];
+	char		name[_NhlMAXRESNAMLEN];
 	float		x,y,width,height;
 	NhlErrorTypes	ret = NhlNOERROR;
 	NhlString	e_text;

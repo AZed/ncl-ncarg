@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.1 1999/09/18 00:20:38 fred Exp $
+#       $Id: yMakefile,v 1.1 1999-09-18 00:20:38 fred Exp $
 #
 
 MAN = c_shgeti c_shgetnp c_shgrid c_shseti shgeti  \

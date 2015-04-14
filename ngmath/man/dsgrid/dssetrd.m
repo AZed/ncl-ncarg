@@ -1,5 +1,5 @@
 .\"
-.\"     $Id: dssetrd.m,v 1.5 2008/07/27 03:35:37 haley Exp $
+.\"     $Id: dssetrd.m,v 1.5 2008-07-27 03:35:37 haley Exp $
 .\"
 .TH DSSETRD 3NCARG "September 1997-1998" UNIX "NCAR GRAPHICS"
 .na

@@ -1,5 +1,5 @@
 C
-C	$Id: remove32.f,v 1.4 2008/07/27 00:23:04 haley Exp $
+C	$Id: remove32.f,v 1.4 2008-07-27 00:23:04 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

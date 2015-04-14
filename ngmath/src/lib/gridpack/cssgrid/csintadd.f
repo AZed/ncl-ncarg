@@ -1,5 +1,5 @@
 C
-C	$Id: csintadd.f,v 1.5 2008/07/27 03:10:07 haley Exp $
+C	$Id: csintadd.f,v 1.5 2008-07-27 03:10:07 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

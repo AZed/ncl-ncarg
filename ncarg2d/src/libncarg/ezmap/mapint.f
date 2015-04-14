@@ -1,5 +1,5 @@
 C
-C $Id: mapint.f,v 1.25 2008/09/18 00:42:16 kennison Exp $
+C $Id: mapint.f,v 1.25 2008-09-18 00:42:16 kennison Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

@@ -1,5 +1,5 @@
 .\"
-.\"     $Id: cssgrid_errors.m,v 1.5 2008/07/27 03:35:35 haley Exp $
+.\"     $Id: cssgrid_errors.m,v 1.5 2008-07-27 03:35:35 haley Exp $
 .\"
 .TH cssgrid_errors 3NCARG "May 2000" UNIX "NCAR GRAPHICS"
 .na

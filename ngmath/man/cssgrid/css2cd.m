@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: css2cd.m,v 1.4 2008/07/27 03:35:35 haley Exp $
+.\"	$Id: css2cd.m,v 1.4 2008-07-27 03:35:35 haley Exp $
 .\"
 .TH CSS2CD 3NCARG "MAY 2000" UNIX "NCAR GRAPHICS"
 .SH NAME

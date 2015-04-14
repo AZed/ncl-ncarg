@@ -1,5 +1,5 @@
 /*
- *      $Id: ncl2v5dW.c,v 1.2 2007/08/23 19:38:10 grubin Exp $
+ *      $Id: ncl2v5dW.c,v 1.2 2007-08-23 19:38:10 grubin Exp $
  */
 
 /************************************************************************
@@ -17,7 +17,7 @@
  *                  National Center for Atmospheric Research
  *                  POB 3000, Boulder, Colorado
  *
- *  Date:           $Date: 2007/08/23 19:38:10 $
+ *  Date:           $Date: 2007-08-23 19:38:10 $
  *
  *  Description:    Wrappers for ncl to output v5d files.
  *                  NOT complete - only the functions I had to have.

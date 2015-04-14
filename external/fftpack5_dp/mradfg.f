@@ -7,7 +7,7 @@ C   Licensed under the GNU General Public License (GPL)
 C
 C   Authors:  Paul N. Swarztrauber and Richard A. Valent
 C
-C   $Id: mradfg.f,v 1.2 2006/11/21 01:10:18 haley Exp $
+C   $Id: mradfg.f,v 1.2 2006-11-21 01:10:18 haley Exp $
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 

@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.2 1993/10/19 17:19:47 boote Exp $
+#	$Id: yMakefile,v 1.2 1993-10-19 17:19:47 boote Exp $
 #
 
 MYNAME	= findg

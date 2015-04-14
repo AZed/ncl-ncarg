@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.22 2006/10/06 21:42:31 kennison Exp $
+#       $Id: yMakefile,v 1.22 2006-10-06 21:42:31 kennison Exp $
 #
 #	Makefile for libncarg.a
 #	Includes utilities and their corresponding test programs,

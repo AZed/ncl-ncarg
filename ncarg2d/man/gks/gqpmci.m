@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: gqpmci.m,v 1.16 2008/12/23 00:03:03 haley Exp $
+.\"	$Id: gqpmci.m,v 1.16 2008-12-23 00:03:03 haley Exp $
 .\"
 .TH GQPMCI 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
 .SH NAME

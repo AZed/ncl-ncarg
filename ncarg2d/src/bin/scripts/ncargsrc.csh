@@ -1,6 +1,6 @@
 #!/bin/csh -f
 #
-#	$Id: ncargsrc.csh,v 1.7 2008/07/27 00:59:06 haley Exp $
+#	$Id: ncargsrc.csh,v 1.7 2008-07-27 00:59:06 haley Exp $
 #                                                                      
 #                Copyright (C)  2000
 #        University Corporation for Atmospheric Research

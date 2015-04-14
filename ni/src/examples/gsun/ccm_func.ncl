@@ -1,5 +1,5 @@
 ;
-;      $Id: ccm_func.ncl,v 1.3 2006/07/19 02:12:20 haley Exp $
+;      $Id: ccm_func.ncl,v 1.3 2006-07-19 02:12:20 haley Exp $
 ;
 ; ccm_func.ncl
 ;

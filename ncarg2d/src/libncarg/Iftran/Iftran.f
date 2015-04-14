@@ -1,6 +1,6 @@
       PROGRAM IFTRAN
 C
-C $Id: Iftran.f,v 1.7 2008/04/11 20:11:24 kennison Exp $
+C $Id: Iftran.f,v 1.7 2008-04-11 20:11:24 kennison Exp $
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C                                                                      C

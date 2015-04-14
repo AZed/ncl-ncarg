@@ -1,6 +1,6 @@
 #!/bin/csh -f
 #
-#	$Id: version.sed,v 1.27 2010/03/14 16:32:51 haley Exp $
+#	$Id: version.sed,v 1.27 2010-03-14 16:32:51 haley Exp $
 #
 
 set year = "2010"

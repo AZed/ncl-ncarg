@@ -1,5 +1,5 @@
 C
-C	$Id: gputpt.f,v 1.5 2009/08/30 05:54:47 fred Exp $
+C	$Id: gputpt.f,v 1.5 2009-08-30 05:54:47 fred Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

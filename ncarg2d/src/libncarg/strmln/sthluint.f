@@ -1,5 +1,5 @@
 C
-C       $Id: sthluint.f,v 1.5 2008/07/27 00:17:28 haley Exp $
+C       $Id: sthluint.f,v 1.5 2008-07-27 00:17:28 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

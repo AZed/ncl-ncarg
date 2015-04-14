@@ -1,5 +1,5 @@
 C
-C	$Id: yiqrgb.f,v 1.6 2008/07/27 00:16:54 haley Exp $
+C	$Id: yiqrgb.f,v 1.6 2008-07-27 00:16:54 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

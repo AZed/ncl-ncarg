@@ -1,5 +1,5 @@
 C
-C	$Id: fngbkd.f,v 1.5 2008/07/27 00:59:02 haley Exp $
+C	$Id: fngbkd.f,v 1.5 2008-07-27 00:59:02 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

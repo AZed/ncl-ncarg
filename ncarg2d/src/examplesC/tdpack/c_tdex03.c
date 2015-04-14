@@ -1,5 +1,5 @@
 /*
- *      $Id: c_tdex03.c,v 1.1 1998/06/19 18:07:16 fred Exp $
+ *      $Id: c_tdex03.c,v 1.1 1998-06-19 18:07:16 fred Exp $
  */
 #include <stdio.h>
 #include <math.h>

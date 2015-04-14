@@ -1,5 +1,5 @@
 /*
- *      $Id: xresources.c,v 1.1 1993/04/01 23:04:54 clyne Exp $
+ *      $Id: xresources.c,v 1.1 1993-04-01 23:04:54 clyne Exp $
  */
 /*
  *

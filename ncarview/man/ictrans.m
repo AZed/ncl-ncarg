@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: ictrans.m,v 1.31 2008/12/23 00:04:15 haley Exp $
+.\"	$Id: ictrans.m,v 1.31 2008-12-23 00:04:15 haley Exp $
 .\"
 .\" ictrans 3.01 90/06/22 
 .TH ICTRANS 1NCARG "January 1993" NCARG "NCAR GRAPHICS"

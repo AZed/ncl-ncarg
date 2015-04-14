@@ -1,5 +1,5 @@
 .\"
-.\"     $Id: fitgrid.m,v 1.4 2008/07/27 03:35:39 haley Exp $
+.\"     $Id: fitgrid.m,v 1.4 2008-07-27 03:35:39 haley Exp $
 .\"
 .TH Fitgrid 3NCARG "March 1998" UNIX "NCAR GRAPHICS"
 .na

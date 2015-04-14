@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.5 1995/06/14 13:57:14 haley Exp $
+#	$Id: yMakefile,v 1.5 1995-06-14 13:57:14 haley Exp $
 #
 
 MYNAME	= estrml

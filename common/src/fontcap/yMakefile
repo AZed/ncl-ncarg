@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.19 2006/12/26 18:49:35 haley Exp $
+#	$Id: yMakefile,v 1.19 2006-12-26 18:49:35 haley Exp $
 #
 
 MYNAME	= fontcap

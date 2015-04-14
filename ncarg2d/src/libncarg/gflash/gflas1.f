@@ -1,5 +1,5 @@
 C
-C	$Id: gflas1.f,v 1.7 2008/07/27 00:17:13 haley Exp $
+C	$Id: gflas1.f,v 1.7 2008-07-27 00:17:13 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

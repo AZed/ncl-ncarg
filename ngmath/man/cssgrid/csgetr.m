@@ -1,5 +1,5 @@
 .\"
-.\"     $Id: csgetr.m,v 1.4 2008/07/27 03:35:35 haley Exp $
+.\"     $Id: csgetr.m,v 1.4 2008-07-27 03:35:35 haley Exp $
 .\"
 .TH CSGETR 3NCARG "May 2000" UNIX "NCAR GRAPHICS"
 .na

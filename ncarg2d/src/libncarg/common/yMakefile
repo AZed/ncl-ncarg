@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.5 1996/10/25 21:42:43 boote Exp $
+#	$Id: yMakefile,v 1.5 1996-10-25 21:42:43 boote Exp $
 #
 
 MYNAME	=	common

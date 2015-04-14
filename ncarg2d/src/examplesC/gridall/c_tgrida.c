@@ -1,5 +1,5 @@
 /*
- *	$Id: c_tgrida.c,v 1.5 1995/06/14 13:59:34 haley Exp $
+ *	$Id: c_tgrida.c,v 1.5 1995-06-14 13:59:34 haley Exp $
  */
 #include <stdio.h>
 #include <math.h>

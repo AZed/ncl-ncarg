@@ -1,5 +1,5 @@
 .\"
-.\"     $Id: ncarlogo2ps.m,v 1.2 2008/07/27 03:34:10 haley Exp $
+.\"     $Id: ncarlogo2ps.m,v 1.2 2008-07-27 03:34:10 haley Exp $
 .\"
 .TH ncarlogo2ps 1NCARG "April 2002" UNIX "NCAR GRAPHICS"
 .na

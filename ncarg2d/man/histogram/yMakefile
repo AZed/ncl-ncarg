@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.6 1994/04/08 22:14:04 haley Exp $
+#	$Id: yMakefile,v 1.6 1994-04-08 22:14:04 haley Exp $
 #
 
 MAN = histgr histogram histogram_params hstopc hstopi hstopl hstopr

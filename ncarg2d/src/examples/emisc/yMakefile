@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.10 2002/04/04 22:10:23 fred Exp $
+#	$Id: yMakefile,v 1.10 2002-04-04 22:10:23 fred Exp $
 #
 
 MYNAME	= emisc

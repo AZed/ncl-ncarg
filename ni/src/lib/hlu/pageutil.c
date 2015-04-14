@@ -1,5 +1,5 @@
 /*
- * $Id: pageutil.c,v 1.2 2010/03/29 16:30:03 brownrig Exp $
+ * $Id: pageutil.c,v 1.2 2010-03-29 16:30:03 brownrig Exp $
  *
  * Encode details about standard paper/page sizes.
  *

@@ -1,5 +1,5 @@
 C
-C $Id: trmrectgrid.f,v 1.1 2004/03/11 02:00:34 dbrown Exp $
+C $Id: trmrectgrid.f,v 1.1 2004-03-11 02:00:34 dbrown Exp $
 C
       SUBROUTINE TRMRGR (IDIM,JDIM,XARR,YARR,
      +                   RDAT,ISCR,SVAL,

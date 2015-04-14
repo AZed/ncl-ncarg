@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.7 1994/04/08 22:24:12 haley Exp $
+#	$Id: yMakefile,v 1.7 1994-04-08 22:24:12 haley Exp $
 #
 
 MAN =	pwrite_family pwritx pwrity

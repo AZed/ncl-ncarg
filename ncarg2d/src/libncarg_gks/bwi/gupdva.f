@@ -1,5 +1,5 @@
 C
-C	$Id: gupdva.f,v 1.8 2008/07/27 00:21:06 haley Exp $
+C	$Id: gupdva.f,v 1.8 2008-07-27 00:21:06 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

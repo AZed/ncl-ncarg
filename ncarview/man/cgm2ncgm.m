@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: cgm2ncgm.m,v 1.22 2008/12/23 00:04:15 haley Exp $
+.\"	$Id: cgm2ncgm.m,v 1.22 2008-12-23 00:04:15 haley Exp $
 .\"
 .\"	ncgm2cgm.l 3.00 10/5/89 NCAR View
 .TH NCAR2CGM 1NCARG "January 1993" NCARG "NCAR GRAPHICS"

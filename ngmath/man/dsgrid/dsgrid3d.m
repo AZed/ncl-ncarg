@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: dsgrid3d.m,v 1.5 2008/07/27 03:35:37 haley Exp $
+.\"	$Id: dsgrid3d.m,v 1.5 2008-07-27 03:35:37 haley Exp $
 .\"
 .TH DSGRID3D 3NCARG "September 1997-1998" UNIX "NCAR GRAPHICS"
 .SH NAME

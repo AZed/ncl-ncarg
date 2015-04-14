@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: nhlcc.m,v 1.3 2008/07/27 03:41:28 haley Exp $
+.\"	$Id: nhlcc.m,v 1.3 2008-07-27 03:41:28 haley Exp $
 .\"
 .TH NHLCC 1NCARG "April 1995" NCAR "NCAR GRAPHICS"
 .SH NAME

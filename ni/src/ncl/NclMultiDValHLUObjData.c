@@ -1,6 +1,6 @@
 
 /*
- *      $Id: NclMultiDValHLUObjData.c,v 1.25 2010/01/11 21:36:19 dbrown Exp $
+ *      $Id: NclMultiDValHLUObjData.c,v 1.25 2010-01-11 21:36:19 dbrown Exp $
  */
 /************************************************************************
 *									*

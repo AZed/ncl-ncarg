@@ -566,7 +566,7 @@ NhlErrorTypes latlon2utm_W( void )
  * Copyright (C) 1998 Massachusetts Institute of Technology
  *               All Rights Reserved
  *
- * RCS ID: $Id: convert_datum.c,v 1.6 2009/04/23 21:37:06 haley Exp $
+ * RCS ID: $Id: convert_datum.c,v 1.6 2009-04-23 21:37:06 haley Exp $
  */
 
 /*

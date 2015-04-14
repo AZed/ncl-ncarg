@@ -1,5 +1,5 @@
 /*
- *  $Id: c_tdshpk.c,v 1.4 1995/06/14 13:59:17 haley Exp $
+ *  $Id: c_tdshpk.c,v 1.4 1995-06-14 13:59:17 haley Exp $
  */
 #include <stdio.h>
 #include <math.h>

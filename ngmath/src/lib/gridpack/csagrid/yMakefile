@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.2 2001/08/20 15:21:42 haley Exp $
+#       $Id: yMakefile,v 1.2 2001-08-20 15:21:42 haley Exp $
 #
  
 MYNAME  = csagrid

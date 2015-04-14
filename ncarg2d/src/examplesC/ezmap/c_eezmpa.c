@@ -1,5 +1,5 @@
 /*
- *  $Id: c_eezmpa.c,v 1.7 2004/08/12 15:14:38 haley Exp $
+ *  $Id: c_eezmpa.c,v 1.7 2004-08-12 15:14:38 haley Exp $
  */
 
 #include <stdio.h>

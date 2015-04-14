@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.2 2002/04/04 22:05:32 fred Exp $
+#	$Id: yMakefile,v 1.2 2002-04-04 22:05:32 fred Exp $
 #
 
 MYNAME	= ngmiscC

@@ -1,6 +1,6 @@
 
 /*
- *      $Id: TypestringCompareOpTemplate.c.sed,v 1.2 1995/03/28 00:05:10 ethan Exp $
+ *      $Id: TypestringCompareOpTemplate.c.sed,v 1.2 1995-03-28 00:05:10 ethan Exp $
  */
 /************************************************************************
 *									*

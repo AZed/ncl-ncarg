@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: ginq_set_seg_names.m,v 1.17 2008/12/23 00:03:04 haley Exp $
+.\"	$Id: ginq_set_seg_names.m,v 1.17 2008-12-23 00:03:04 haley Exp $
 .\"
 .TH GINQ_SET_SEG_NAMES 3NCARG "March 1993" UNIX "NCAR GRAPHICS"
 .SH NAME

@@ -1,5 +1,5 @@
 C
-C       $Id: strmln.f,v 1.21 2008/07/27 00:17:28 haley Exp $
+C       $Id: strmln.f,v 1.21 2008-07-27 00:17:28 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

@@ -1,5 +1,5 @@
 C
-C $Id: tdttri.f,v 1.3 2008/07/27 00:17:33 haley Exp $
+C $Id: tdttri.f,v 1.3 2008-07-27 00:17:33 haley Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

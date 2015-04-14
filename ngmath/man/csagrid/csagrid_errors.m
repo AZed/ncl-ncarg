@@ -1,5 +1,5 @@
 .\"
-.\"     $Id: csagrid_errors.m,v 1.4 2008/07/27 03:35:34 haley Exp $
+.\"     $Id: csagrid_errors.m,v 1.4 2008-07-27 03:35:34 haley Exp $
 .\"
 .TH csagrid_errors 3NCARG "January 1999" UNIX "NCAR GRAPHICS"
 .na

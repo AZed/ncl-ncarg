@@ -1,5 +1,5 @@
 /*
- *  $Id: c_cbex01.c,v 1.4 2004/08/01 17:12:45 haley Exp $
+ *  $Id: c_cbex01.c,v 1.4 2004-08-01 17:12:45 haley Exp $
  */
 #include <stdio.h>
 #include <math.h>

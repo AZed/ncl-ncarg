@@ -1,5 +1,5 @@
 C
-C	$Id: pwritx.f,v 1.7 2009/08/06 20:55:14 fred Exp $
+C	$Id: pwritx.f,v 1.7 2009-08-06 20:55:14 fred Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

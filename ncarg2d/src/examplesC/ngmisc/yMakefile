@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.6 1997/04/11 18:50:11 haley Exp $
+#	$Id: yMakefile,v 1.6 1997-04-11 18:50:11 haley Exp $
 #
 
 SRCS = c_fngwsym.c

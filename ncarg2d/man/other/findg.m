@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: findg.m,v 1.11 2008/07/27 03:34:10 haley Exp $
+.\"	$Id: findg.m,v 1.11 2008-07-27 03:34:10 haley Exp $
 .\"
 .\"	findg.l 3.00 11/15/89 NCAR Graphics
 .TH FINDG lNCARG "NOVEMBER 1989" NCAR "NCAR Graphics"

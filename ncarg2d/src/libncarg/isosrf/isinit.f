@@ -1,5 +1,5 @@
 C
-C $Id: isinit.f,v 1.5 2008/07/27 00:17:16 haley Exp $
+C $Id: isinit.f,v 1.5 2008-07-27 00:17:16 haley Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: ncarg_option.m,v 1.3 1992/09/01 23:47:21 clyne Exp $
+.\"	$Id: ncarg_option.m,v 1.3 1992-09-01 23:47:21 clyne Exp $
 .\"
 .TH OPTION 1NCAR  "March 1992" 
 .SH NAME

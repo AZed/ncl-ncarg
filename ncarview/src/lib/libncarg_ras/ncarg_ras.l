@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: ncarg_ras.l,v 1.3 1993/02/10 19:19:07 don Exp $
+.\"	$Id: ncarg_ras.l,v 1.3 1993-02-10 19:19:07 don Exp $
 .\"
 .\" NCAR View ncarg_ras.l 3.00 9/13/89 Clyne
 .TH NCAR Raster Libraries 1NCARV "March 1992" NCAR "NCAR View 3.01"

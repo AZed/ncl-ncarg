@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.4 2001/08/17 15:52:01 kennison Exp $
+#       $Id: yMakefile,v 1.4 2001-08-17 15:52:01 kennison Exp $
 #
 MYNAME  = ezmapc
 

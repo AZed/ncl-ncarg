@@ -1,6 +1,6 @@
 #!/bin/csh -f
 #
-#	$Id: ncargrun,v 1.8 2010/03/14 21:35:06 haley Exp $
+#	$Id: ncargrun,v 1.8 2010-03-14 21:35:06 haley Exp $
 #
 
 foreach arg ($argv)

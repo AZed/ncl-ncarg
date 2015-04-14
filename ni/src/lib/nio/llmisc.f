@@ -1,5 +1,5 @@
 C
-C $Id: llmisc.f,v 1.1 2009/05/15 00:49:27 dbrown Exp $
+C $Id: llmisc.f,v 1.1 2009-05-15 00:49:27 dbrown Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research
@@ -34,7 +34,7 @@ C
 C
       END
 C
-C $Id: llmisc.f,v 1.1 2009/05/15 00:49:27 dbrown Exp $
+C $Id: llmisc.f,v 1.1 2009-05-15 00:49:27 dbrown Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research
@@ -183,7 +183,7 @@ C
 C
       END
 C
-C $Id: llmisc.f,v 1.1 2009/05/15 00:49:27 dbrown Exp $
+C $Id: llmisc.f,v 1.1 2009-05-15 00:49:27 dbrown Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research
@@ -304,7 +304,7 @@ C
 C
       END
 C
-C $Id: llmisc.f,v 1.1 2009/05/15 00:49:27 dbrown Exp $
+C $Id: llmisc.f,v 1.1 2009-05-15 00:49:27 dbrown Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research
@@ -331,7 +331,7 @@ C
 C
       END
 C
-C $Id: llmisc.f,v 1.1 2009/05/15 00:49:27 dbrown Exp $
+C $Id: llmisc.f,v 1.1 2009-05-15 00:49:27 dbrown Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research
@@ -644,7 +644,7 @@ C
       A = 16777216*A1 + D
       END
 C
-C $Id: llmisc.f,v 1.1 2009/05/15 00:49:27 dbrown Exp $
+C $Id: llmisc.f,v 1.1 2009-05-15 00:49:27 dbrown Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

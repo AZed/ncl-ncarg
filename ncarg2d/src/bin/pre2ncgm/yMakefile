@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.14 2004/08/03 16:31:26 haley Exp $
+#	$Id: yMakefile,v 1.14 2004-08-03 16:31:26 haley Exp $
 #
 
 MYNAME  = pre2ncgm

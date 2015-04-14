@@ -1,5 +1,5 @@
 C
-C	$Id: gzopwk.f,v 1.15 2010/02/09 23:19:57 brownrig Exp $
+C	$Id: gzopwk.f,v 1.15 2010-02-09 23:19:57 brownrig Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

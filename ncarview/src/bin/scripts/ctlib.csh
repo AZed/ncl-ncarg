@@ -1,6 +1,6 @@
 #!/bin/csh -f
 #
-#	$Id: ctlib.csh,v 1.9 2008/07/27 03:58:55 haley Exp $
+#	$Id: ctlib.csh,v 1.9 2008-07-27 03:58:55 haley Exp $
 #
 #                Copyright (C)  2000
 #        University Corporation for Atmospheric Research

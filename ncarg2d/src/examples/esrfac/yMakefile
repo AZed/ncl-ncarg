@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.6 1995/06/14 13:57:07 haley Exp $
+#	$Id: yMakefile,v 1.6 1995-06-14 13:57:07 haley Exp $
 #
 
 MYNAME	= esrfac

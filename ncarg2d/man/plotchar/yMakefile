@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.8 1995/05/01 23:02:33 kennison Exp $
+#	$Id: yMakefile,v 1.8 1995-05-01 23:02:33 kennison Exp $
 #
 
 MAN =   pcdlsc pcgetc pcgeti pcgetr pchiqu pcloqu pcmequ pcmpxy pcpnwi pcrset \

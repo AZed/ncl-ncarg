@@ -1,5 +1,5 @@
 /*
- *	$Id: c_fdldashc.c,v 1.2 1995/06/14 13:59:14 haley Exp $
+ *	$Id: c_fdldashc.c,v 1.2 1995-06-14 13:59:14 haley Exp $
  */
 
 #include <stdio.h>

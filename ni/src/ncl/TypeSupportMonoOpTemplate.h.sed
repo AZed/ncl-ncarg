@@ -1,6 +1,6 @@
 
 /*
- *      $Id: TypeSupportMonoOpTemplate.h.sed,v 1.1 1995/01/28 01:53:11 ethan Exp $
+ *      $Id: TypeSupportMonoOpTemplate.h.sed,v 1.1 1995-01-28 01:53:11 ethan Exp $
  */
 /************************************************************************
 *									*

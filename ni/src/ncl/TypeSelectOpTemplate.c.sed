@@ -1,6 +1,6 @@
 
 /*
- *      $Id: TypeSelectOpTemplate.c.sed,v 1.2 2009/07/10 19:54:06 huangwei Exp $
+ *      $Id: TypeSelectOpTemplate.c.sed,v 1.2 2009-07-10 19:54:06 huangwei Exp $
  */
 /************************************************************************
 *									*

@@ -1,5 +1,5 @@
 /*
- *      $Id: userAddProto.c,v 1.13 2010/02/01 22:28:48 huangwei Exp $
+ *      $Id: userAddProto.c,v 1.13 2010-02-01 22:28:48 huangwei Exp $
  */
 /************************************************************************
 *                                                                   *
@@ -116,6 +116,12 @@ void
 );
 
 extern NhlErrorTypes _Nclstr_capital(
+#if NhlNeedProto
+void
+#endif
+);
+
+extern NhlErrorTypes _Nclstr_sort(
 #if NhlNeedProto
 void
 #endif
@@ -249,6 +255,11 @@ void NclAddUserBuiltInFuncs
     args = NewArgs(1);
     SetArgTemplate(args, nargs, "string", 0, NclANY); nargs++;
     NclRegisterFunc(_Nclstr_capital, args, "str_capital", nargs);
+
+    nargs = 0;
+    args = NewArgs(1);
+    SetArgTemplate(args, nargs, "string", 0, NclANY); nargs++;
+    NclRegisterFunc(_Nclstr_sort, args, "str_sort", nargs);
 
     nargs = 0;
     args = NewArgs(3);

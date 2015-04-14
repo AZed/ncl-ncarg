@@ -1,5 +1,5 @@
 /*
- *	$Id: gsbytes.c,v 1.4 2008/07/27 12:23:45 haley Exp $
+ *	$Id: gsbytes.c,v 1.4 2008-07-27 12:23:45 haley Exp $
  */
 /***********************************************************************
 *                                                                      *
@@ -20,7 +20,7 @@
 /*
  * Tools for storage/retrieval of arbitrary size bytes from 32 bit words
  * 
- * $Header: /fs/scd/home0/ncargd/CVS/ncarg/common/src/libncarg_c/gsbytes.c,v 1.4 2008/07/27 12:23:45 haley Exp $
+ * $Header: /home/brownrig/SVN/CVS/ncarg/common/src/libncarg_c/gsbytes.c,v 1.4 2008-07-27 12:23:45 haley Exp $
  * 
  * gbytes(p,u,q,b,s,n) gbyte (p,u,q,b) sbytes(p,u,q,b,s,n) sbyte (p,u,q,b)
  * 

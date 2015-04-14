@@ -1,5 +1,5 @@
 /*
- *      $Id: IrregularType2TransObj.c,v 1.23 1997/02/24 22:12:25 boote Exp $
+ *      $Id: IrregularType2TransObj.c,v 1.23 1997-02-24 22:12:25 boote Exp $
  */
 /************************************************************************
 *									*

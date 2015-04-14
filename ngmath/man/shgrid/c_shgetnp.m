@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: c_shgetnp.m,v 1.4 2008/07/27 03:35:41 haley Exp $
+.\"	$Id: c_shgetnp.m,v 1.4 2008-07-27 03:35:41 haley Exp $
 .\"
 .TH c_shgetnp 3NCARG "January 1999" UNIX "NCAR GRAPHICS"
 .SH NAME

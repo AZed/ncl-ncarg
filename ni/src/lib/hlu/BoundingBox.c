@@ -1,5 +1,5 @@
 /*
- *      $Id: BoundingBox.c,v 1.9 2001/01/23 23:58:54 dbrown Exp $
+ *      $Id: BoundingBox.c,v 1.9 2001-01-23 23:58:54 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -143,7 +143,6 @@ NhlErrorTypes NhlGetBB
 #endif
 {
 	NhlLayer instance;
-	char  buffer[80];
 
 	thebox->set = 0;
 	thebox->t  = 0.0;
@@ -176,8 +175,7 @@ NhlErrorTypes NhlGetBB
 		return ret;
 	}
 	else {
-		sprintf(buffer,"Invalid plot ID=%d passed to NhlGetBB",pid);
-		NhlPError(NhlFATAL,NhlEUNKNOWN,buffer);
+		NhlPError(NhlFATAL,NhlEUNKNOWN,"Invalid plot ID=%d passed to NhlGetBB",pid);
 		return(NhlFATAL);
 	}
 }

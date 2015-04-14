@@ -1,4 +1,4 @@
-#	$Id: yMakefile,v 1.52 2007/07/18 18:49:23 haley Exp $
+#	$Id: yMakefile,v 1.52 2007-07-18 18:49:23 haley Exp $
 #
 #	Makefile for libraster - libraries for dealing with
 #	a variety of raster image formats.

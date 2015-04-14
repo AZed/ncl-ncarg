@@ -1,5 +1,5 @@
 C
-C $Id: mdutfd.f,v 1.3 2008/07/27 00:17:09 haley Exp $
+C $Id: mdutfd.f,v 1.3 2008-07-27 00:17:09 haley Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

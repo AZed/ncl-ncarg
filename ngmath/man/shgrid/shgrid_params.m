@@ -1,5 +1,5 @@
 .\"
-.\"     $Id: shgrid_params.m,v 1.4 2008/07/27 03:35:42 haley Exp $
+.\"     $Id: shgrid_params.m,v 1.4 2008-07-27 03:35:42 haley Exp $
 .\"
 .TH shgrid_params 3NCARG "September 1999" UNIX "NCAR GRAPHICS"
 .na

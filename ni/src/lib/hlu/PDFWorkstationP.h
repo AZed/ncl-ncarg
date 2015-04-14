@@ -1,5 +1,5 @@
 /*
- *  $Id: PDFWorkstationP.h,v 1.3 2010/02/09 23:12:44 brownrig Exp $
+ *  $Id: PDFWorkstationP.h,v 1.3 2010-02-09 23:12:44 brownrig Exp $
  */
 
 # ifndef    _NPDFWorkstationP_h

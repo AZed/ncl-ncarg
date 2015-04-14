@@ -1,5 +1,5 @@
 C
-C $Id: agaxis.f,v 1.11 2008/07/27 00:14:33 haley Exp $
+C $Id: agaxis.f,v 1.11 2008-07-27 00:14:33 haley Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

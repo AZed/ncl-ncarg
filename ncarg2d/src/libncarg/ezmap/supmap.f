@@ -1,5 +1,5 @@
 C
-C $Id: supmap.f,v 1.26 2008/10/22 20:14:55 kennison Exp $
+C $Id: supmap.f,v 1.26 2008-10-22 20:14:55 kennison Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

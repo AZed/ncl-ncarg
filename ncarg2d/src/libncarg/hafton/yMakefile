@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.5 1996/10/25 21:44:06 boote Exp $
+#	$Id: yMakefile,v 1.5 1996-10-25 21:44:06 boote Exp $
 #
 MYNAME	= hafton
 

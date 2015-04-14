@@ -1,5 +1,5 @@
 C
-C	$Id: shseti.f,v 1.5 2008/07/27 03:10:14 haley Exp $
+C	$Id: shseti.f,v 1.5 2008-07-27 03:10:14 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

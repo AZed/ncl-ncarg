@@ -1,5 +1,5 @@
 /*
- *	$Id: c_tareas.c,v 1.5 1999/07/27 20:14:54 haley Exp $
+ *	$Id: c_tareas.c,v 1.5 1999-07-27 20:14:54 haley Exp $
  */
 #include <stdio.h>
 #include <math.h>

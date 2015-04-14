@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: fontcap.m,v 1.15 2008/12/23 00:03:52 haley Exp $
+.\"	$Id: fontcap.m,v 1.15 2008-12-23 00:03:52 haley Exp $
 .\"
 .\" @(#)f77.1 1.4 86/07/31 SMI; 
 .TH FONTCAP 5NCARG "April 1993" NCAR "NCAR GRAPHICS"

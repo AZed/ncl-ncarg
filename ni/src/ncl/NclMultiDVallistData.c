@@ -1,6 +1,6 @@
 
 /*
- *      $Id: NclMultiDVallistData.c,v 1.5 2003/05/31 00:49:42 dbrown Exp $
+ *      $Id: NclMultiDVallistData.c,v 1.5 2003-05-31 00:49:42 dbrown Exp $
  */
 /************************************************************************
 *									*

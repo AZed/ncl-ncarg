@@ -1,5 +1,5 @@
 C
-C	$Id: gtstr.f,v 1.4 2008/07/27 12:23:44 haley Exp $
+C	$Id: gtstr.f,v 1.4 2008-07-27 12:23:44 haley Exp $
 C                                                                      
 C			     Copyright (C)  1997
 C	     University Corporation for Atmospheric Research

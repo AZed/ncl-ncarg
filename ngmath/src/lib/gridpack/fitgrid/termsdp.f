@@ -1,5 +1,5 @@
 c
-c $Id: termsdp.f,v 1.3 2008/07/27 03:10:12 haley Exp $
+c $Id: termsdp.f,v 1.3 2008-07-27 03:10:12 haley Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

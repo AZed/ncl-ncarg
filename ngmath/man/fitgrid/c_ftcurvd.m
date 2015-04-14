@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: c_ftcurvd.m,v 1.4 2008/07/27 03:35:37 haley Exp $
+.\"	$Id: c_ftcurvd.m,v 1.4 2008-07-27 03:35:37 haley Exp $
 .\"
 .TH c_ftcurvd 3NCARG "March 1998" UNIX "NCAR GRAPHICS"
 .SH NAME

@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.14 2005/04/14 19:59:13 kennison Exp $
+#       $Id: yMakefile,v 1.14 2005-04-14 19:59:13 kennison Exp $
 #
 MYNAME	= ezmapa
 

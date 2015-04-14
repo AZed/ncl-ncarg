@@ -1,5 +1,5 @@
 .\"
-.\"     $Id: natgrid_errors.m,v 1.5 2008/07/27 03:35:40 haley Exp $
+.\"     $Id: natgrid_errors.m,v 1.5 2008-07-27 03:35:40 haley Exp $
 .\"
 .TH natgrid_errors 3NCARG "March 1997-1998" UNIX "NCAR GRAPHICS"
 .na

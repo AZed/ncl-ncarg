@@ -1,6 +1,6 @@
 
 /*
- *      $Id: TypeAndOpTemplate.c.sed,v 1.1 2009/11/23 18:34:53 dbrown Exp $
+ *      $Id: TypeAndOpTemplate.c.sed,v 1.1 2009-11-23 18:34:53 dbrown Exp $
  */
 /************************************************************************
 *									*

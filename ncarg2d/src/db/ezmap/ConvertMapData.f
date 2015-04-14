@@ -1,5 +1,5 @@
 C
-C $Id: ConvertMapData.f,v 1.7 2008/07/27 01:04:30 haley Exp $
+C $Id: ConvertMapData.f,v 1.7 2008-07-27 01:04:30 haley Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

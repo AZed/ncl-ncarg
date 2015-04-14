@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.6 1994/04/08 22:16:14 haley Exp $
+#	$Id: yMakefile,v 1.6 1994-04-08 22:16:14 haley Exp $
 #
 
 MAN = labelbar labelbar_params lbfill lbgeti lbgetr lblbar lbseti lbsetr

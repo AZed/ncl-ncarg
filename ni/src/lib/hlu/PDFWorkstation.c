@@ -1,5 +1,5 @@
 /*
- *      $Id: PDFWorkstation.c,v 1.5 2010/03/29 16:30:03 brownrig Exp $
+ *      $Id: PDFWorkstation.c,v 1.5 2010-03-29 16:30:03 brownrig Exp $
  */
 
 # include   <stdio.h>
@@ -402,6 +402,12 @@ static NhlErrorTypes PDFWorkstationInitialize
                 return NhlFATAL;
         }
         tfname = buff;
+    }
+    if (strlen(tfname) > _NhlMAXLLUPATHLEN) {
+	NhlPError(NhlFATAL,NhlEUNKNOWN,
+		  "%s: Filepath %s exceeds maximum length of %d", func,
+		  tfname,_NhlMAXLLUPATHLEN);
+	return NhlFATAL;
     }
 
     np->filename = NhlMalloc(strlen(tfname) + 1);

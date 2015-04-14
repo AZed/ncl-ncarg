@@ -1,4 +1,4 @@
-; $Id: basic01n.ncl,v 1.13 2010/03/15 22:49:23 haley Exp $
+; $Id: basic01n.ncl,v 1.13 2010-03-15 22:49:23 haley Exp $
 ;
 ; This example demonstrates how to draw a contour plot using mostly
 ; defaults.  Note: no data is used in this example, so the output appears

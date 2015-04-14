@@ -1,5 +1,5 @@
 C
-C $Id: g01opc.h,v 1.4 2008/07/27 03:55:37 haley Exp $
+C $Id: g01opc.h,v 1.4 2008-07-27 03:55:37 haley Exp $
 C
 C The use of this Software is governed by a License Agreement.
 C

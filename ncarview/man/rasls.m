@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: rasls.m,v 1.20 2008/12/23 00:04:16 haley Exp $
+.\"	$Id: rasls.m,v 1.20 2008-12-23 00:04:16 haley Exp $
 .\"
 .TH RASLS 1NCARG "January 1993" NCARG "NCAR VIEW"
 .SH NAME

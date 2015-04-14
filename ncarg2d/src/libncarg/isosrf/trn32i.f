@@ -1,5 +1,5 @@
 C
-C $Id: trn32i.f,v 1.6 2008/07/27 00:17:16 haley Exp $
+C $Id: trn32i.f,v 1.6 2008-07-27 00:17:16 haley Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

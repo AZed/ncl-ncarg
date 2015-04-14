@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.16 2005/05/13 19:55:17 kennison Exp $
+#	$Id: yMakefile,v 1.16 2005-05-13 19:55:17 kennison Exp $
 #
 
 MYNAME	= plotchar

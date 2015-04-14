@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: ncargfile.m,v 1.10 2008/07/27 03:34:10 haley Exp $
+.\"	$Id: ncargfile.m,v 1.10 2008-07-27 03:34:10 haley Exp $
 .\"
 .\" @(#)f77.1 1.4 86/07/31 SMI; 
 .TH NCARGFILE 1NCARG "MARCH 1993" NCAR "NCAR GRAPHICS"

@@ -1,5 +1,5 @@
 C
-C $Id: mdqini.f,v 1.6 2008/09/18 00:42:18 kennison Exp $
+C $Id: mdqini.f,v 1.6 2008-09-18 00:42:18 kennison Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

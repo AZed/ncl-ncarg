@@ -1,5 +1,5 @@
 ;
-;      $Id: gsn_code.ncl,v 1.238 2010/03/22 01:59:53 haley Exp $
+;      $Id: gsn_code.ncl,v 1.238.4.3 2010-05-06 17:13:26 haley Exp $
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                      ;
@@ -583,7 +583,7 @@ end
 ;***********************************************************************;
 undef("get_res_value")
 function get_res_value(res,resname:string,default_val)
-local res_value
+local return_val
 begin
   if(((typeof(res).eq."logical".and.res).or.(typeof(res).ne."logical")).and.\
      .not.any(ismissing(getvaratts(res)))) then
@@ -613,7 +613,7 @@ end
 ;***********************************************************************;
 undef("get_res_value_keep")
 function get_res_value_keep(res,resname:string,default_val)
-local res_value
+local return_val
 begin
   if(((typeof(res).eq."logical".and.res).or.(typeof(res).ne."logical")).and.\
      .not.any(ismissing(getvaratts(res)))) then
@@ -1558,10 +1558,10 @@ begin
         "vcMonoLineArrowColor"     : vc_monolinearrowcolor
         "vcMonoWindBarbColor"      : vc_monowindbarbcolor
       end getvalues
-      if( (vc_glyphstyle.eq.0.and.vc_monolinearrowcolor) .or.\
-          (vc_glyphstyle.eq.1.and.vc_monofillarrowcolor) .or. \
-          (vc_glyphstyle.eq.2.and.vc_monowindbarbcolor)  .or. \
-          (vc_glyphstyle.eq.3.and.vc_monolinearrowcolor)) then
+      if( (vc_glyphstyle.eq.0.and..not.vc_monolinearrowcolor) .or.\
+          (vc_glyphstyle.eq.1.and..not.vc_monofillarrowcolor) .or. \
+          (vc_glyphstyle.eq.2.and..not.vc_monowindbarbcolor)  .or. \
+          (vc_glyphstyle.eq.3.and..not.vc_monolinearrowcolor)) then
         found = True
         new_plot = ids(i)
         new_plot@plot_type = "vector"
@@ -3115,6 +3115,7 @@ end
 ;***********************************************************************;
 ; Function to determine if a cairo PS is being requested.               ;
 ;***********************************************************************;
+undef("is_cairo_ps")
 function is_cairo_ps(wtype)
 local lwtype, cpsenv
 begin
@@ -3130,6 +3131,7 @@ end
 ;***********************************************************************;
 ; Function to determine if a cairo PDF is being requested.              ;
 ;***********************************************************************;
+undef("is_cairo_pdf")
 function is_cairo_pdf(wtype)
 local lwtype, cpdfenv
 begin
@@ -3145,6 +3147,7 @@ end
 ;***********************************************************************;
 ; Function to determine if a cairo PNG is being requested.              ;
 ;***********************************************************************;
+undef("is_cairo_png")
 function is_cairo_png(wtype)
 local lwtype
 begin
@@ -9304,8 +9307,8 @@ begin
 
     vfres = get_res_eq(res2,"vf")
     sfres = get_res_eq(res2,"sf")
-    cnres = get_res_eq(res2,(/"cn","vp","tf"/))
-    vcres = get_res_ne(res2,(/"vf","sf","cn","vp"/))
+    cnres = get_res_eq(res2,(/"cn","tf"/))
+    vcres = get_res_ne(res2,(/"vf","sf","cn"/))
 
     attsetvalues_check(vfdata_object,vfres)
     attsetvalues_check(sfdata_object,sfres)
@@ -9484,8 +9487,8 @@ begin
 
     vfres = get_res_eq(res2,"vf")
     sfres = get_res_eq(res2,"sf")
-    cnres = get_res_eq(res2,(/"cn","vp"/))
-    stres = get_res_ne(res2,(/"vf","sf","cn","vp"/))
+    cnres = get_res_eq(res2,(/"cn"/))
+    stres = get_res_ne(res2,(/"vf","sf","cn"/))
 
     attsetvalues_check(vfdata_object,vfres)
     attsetvalues_check(sfdata_object,sfres)

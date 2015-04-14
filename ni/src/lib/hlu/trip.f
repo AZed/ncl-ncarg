@@ -1,6 +1,6 @@
 C
 C
-C  $Id: trip.f,v 1.1 1994/08/11 23:17:37 boote Exp $
+C  $Id: trip.f,v 1.1 1994-08-11 23:17:37 boote Exp $
 C
 C This subprogram is used by subroutine COEFF1 in library 
 C ncarm.  It is lower-level, i.e. not called by users.

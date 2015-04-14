@@ -1,6 +1,6 @@
 #!/bin/csh -f
 #
-#	$Id: gcaps.csh,v 1.10 2008/07/27 03:58:55 haley Exp $
+#	$Id: gcaps.csh,v 1.10 2008-07-27 03:58:55 haley Exp $
 #
 #                Copyright (C)  2000
 #        University Corporation for Atmospheric Research

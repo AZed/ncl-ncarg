@@ -1,5 +1,5 @@
 /*
- *  $Id: c_mpex05.c,v 1.3 1997/04/21 14:38:28 haley Exp $
+ *  $Id: c_mpex05.c,v 1.3 1997-04-21 14:38:28 haley Exp $
  */
 #include <stdio.h>
 #include <math.h>

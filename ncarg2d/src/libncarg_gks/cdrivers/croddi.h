@@ -1,5 +1,5 @@
 /*
- *      $Id: croddi.h,v 1.6 2010/02/09 23:16:19 brownrig Exp $
+ *      $Id: croddi.h,v 1.6 2010-02-09 23:16:19 brownrig Exp $
  */
 /*
  *      File:           croddi.h

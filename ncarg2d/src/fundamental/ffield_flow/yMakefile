@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.7 2006/09/10 17:49:44 haley Exp $
+#	$Id: yMakefile,v 1.7 2006-09-10 17:49:44 haley Exp $
 #
 MYNAME	= ffield_flow
 

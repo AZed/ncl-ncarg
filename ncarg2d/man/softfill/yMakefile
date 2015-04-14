@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.7 1994/04/08 22:24:21 haley Exp $
+#	$Id: yMakefile,v 1.7 1994-04-08 22:24:21 haley Exp $
 #
 
 MAN =	sfgetc sfgeti sfgetp sfgetr sfnorm sfsetc sfseti sfsetp sfsetr sfsgfa \

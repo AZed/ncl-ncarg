@@ -1,5 +1,5 @@
 C
-C $Id: nadisp.f.sed,v 1.2 2008/07/27 04:11:34 haley Exp $
+C $Id: nadisp.f.sed,v 1.2 2008-07-27 04:11:34 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

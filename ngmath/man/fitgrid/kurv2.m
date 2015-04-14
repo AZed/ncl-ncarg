@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: kurv2.m,v 1.4 2008/07/27 03:35:39 haley Exp $
+.\"	$Id: kurv2.m,v 1.4 2008-07-27 03:35:39 haley Exp $
 .\"
 .TH KURV2 3NCARG "March 1998" UNIX "NCAR GRAPHICS"
 .SH NAME

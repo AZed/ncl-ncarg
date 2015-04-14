@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: ncarg_error.m,v 1.3 1992/09/01 23:47:19 clyne Exp $
+.\"	$Id: ncarg_error.m,v 1.3 1992-09-01 23:47:19 clyne Exp $
 .\"
 .TH ERROR 1NCAR  "February 1992" 
 .SH NAME

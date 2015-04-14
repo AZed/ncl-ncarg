@@ -1,5 +1,5 @@
 C
-C   $Id: openpw.f.2.sed,v 1.2 2008/07/27 03:53:06 haley Exp $
+C   $Id: openpw.f.2.sed,v 1.2 2008-07-27 03:53:06 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

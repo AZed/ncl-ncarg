@@ -1,5 +1,5 @@
 /*
- *      $Id: StreamlinePlot.c,v 1.74 2010/03/31 00:52:23 dbrown Exp $
+ *      $Id: StreamlinePlot.c,v 1.74 2010-03-31 00:52:23 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -4757,7 +4757,7 @@ static NhlErrorTypes ReplaceSubstitutionChars
 {
 	NhlErrorTypes		ret = NhlNOERROR;
 	char			*e_text;
-	char			buffer[256];
+	char			buffer[_NhlMAXRESNAMLEN];
 
 	*text_changed = False;
 

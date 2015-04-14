@@ -1,5 +1,5 @@
 C
-C	$Id: gesc.f,v 1.40 2010/02/08 06:01:29 fred Exp $
+C	$Id: gesc.f,v 1.40 2010-02-08 06:01:29 fred Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.4 1994/08/23 18:02:11 haley Exp $
+#	$Id: yMakefile,v 1.4 1994-08-23 18:02:11 haley Exp $
 #
 
 MYNAME  = psfltrs

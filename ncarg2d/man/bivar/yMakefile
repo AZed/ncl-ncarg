@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.7 1995/11/06 22:42:49 kennison Exp $
+#	$Id: yMakefile,v 1.7 1995-11-06 22:42:49 kennison Exp $
 #
 
 MAN = bivar bivar_params idbvip idsfft idpltr idgeti idgetr idseti idsetr

@@ -1,5 +1,5 @@
 .\"
-.\"     $Id: psplit.m,v 1.8 2008/07/27 03:34:11 haley Exp $
+.\"     $Id: psplit.m,v 1.8 2008-07-27 03:34:11 haley Exp $
 .\"
 .TH psplit 1NCARG "August 2001" UNIX "NCAR GRAPHICS"
 .na

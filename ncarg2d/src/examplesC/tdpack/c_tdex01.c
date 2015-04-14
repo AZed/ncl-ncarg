@@ -1,5 +1,5 @@
 /*
- *      $Id: c_tdex01.c,v 1.4 2004/07/23 01:00:33 kennison Exp $
+ *      $Id: c_tdex01.c,v 1.4 2004-07-23 01:00:33 kennison Exp $
  */
 
 /*

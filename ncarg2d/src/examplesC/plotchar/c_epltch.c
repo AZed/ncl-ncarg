@@ -1,5 +1,5 @@
 /*
- *  $Id: c_epltch.c,v 1.4 1997/04/21 14:38:30 haley Exp $
+ *  $Id: c_epltch.c,v 1.4 1997-04-21 14:38:30 haley Exp $
  */
 #include <stdio.h>
 #include <math.h>

@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.6 1994/04/08 22:08:36 haley Exp $
+#	$Id: yMakefile,v 1.6 1994-04-08 22:08:36 haley Exp $
 #
 
 MAN = gflas1 gflas2 gflas3 gflas4 gflash

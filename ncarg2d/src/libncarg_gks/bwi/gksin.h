@@ -1,5 +1,5 @@
 C
-C $Id: gksin.h,v 1.5 2008/07/27 03:55:38 haley Exp $
+C $Id: gksin.h,v 1.5 2008-07-27 03:55:38 haley Exp $
 C
 C The use of this Software is governed by a License Agreement.
 C

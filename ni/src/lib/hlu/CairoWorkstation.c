@@ -1,5 +1,5 @@
 /*
- *      $Id: CairoWorkstation.c,v 1.8 2010/03/29 16:30:03 brownrig Exp $
+ *      $Id: CairoWorkstation.c,v 1.8 2010-03-29 16:30:03 brownrig Exp $
  */
 
 # include   <stdio.h>
@@ -479,6 +479,12 @@ static NhlErrorTypes CairoWorkstationInitialize(NhlClass lclass, NhlLayer req, N
                 return NhlFATAL;
         }
         tfname = buff;
+    }
+    if (strlen(tfname) > _NhlMAXLLUPATHLEN) {
+	NhlPError(NhlFATAL,NhlEUNKNOWN,
+		  "%s: Filepath %s exceeds maximum length of %d", func,
+		  tfname,_NhlMAXLLUPATHLEN);
+	return NhlFATAL;
     }
 
     /* This looks like a mem-leak at first glance, but upstream in _NhlCreate, a "context" has been keeping

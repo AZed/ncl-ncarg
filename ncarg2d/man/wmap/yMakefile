@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.1 1995/02/28 18:07:02 haley Exp $
+#	$Id: yMakefile,v 1.1 1995-02-28 18:07:02 haley Exp $
 #
 
 MAN = wmap wmap_params wmbarb wmdflt wmdrft wmdrrg wmgetc wmgeti wmgetr \

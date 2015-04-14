@@ -1,5 +1,5 @@
 C
-C       $Id: stutil.f,v 1.5 2009/04/22 19:26:37 dbrown Exp $
+C       $Id: stutil.f,v 1.5 2009-04-22 19:26:37 dbrown Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

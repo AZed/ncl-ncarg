@@ -1,5 +1,5 @@
 C
-C	$Id: gqchb.f,v 1.5 2008/07/27 00:20:58 haley Exp $
+C	$Id: gqchb.f,v 1.5 2008-07-27 00:20:58 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

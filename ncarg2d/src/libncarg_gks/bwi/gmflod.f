@@ -1,5 +1,5 @@
 C
-C	$Id: gmflod.f,v 1.5 2008/07/27 00:21:06 haley Exp $
+C	$Id: gmflod.f,v 1.5 2008-07-27 00:21:06 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

@@ -1,5 +1,5 @@
 /*
- *      $Id: PDFWorkstation.h,v 1.1 2003/02/27 18:14:35 grubin Exp $
+ *      $Id: PDFWorkstation.h,v 1.1 2003-02-27 18:14:35 grubin Exp $
  */
 
 # ifndef    _NPDFWorkstation_h

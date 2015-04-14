@@ -1,5 +1,5 @@
 /*
- *      $Id: cro.c,v 1.16 2010/04/02 16:36:16 brownrig Exp $
+ *      $Id: cro.c,v 1.16 2010-04-02 16:36:16 brownrig Exp $
  */
 /*
  *

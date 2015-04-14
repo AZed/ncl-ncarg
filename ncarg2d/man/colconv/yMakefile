@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.6 1994/04/08 22:02:34 haley Exp $
+#	$Id: yMakefile,v 1.6 1994-04-08 22:02:34 haley Exp $
 #
 
 MAN = colconv hlsrgb hsvrgb rgbhls rgbhsv rgbyiq yiqrgb

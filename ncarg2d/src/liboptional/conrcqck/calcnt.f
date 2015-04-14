@@ -1,5 +1,5 @@
 C
-C	$Id: calcnt.f,v 1.4 2008/07/27 00:23:01 haley Exp $
+C	$Id: calcnt.f,v 1.4 2008-07-27 00:23:01 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

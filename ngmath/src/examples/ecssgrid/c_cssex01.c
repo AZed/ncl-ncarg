@@ -1,5 +1,5 @@
 /*
- *      $Id: c_cssex01.c,v 1.7 2000/01/12 23:50:55 fred Exp $
+ *      $Id: c_cssex01.c,v 1.7 2000-01-12 23:50:55 fred Exp $
  */
 
 #include <stdio.h>

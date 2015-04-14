@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: fontc.m,v 1.15 2008/12/23 00:03:52 haley Exp $
+.\"	$Id: fontc.m,v 1.15 2008-12-23 00:03:52 haley Exp $
 .\"
 .TH FONTC 1NCARG "April 1993" NCAR "NCAR GRAPHICS"
 .SH NAME

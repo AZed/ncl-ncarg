@@ -1,4 +1,4 @@
-; $Id: basic02n.ncl,v 1.13 2010/03/15 22:49:23 haley Exp $
+; $Id: basic02n.ncl,v 1.13 2010-03-15 22:49:23 haley Exp $
 ;
 ; The first frame in this example demonstrates how to set the view port 
 ; for a contour plot.

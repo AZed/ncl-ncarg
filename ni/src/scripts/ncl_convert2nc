@@ -1,6 +1,6 @@
 #!/bin/csh -f
 #
-#       $Id: ncl_convert2nc,v 1.22 2010/04/05 22:37:28 dbrown Exp $
+#       $Id: ncl_convert2nc,v 1.22 2010-04-05 22:37:28 dbrown Exp $
 
 #       Copyright (C) 2005
 #       University Corporation for Atmospheric Research

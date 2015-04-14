@@ -1,5 +1,5 @@
 /*
- *      $Id: IrregularType2TransObjP.h,v 1.8 1995/05/03 03:11:16 dbrown Exp $
+ *      $Id: IrregularType2TransObjP.h,v 1.8 1995-05-03 03:11:16 dbrown Exp $
  */
 /************************************************************************
 *									*

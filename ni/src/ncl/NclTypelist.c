@@ -1,6 +1,6 @@
 
 /*
- *      $Id: NclTypelist.c,v 1.4 2010/03/12 18:33:47 dbrown Exp $
+ *      $Id: NclTypelist.c,v 1.4 2010-03-12 18:33:47 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -38,7 +38,7 @@
 #include "DataSupport.h"
 
 /*
- *      $Id: NclTypelist.c,v 1.4 2010/03/12 18:33:47 dbrown Exp $
+ *      $Id: NclTypelist.c,v 1.4 2010-03-12 18:33:47 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -113,7 +113,7 @@ static NhlErrorTypes Ncl_Type_list_InitClass
 
 
 /*
- *      $Id: NclTypelist.c,v 1.4 2010/03/12 18:33:47 dbrown Exp $
+ *      $Id: NclTypelist.c,v 1.4 2010-03-12 18:33:47 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -162,7 +162,7 @@ int nval;
 }
 
 /*
- *      $Id: NclTypelist.c,v 1.4 2010/03/12 18:33:47 dbrown Exp $
+ *      $Id: NclTypelist.c,v 1.4 2010-03-12 18:33:47 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -250,7 +250,7 @@ NclTypeClass Ncl_Type_list_eq_type
 }
 
 /*
- *      $Id: NclTypelist.c,v 1.4 2010/03/12 18:33:47 dbrown Exp $
+ *      $Id: NclTypelist.c,v 1.4 2010-03-12 18:33:47 dbrown Exp $
  */
 /************************************************************************
 *									*

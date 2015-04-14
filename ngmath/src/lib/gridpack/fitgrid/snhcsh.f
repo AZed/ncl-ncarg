@@ -1,5 +1,5 @@
 C
-C $Id: snhcsh.f,v 1.5 2008/07/27 03:10:12 haley Exp $
+C $Id: snhcsh.f,v 1.5 2008-07-27 03:10:12 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

@@ -1,5 +1,5 @@
 C
-C $Id: gkscom.h,v 1.32 2010/04/02 16:38:00 brownrig Exp $
+C $Id: gkscom.h,v 1.32 2010-04-02 16:38:00 brownrig Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

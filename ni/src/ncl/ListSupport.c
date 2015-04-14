@@ -1,5 +1,5 @@
 /*
- * $Id: ListSupport.c,v 1.3 2004/04/28 17:02:12 grubin Exp $
+ * $Id: ListSupport.c,v 1.3 2004-04-28 17:02:12 grubin Exp $
  */
 
 /************************************************************************
@@ -14,7 +14,7 @@
  *                      National Center for Atmospheric Research
  *                      POB 3000, Boulder, Colorado
  *
- *      $Date: 2004/04/28 17:02:12 $
+ *      $Date: 2004-04-28 17:02:12 $
  */
 
 #include <ncarg/hlu/hlu.h>

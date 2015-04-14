@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.2 2007/12/20 01:06:27 fred Exp $
+#	$Id: yMakefile,v 1.2 2007-12-20 01:06:27 fred Exp $
 #
 
 MYNAME	= wmapC

@@ -1,5 +1,5 @@
 /*
- *      $Id: MultiText.c,v 1.25 2001/12/13 01:57:46 dbrown Exp $
+ *      $Id: MultiText.c,v 1.25 2001-12-13 01:57:46 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -768,7 +768,7 @@ MultiTextInitialize
 	int		i;
 	int		num_strings = mtnew->multitext.num_strings;
 	char		**text_strings;
-	char		name[128];
+	char		name[_NhlMAXRESNAMLEN];
 	float		x,y,width,height;
 	NhlErrorTypes	ret = NhlNOERROR,subret = NhlNOERROR;
 

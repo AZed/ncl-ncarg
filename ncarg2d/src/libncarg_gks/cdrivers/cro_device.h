@@ -1,5 +1,5 @@
 /*
- *	$Id: cro_device.h,v 1.1 2009/04/08 23:25:41 fred Exp $
+ *	$Id: cro_device.h,v 1.1 2009-04-08 23:25:41 fred Exp $
  */
 
 /*

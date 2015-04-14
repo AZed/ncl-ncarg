@@ -1,5 +1,5 @@
 C
-C $Id: EzmapDemo.f,v 1.16 2008/09/18 00:38:09 kennison Exp $
+C $Id: EzmapDemo.f,v 1.16 2008-09-18 00:38:09 kennison Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

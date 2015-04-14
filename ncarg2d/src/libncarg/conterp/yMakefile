@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.7 2002/06/20 22:22:21 haley Exp $
+#	$Id: yMakefile,v 1.7 2002-06-20 22:22:21 haley Exp $
 #
 
 MYNAME	= conterp

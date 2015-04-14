@@ -2,7 +2,7 @@
 .EL I
 
 I
-I $Id: CodeIftran,v 1.13 2008/09/18 00:39:48 kennison Exp $
+I $Id: CodeIftran,v 1.13 2008-09-18 00:39:48 kennison Exp $
 I
 
       FUNCTION MAPACI (IAI)

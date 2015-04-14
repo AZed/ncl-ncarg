@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.7 1994/04/08 22:11:08 haley Exp $
+#	$Id: yMakefile,v 1.7 1994-04-08 22:11:08 haley Exp $
 #
 
 MAN =	gaccum_tran_matrix gactivate_ws gcell_array gclear_ws gclose_gks \

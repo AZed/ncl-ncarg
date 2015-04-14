@@ -1,5 +1,5 @@
 ;
-;      $Id: wind_rose.ncl,v 1.8 2009/11/04 18:02:04 shea Exp $
+;      $Id: wind_rose.ncl,v 1.8 2009-11-04 18:02:04 shea Exp $
 ;
 ; ******************************************************************
 ; *******  THERE IS NO SUPPORT FOR THE WIND ROSE FUNCTIONS *********

@@ -1,5 +1,5 @@
 /*
- *  $Id: c_fngwsym.c,v 1.5 1999/07/27 20:15:05 haley Exp $
+ *  $Id: c_fngwsym.c,v 1.5 1999-07-27 20:15:05 haley Exp $
  */
 #include <stdio.h>
 #include <stdlib.h>

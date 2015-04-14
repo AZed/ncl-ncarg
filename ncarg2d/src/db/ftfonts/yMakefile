@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.1 2009/04/18 19:17:25 fred Exp $
+#       $Id: yMakefile,v 1.1 2009-04-18 19:17:25 fred Exp $
 #
 
 DBFILES = Vera.ttf VeraBI.ttf VeraBd.ttf VeraIt.ttf VeraMoBI.ttf          \

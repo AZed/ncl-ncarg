@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.6 1994/04/19 14:52:22 haley Exp $
+#	$Id: yMakefile,v 1.6 1994-04-19 14:52:22 haley Exp $
 #
 MYNAME	= dashline
 

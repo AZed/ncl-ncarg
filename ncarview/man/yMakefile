@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.16 1994/05/27 20:49:06 haley Exp $
+#	$Id: yMakefile,v 1.16 1994-05-27 20:49:06 haley Exp $
 #
 
 MAN1	= ctrans ictrans ncgm2cgm cgm2ncgm med gcaps fcaps \

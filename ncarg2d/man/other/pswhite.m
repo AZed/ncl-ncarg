@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: pswhite.m,v 1.12 2008/07/27 03:34:11 haley Exp $
+.\"	$Id: pswhite.m,v 1.12 2008-07-27 03:34:11 haley Exp $
 .\"
 .TH PSWHITE 1NCARG "September 1990" NCAR "NCAR GRAPHICS"
 .SH NAME

@@ -1,6 +1,6 @@
 
 /*
- *      $Id: TypeMonoOpTemplate.c.sed,v 1.3 2009/07/10 19:54:06 huangwei Exp $
+ *      $Id: TypeMonoOpTemplate.c.sed,v 1.3 2009-07-10 19:54:06 huangwei Exp $
  */
 /************************************************************************
 *									*

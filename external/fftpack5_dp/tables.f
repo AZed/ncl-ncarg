@@ -7,7 +7,7 @@ C   Licensed under the GNU General Public License (GPL)
 C
 C   Authors:  Paul N. Swarztrauber and Richard A. Valent
 C
-C   $Id: tables.f,v 1.2 2006/11/21 01:10:20 haley Exp $
+C   $Id: tables.f,v 1.2 2006-11-21 01:10:20 haley Exp $
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 

@@ -1,5 +1,5 @@
 /*
- *      $Id: c_ctllg3.c,v 1.4 2004/07/23 00:58:24 kennison Exp $
+ *      $Id: c_ctllg3.c,v 1.4 2004-07-23 00:58:24 kennison Exp $
  */
 
 /*

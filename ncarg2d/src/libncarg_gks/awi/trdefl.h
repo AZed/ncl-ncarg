@@ -1,5 +1,5 @@
 C
-C $Id: trdefl.h,v 1.6 2008/07/27 03:55:37 haley Exp $
+C $Id: trdefl.h,v 1.6 2008-07-27 03:55:37 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

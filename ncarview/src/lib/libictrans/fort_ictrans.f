@@ -1,5 +1,5 @@
 C
-C	$Id: fort_ictrans.f,v 1.6 2008/07/27 03:18:45 haley Exp $
+C	$Id: fort_ictrans.f,v 1.6 2008-07-27 03:18:45 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

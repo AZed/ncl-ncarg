@@ -1,4 +1,4 @@
-; $Id: basic03n.ncl,v 1.7 1995/06/20 15:19:53 stautler Exp $
+; $Id: basic03n.ncl,v 1.7 1995-06-20 15:19:53 stautler Exp $
 ;
 ; This example demonstrates how to:
 ;   1. Create a scalar field data object and assign it to a plot.

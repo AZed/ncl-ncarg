@@ -1,7 +1,7 @@
 .\" The first line of this file must contain the '\"[e][r][t][v] line
 .\" to tell man to run the appropriate filter "t" for table.
 .\"
-.\"	$Id: ymake.man,v 1.17 1997/06/12 15:08:23 haley Exp $
+.\"	$Id: ymake.man,v 1.17 1997-06-12 15:08:23 haley Exp $
 .\"
 .\"######################################################################
 .\"#									#

@@ -1,5 +1,5 @@
 C
-C       $Id: stdraw.f,v 1.22 2009/04/22 19:26:37 dbrown Exp $
+C       $Id: stdraw.f,v 1.22 2009-04-22 19:26:37 dbrown Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

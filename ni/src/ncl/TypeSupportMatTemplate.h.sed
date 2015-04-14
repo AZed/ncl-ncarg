@@ -1,6 +1,6 @@
 
 /*
- *      $Id: TypeSupportMatTemplate.h.sed,v 1.1 1997/09/02 20:27:09 ethan Exp $
+ *      $Id: TypeSupportMatTemplate.h.sed,v 1.1 1997-09-02 20:27:09 ethan Exp $
  */
 /************************************************************************
 *									*

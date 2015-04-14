@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.4 1995/06/14 14:02:14 haley Exp $
+#	$Id: yMakefile,v 1.4 1995-06-14 14:02:14 haley Exp $
 #
 MYNAME	= fsurface
 SRCS = fsrezsrf.f fsrpwrzs.f fsrsrfac.f

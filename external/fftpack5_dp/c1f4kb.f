@@ -7,7 +7,7 @@ C   Licensed under the GNU General Public License (GPL)
 C
 C   Authors:  Paul N. Swarztrauber and Richard A. Valent
 C
-C   $Id: c1f4kb.f,v 1.2 2006/11/21 01:10:15 haley Exp $
+C   $Id: c1f4kb.f,v 1.2 2006-11-21 01:10:15 haley Exp $
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 

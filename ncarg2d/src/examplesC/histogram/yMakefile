@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.7 1997/04/11 18:50:06 haley Exp $
+#	$Id: yMakefile,v 1.7 1997-04-11 18:50:06 haley Exp $
 #
 
 SRCS = c_thstmv.c

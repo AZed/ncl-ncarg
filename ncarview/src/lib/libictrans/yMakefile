@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.24 2003/12/09 17:04:34 grubin Exp $
+#	$Id: yMakefile,v 1.24 2003-12-09 17:04:34 grubin Exp $
 #
 
 MYNAME1		= libictrans.o

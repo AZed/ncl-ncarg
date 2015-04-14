@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: cgm.m,v 1.20 2008/12/23 00:04:15 haley Exp $
+.\"	$Id: cgm.m,v 1.20 2008-12-23 00:04:15 haley Exp $
 .\"
 .\" NCAR View cgm.man 3.00 9/13/89 Clyne
 .TH CGM_TOOLS 1NCARG "January 1993" NCARG "NCAR GRAPHICS"

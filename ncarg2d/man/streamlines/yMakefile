@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.10 2003/05/22 17:22:07 haley Exp $
+#	$Id: yMakefile,v 1.10 2003-05-22 17:22:07 haley Exp $
 #
 
 MAN =	ezstrm stgetc stgeti stgetr stinit stream streamlines \

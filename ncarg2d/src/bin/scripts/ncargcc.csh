@@ -1,6 +1,6 @@
 #!/bin/csh -f
 #
-#	$Id: ncargcc.csh,v 1.54 2010/04/02 17:49:55 haley Exp $
+#	$Id: ncargcc.csh,v 1.54 2010-04-02 17:49:55 haley Exp $
 #                                                                      
 #                Copyright (C)  2000
 #        University Corporation for Atmospheric Research

@@ -1,5 +1,5 @@
 C
-C	$Id: ngblda.f,v 1.19 2010/02/08 05:58:44 fred Exp $
+C	$Id: ngblda.f,v 1.19 2010-02-08 05:58:44 fred Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

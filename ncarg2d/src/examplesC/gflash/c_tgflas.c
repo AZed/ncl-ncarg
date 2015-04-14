@@ -1,5 +1,5 @@
 /*
- *	$Id: c_tgflas.c,v 1.4 1995/06/14 13:59:24 haley Exp $
+ *	$Id: c_tgflas.c,v 1.4 1995-06-14 13:59:24 haley Exp $
  */
 #include <stdio.h>
 #include <ncarg/ncargC.h>

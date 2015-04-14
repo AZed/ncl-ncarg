@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.6 1994/04/08 22:12:52 haley Exp $
+#	$Id: yMakefile,v 1.6 1994-04-08 22:12:52 haley Exp $
 #
 
 MAN =	gacolr gagetc gageti gagetr gasetc gaseti gasetr grid gridal gridall \

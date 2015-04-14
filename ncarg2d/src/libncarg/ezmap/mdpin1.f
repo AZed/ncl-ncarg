@@ -1,5 +1,5 @@
 C
-C $Id: mdpin1.f,v 1.12 2008/09/18 12:19:11 kennison Exp $
+C $Id: mdpin1.f,v 1.12 2008-09-18 12:19:11 kennison Exp $
 C
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

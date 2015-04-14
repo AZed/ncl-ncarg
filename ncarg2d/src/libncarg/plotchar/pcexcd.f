@@ -1,5 +1,5 @@
 C
-C $Id: pcexcd.f,v 1.10 2008/07/27 00:17:19 haley Exp $
+C $Id: pcexcd.f,v 1.10 2008-07-27 00:17:19 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

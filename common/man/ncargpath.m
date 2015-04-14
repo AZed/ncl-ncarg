@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: ncargpath.m,v 1.17 2008/12/23 00:03:53 haley Exp $
+.\"	$Id: ncargpath.m,v 1.17 2008-12-23 00:03:53 haley Exp $
 .\"
 .TH NCARGPATH 8NCARG "November 1994" NCAR "NCAR GRAPHICS"
 .SH NAME

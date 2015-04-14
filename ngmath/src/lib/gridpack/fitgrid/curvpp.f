@@ -1,5 +1,5 @@
 C
-C $Id: curvpp.f,v 1.7 2008/07/27 03:10:10 haley Exp $
+C $Id: curvpp.f,v 1.7 2008-07-27 03:10:10 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

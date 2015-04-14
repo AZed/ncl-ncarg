@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.5 2000/01/27 18:57:57 fred Exp $
+#       $Id: yMakefile,v 1.5 2000-01-27 18:57:57 fred Exp $
 #
  
 MYNAME  = cssgrid

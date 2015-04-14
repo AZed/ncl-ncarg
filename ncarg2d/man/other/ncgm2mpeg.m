@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: ncgm2mpeg.m,v 1.5 2008/07/27 03:34:10 haley Exp $
+.\"	$Id: ncgm2mpeg.m,v 1.5 2008-07-27 03:34:10 haley Exp $
 .\"
 .\" @(#)f77.1 1.4 86/07/31 SMI; 
 .TH NCGM2MPEG 1NCARG "February 1997" NCAR "NCAR GRAPHICS"

@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.10 1996/10/25 21:42:33 boote Exp $
+#	$Id: yMakefile,v 1.10 1996-10-25 21:42:33 boote Exp $
 #
 
 MYNAME	= autogrph

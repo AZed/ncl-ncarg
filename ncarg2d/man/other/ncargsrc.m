@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: ncargsrc.m,v 1.11 2008/07/27 03:34:10 haley Exp $
+.\"	$Id: ncargsrc.m,v 1.11 2008-07-27 03:34:10 haley Exp $
 .\"
 .TH NCARGSRC 1NCARG "OCTOBER 1990" NCAR "NCAR GRAPHICS"
 .de sf          \"start constant spacing

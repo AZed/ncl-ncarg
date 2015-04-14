@@ -1,5 +1,5 @@
 #
-#	$Id: yMakefile,v 1.7 1998/05/24 01:06:21 kennison Exp $
+#	$Id: yMakefile,v 1.7 1998-05-24 01:06:21 kennison Exp $
 #
 
 SRCS = c_eezmpa.c c_eezmpb.c c_mpex05.c

@@ -1,5 +1,5 @@
 C
-C      $Id: xy17f.f,v 1.9 2010/03/15 22:49:25 haley Exp $
+C      $Id: xy17f.f,v 1.9 2010-03-15 22:49:25 haley Exp $
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C                                                                     C

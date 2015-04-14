@@ -1,5 +1,5 @@
 /*
- *	$Id: c_tisosr.c,v 1.6 1995/06/19 00:09:15 haley Exp $
+ *	$Id: c_tisosr.c,v 1.6 1995-06-19 00:09:15 haley Exp $
  */
 #include <stdio.h>
 #include <math.h>

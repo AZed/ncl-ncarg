@@ -1,5 +1,5 @@
 C
-C	$Id: gqlwk.f,v 1.9 2009/04/08 23:18:21 fred Exp $
+C	$Id: gqlwk.f,v 1.9 2009-04-08 23:18:21 fred Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

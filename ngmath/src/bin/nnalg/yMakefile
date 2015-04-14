@@ -1,5 +1,5 @@
 #
-#       $Id: yMakefile,v 1.16 2010/02/09 17:14:36 haley Exp $
+#       $Id: yMakefile,v 1.16 2010-02-09 17:14:36 haley Exp $
 #
 
 MYNAME  = nnalg

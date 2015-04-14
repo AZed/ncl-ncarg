@@ -1,5 +1,5 @@
 C
-C  $Id: vc03f.f,v 1.6 2010/03/15 22:49:25 haley Exp $
+C  $Id: vc03f.f,v 1.6 2010-03-15 22:49:25 haley Exp $
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C                                                                      
 C                 Copyright (C)  1996                                  

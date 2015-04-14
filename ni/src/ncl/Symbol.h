@@ -1,6 +1,6 @@
 
 /*
- *      $Id: Symbol.h,v 1.33 2009/09/03 06:41:18 dbrown Exp $
+ *      $Id: Symbol.h,v 1.33 2009-09-03 06:41:18 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -255,7 +255,7 @@ void
 
 extern void _NclUndefSymbolsInScope(
 #if	NhlNeedProto
-NclScopeRec *thetable
+NclProcFuncInfo *procfunc_info
 #endif
 );
 

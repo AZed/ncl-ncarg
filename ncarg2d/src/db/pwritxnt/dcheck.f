@@ -1,5 +1,5 @@
 C
-C	$Id: dcheck.f,v 1.4 2008/07/27 01:04:31 haley Exp $
+C	$Id: dcheck.f,v 1.4 2008-07-27 01:04:31 haley Exp $
 C                                                                      
 C                Copyright (C)  2000
 C        University Corporation for Atmospheric Research

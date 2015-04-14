@@ -1,5 +1,5 @@
 .\"
-.\"	$Id: wmlabc.m,v 1.13 2008/12/23 00:03:11 haley Exp $
+.\"	$Id: wmlabc.m,v 1.13 2008-12-23 00:03:11 haley Exp $
 .\"
 .TH WMLABC 3NCARG "January 1995" UNIX "NCAR GRAPHICS"
 .SH NAME
