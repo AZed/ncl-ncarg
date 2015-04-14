@@ -1,0 +1,11 @@
+--- ncl_ncarg-5.0.0/config/Project.udunits	2008-12-08 15:35:46.000000000 -0700
++++ ncl_ncarg-5.0.0/config/Project	2008-12-08 15:50:44.000000000 -0700
+@@ -328,7 +328,7 @@
+ 		"graphcaps",NULL,"ncarg",NULL,NULL,		\
+ 		"colormaps",NULL,"ncarg",NULL,NULL,		\
+ 		"rangs","NCARG_RANGS","database",NULL,NULL,	\
+-		"udunits","UDUNITS_PATH","ncarg",NULL,NULL,	\
++		"udunits","UDUNITS_PATH",NULL,"/etc","udunits.dat",	\
+ 		"psadilookup","PSADILOOKUP_PATH",NULL,NULL,NULL,\
+ 		"examples",NULL,"ncarg",NULL,NULL,		\
+ 		"hluex",NULL,"ncarg",NULL,NULL,			\
