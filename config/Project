@@ -24,8 +24,8 @@
  *			etc are in the Template file.
  */
 
-#define NcargVersion 6.0.0-beta
-#define NclVersion 6.0.0-beta
+#define NcargVersion 6.0.0
+#define NclVersion 6.0.0
 
 #ifndef	BuildNCL
 #define	BuildNCL
@@ -218,7 +218,6 @@
 #ifdef BuildCAIRO
 #ifndef CAIROlib
 #define CAIROlib  -lcairo -lfontconfig -lpixman-1 -lfreetype -lexpat -lpng -lz
-/*#define CAIROlib  -lcairo -lfontconfig -lpixman-1 -lfreetype -lexpat -lpng -lz -lpthread */
 #endif
 #else
 #define CAIROlib
@@ -258,8 +257,6 @@
 
 #ifndef	NetCDFlib
 #define	NetCDFlib	-lnetcdf -lcurl
-/*#define	NetCDFlib	-lnetcdf -lcurl -lcrypto -lssl -lrt */
-/*#define	NetCDFlib	-lnetcdf -lcurl  -lrt -lssl -lcrypto -lldap  */
 #endif	/* NetCDFlib */
 
 #ifndef	NetCDF4lib

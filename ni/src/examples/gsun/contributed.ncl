@@ -367,24 +367,136 @@ begin
                 end  do
   end if
 end
-;****************************************
-; D. Shea
-; Copies all of a variables attributes (e.g. long_name) from
-; one variable to another
-
+;==============================
 undef("copy_VarAtts")
 procedure copy_VarAtts(var_from,var_to)    
-local att_names, i
+local att_names, i, fromType, toType, sameType \
+    , fromFillValue, fromFillType, fromMissType, fromMissValue, logical_FillValue
 begin                                       
-  att_names =getvaratts(var_from);
-    if(.not.all(ismissing(att_names)))
-      do i = 0,dimsizes(att_names)-1
-         if (isatt(var_to,att_names(i))) then
-             delete(var_to@$att_names(i)$)  ; var_from att may be diff size/type
-         end if
-	 var_to@$att_names(i)$ = var_from@$att_names(i)$
-      end do
-  end if
+    att_names =getvaratts(var_from);
+
+    if(.not.all(ismissing(att_names))) then
+
+       fromType = typeof(var_from)
+       toType   = typeof(var_to)
+       sameType = fromType .eq. toType
+
+       if (sameType .or. fromType.eq."file"  \
+                    .or. .not.(isatt(var_from,"_FillValue"))) then
+           do i = 0,dimsizes(att_names)-1
+              if (isatt(var_to,att_names(i)) .and. isatt(var_from,att_names(i)) ) then
+                  delete(var_to@$att_names(i)$)  ; var_from att may be diff size/type
+              end if
+              var_to@$att_names(i)$ = var_from@$att_names(i)$
+           end do
+
+       else      ; handle _FillValue with different type than var_to
+
+           do i = 0,dimsizes(att_names)-1
+              if (isatt(var_to,att_names(i)) .and. isatt(var_from,att_names(i)) ) then
+                  delete(var_to@$att_names(i)$)  ; var_from att may be diff size/type
+              end if
+
+              if (.not.(att_names(i).eq."_FillValue" .or. \
+                        att_names(i).eq."missing_value")) then
+	          var_to@$att_names(i)$ = var_from@$att_names(i)$
+
+              else    ; attribute must be _FillValue or missing_value
+
+                  if (att_names(i).eq."_FillValue") then
+                      fromFillValue = var_from@_FillValue 
+                      fromFillType  = typeof(var_from@_FillValue) 
+
+                      if (toType.eq.fromFillType) then
+                          var_to@_FillValue = var_from@_FillValue
+                      else
+                          var_to@_FillValue_original = fromFillValue   ; output original _FillValue
+                                                                       ; ne _FillValue
+                          if (toType.eq."float") then
+                              var_to@_FillValue = tofloat(fromFillValue)
+                          end if
+                          if (toType.eq."integer") then
+                              var_to@_FillValue = toint(fromFillValue)
+                          end if
+                          if (toType.eq."short") then
+                              var_to@_FillValue = toshort(fromFillValue)
+                          end if
+                          if (toType.eq."byte") then
+                              var_to@_FillValue = tobyte(fromFillValue)
+                          end if
+                          if (toType.eq."logical") then
+                              logical_FillValue = new(1,"logical")
+                              var_to@_FillValue = logical_FillValue
+                          end if
+                          if (toType.eq."ubyte") then
+                              var_to@_FillValue = toubyte(fromFillValue)
+                          end if
+                          if (toType.eq."uint") then
+                              var_to@_FillValue = touint(fromFillValue)
+                          end if
+                          if (toType.eq."int64") then
+                              var_to@_FillValue = toint64(fromFillValue)
+                          end if
+                          if (toType.eq."uint64") then
+                              var_to@_FillValue = touint64(fromFillValue)
+                          end if
+                          if (toType.eq."ulong") then
+                              var_to@_FillValue = toulong(fromFillValue)
+                          end if
+                          if (toType.eq."ushort") then
+                              var_to@_FillValue = toushort(fromFillValue)
+                          end if
+                      end if
+                  end if
+                  if (att_names(i).eq."missing_value") then
+                      fromMissValue = var_from@missing_value
+                      fromMissType  = typeof(var_from@missing_value)
+
+                      if (toType.eq.fromMissType) then
+                          var_to@missing_value = var_from@missing_value
+                      else
+                          var_to@missing_value_original = fromMissValue  ; output original missing_value
+     
+                          if (toType.eq."float") then
+                              var_to@missing_value = tofloat(fromMissValue)
+                          end if
+                          if (toType.eq."integer") then
+                              var_to@missing_value = toint(fromMissValue)
+                          end if
+                          if (toType.eq."short") then
+                              var_to@missing_value = toshort(fromMissValue)
+                          end if
+                          if (toType.eq."byte") then
+                              var_to@missing_value = tobyte(fromMissValue)
+                          end if
+                          if (toType.eq."logical") then
+                              logicalmissing_value = new(1,"logical")
+                              var_to@missing_value = logicalmissing_value
+                          end if
+                          if (toType.eq."ubyte") then
+                              var_to@missing_value = toubyte(fromMissValue)
+                          end if
+                          if (toType.eq."uint") then
+                              var_to@missing_value = touint(fromMissValue)
+                          end if
+                          if (toType.eq."int64") then
+                              var_to@missing_value = toint64(fromMissValue)
+                          end if
+                          if (toType.eq."uint64") then
+                              var_to@missing_value = touint64(fromMissValue)
+                          end if
+                          if (toType.eq."ulong") then
+                              var_to@missing_value = toulong(fromMissValue)
+                          end if
+                          if (toType.eq."ushort") then
+                              var_to@missing_value = toushort(fromMissValue)
+                          end if
+                      end if 
+                  end if     ; if (att_names(i).eq."missing_value")
+              end if
+           end do            ; handle _FillValue
+       end if                ; if (sameType .or. ....
+    end if                   ; if(.not.all(ismissing(att_names))) 
 end
 
 ;***********************************************
@@ -1061,6 +1173,53 @@ begin
   end if
   
   return (x)
+end
+
+; *******************************************************************
+; u.utku.turuncoglu@be.itu.edu.tr
+; The following procedure to sorts x,y coordinate pair based on
+; selected one. The opt controls the behavior of the sort procedure. If the
+; value is equal to 1 then, it sorts the x values and match the correct y
+; with it. 
+
+undef("sort_xy")
+procedure sort_xy(x:numeric, y:numeric, eps:numeric, opt:numeric)
+
+local x_old, y_old, x_ind, y_ind, x_eps, y_eps, i
+begin
+  ;--- sort x ---
+  if (opt .eq. 1) then
+    ;--- fix, the arguments of the get1Dindex must unique ---
+    x_eps = new(dimsizes(x), typeof(x))
+    do i = 0, dimsizes(x)-1
+      x_eps(i) = (i+1)*eps
+    end do
+
+    ;--- add artifical small number to get unique array ---
+    x = x+x_eps
+
+    ;--- sort arrays ---
+    x_old = x
+    qsort(x)
+    x_ind = get1Dindex(x_old, x)
+    y = y(x_ind)
+  ;--- sort y ---
+  else
+    ;--- fix, the arguments of the get1Dindex must unique ---
+    y_eps = new(dimsizes(y), typeof(y))
+    do i = 0, dimsizes(y)-1
+      y_eps(i) = (i+1)*eps
+    end do
+
+    ;--- add artifical small number to get unique array ---
+    y = y+y_eps
+
+    ;--- sort arrays ---
+    y_old = y
+    qsort(y)
+    y_ind = get1Dindex(y_old, y)
+    x = x(y_ind)
+  end if
 end
 
 
@@ -3823,6 +3982,46 @@ begin
 
   return(clmDaySmth)
 end
+
+; =====================================
+undef("smthClmDayTLLL")
+function smthClmDayTLLL (clmDay[*][*][*][*]:numeric, nHarm:integer)
+;  lxf: Li 2011-05-15
+local nFill, dn, z, cf, clmDaySmth
+begin
+
+  if (isatt(clmDay, "_FillValue")) then
+      nFill = num(ismissing(clmDay))
+      if (nFill.gt.0) then
+          print("smthClmDay_TLLL: No missing values allowed: ezfftf does not allow")
+          print("smthClmDay_TLLL: nFill="+nFill)
+          exit
+      end if
+  end if
+
+  dn = getvardims(clmDay)                   ; get dimension names
+  if (dn(0).ne."year_day") then
+      print("smthClmDayTLLL: Warning: Usually expect year_day to be the dimension name")
+  end if
+
+  z  = clmDay($dn(1)$|:,$dn(2)$|:,$dn(3)$|:,$dn(0)$|:); reorder make time fastest varying dimension
+  cf = ezfftf( z )                          ; [2] x [klev] x [nlat] x [mlon] x [183]
+
+                                            ; remember NCL is 0-based
+                                            ; cf(:,0:nHarm-1) are retained unaltered
+  cf(:,:,:,:,nHarm   ) = 0.5*cf(:,:,:,:,nHarm)  ; mini-taper
+  cf(:,:,:,:,nHarm+1:) = 0.0                  ; set all higher coef to 0.0
+
+  z  = ezfftb( cf, cf@xbar)                 ; reconstructed series
+
+  clmDaySmth = z($dn(0)$|:,$dn(1)$|:,$dn(2)$|:,$dn(3)$|:)
+  clmDaySmth@information = "Smoothed daily climatological averages"
+  clmDaySmth@smoothing   = "FFT: "+nHarm+" harmonics were retained."
+
+  return(clmDaySmth)
+end
+
+
 
 ; =====================================
 undef("calcDayAnomTLL")
@@ -8035,7 +8234,9 @@ begin
       nrow  = dimsizes(asciiread(fName, -1, "string"))  ; all rows as strings
       table = asciiread(fName, (/nrow,ncol/), datatype)
   else
-      if(opt(0).gt.0) then
+    ;;if (opt(0).gt.0) then
+      if ((nopt.eq.1 .and. typeof(opt).eq."string") .or. \
+           opt(0).gt.0) then
         head = readAsciiHead( fName, opt(0))
         nh   = dimsizes(head)                 ; # header records
       else
@@ -10675,12 +10876,12 @@ begin
   if (typeof(xAve).eq."double" .or. typeof(xAve).eq."double") then
       zero = 0.0d
       one  = 1.0d
-      pi   = 4.0d*atan(1.0d)/180.0d
+      pi   = 4.0d*atan(1.0d)
       spn  = 3.0d                    ; 99.7% of normal
   else
       zero = 0.0 
       one  = 1.0
-      pi   = 4.0*atan(1.0)/180.0
+      pi   = 4.0*atan(1.0)
       spn  = 3.0
   end if
 
@@ -12065,24 +12266,34 @@ begin
 
   return(dp_sigma)
 end
-
 ;---------------------------------------------------------
 undef("remap_elements")
 function remap_elements(fwt[1]:file, fhom, var[1]:string, opt[1]:logical)
 ;
+; remap a scalar variable
+;
 ; Usage:
 ;  dirw   = "./"
-;  filw   = "map_ne30np4_fv0.9x1.25_bilinear.nc"   ; weight file
+;  filw   = "map_ne120np4_to_fv0.23_aave_da_100310"; weight file
 ;  fw     = addfile(dirw+filw, "r")
 ;  dirh   = "./"
-;  filh   = "camrun.cam2.h0.1995-01-01-00000.nc"   ; cubed sphere
+;  filh   = "cam_cube_sphere.nc"                   ; homme cubed sphere
 ;  fh     = addfile(dirh+filh, "r")
 ;
 ;  psl    = remap_elements(fw, fc, "PSL", False)   ; (time,lat,lon)
 ;  temp   = remap_elements(fw, fc, "T"  , False)   ; (time,lev,lat,lon)
-;  ----
+;****************************************************************
+;  The original weight files given to me did not have all the expected
+;  information. Hence, there is extra coding to try to deduce info. 
+;****************************************************************
+;  The fact that we want to return the full data object (including level/depth)
+;  makes it difficult to unambiguously determine the target grid. 
+;****************************************************************
 local ier, xin, dimx, rank, dim_dst, ntim, klev, nlat, mlon, lat, lon \
-    , errMsg, dst_add , src_add, s, nS, map_wts, xout1d, xout, xoutf
+    , errMsg, dst_add , src_add, s, nS, map_wts, xout1d, xout, xoutf  \
+    , fdimNames, fdimSizes, ia, ja, ib, jb, knam, nt, kl, ilon, jlon  \
+    , radUnints, latUnits, lonUnits, gridType_a , gridType_b, dim_src \
+    , irnk, src_rank, dst_rank
 begin
          ; check 'fhom' argument
       if (.not.(typeof(fhom).eq."file"    .or. \
@@ -12115,25 +12326,160 @@ begin
           exit
       end if
       
-      dimx    = dimsizes( xin  )
-      rank    = dimsizes( dimx )
+      dnam = getvardims(xin)                ; input variable dim names
+      dimx = dimsizes( xin  )
+      rank = dimsizes( dimx )
       if (rank.eq.1 .or. rank.gt.3) then
           print("remap_elements: bad rank: rank="+rank)
           exit
       end if
-                                            ; destination grid
-      if (isfilevar(fwt,"dst_grid_dims") ) then
-          dim_dst = fwt->dst_grid_dims      ; size destination grid
-      else
-          dim_dst = (/192,288/)
-      end if
-      nlat    = dim_dst(0)   
-      mlon    = dim_dst(1)    
-                                        ; define output grid
-                                        ; coordinate variables
-      lat  = latGlobeF(nlat, "lat", "latitude", "degrees_north")
-      lon  = lonGlobeF(mlon, "lon", "longitude", "degrees_east")
 
+      fdimNames = getvardims(fwt)           ; dimension names on wgt file 
+      fdimSizes = getfiledimsizes(fwt)      ; dimension sizes on wgt file
+
+      if (any(fdimNames.eq."src_grid_rank")) then
+          irnk     = ind(fdimNames.eq."src_grid_rank")     ; index 
+          src_rank = toint(fdimSizes(irnk))
+      else
+          src_rank = -999                                  ; missing info
+      end if
+     ;print("remap_elements: src_rank="+src_rank)
+
+      if (any(fdimNames.eq."dst_grid_rank")) then
+          irnk     = ind(fdimNames.eq."dst_grid_rank")     ; index 
+          dst_rank = toint(fdimSizes(irnk))
+      else
+          dst_rank = -999                                  ; missing info
+      end if
+     ;print("remap_elements: dst_rank="+dst_rank)
+          
+      radUnits  = (/"radians","radian","Radians","Radian"/)
+
+      latUnits  = (/"degrees"      \ ; not udunits but .....
+                  ,"degrees_north","degrees-north","degree_north" \ 
+                  ,"degrees north","degrees_N","Degrees_north"    \
+                  ,"degree_N","degreeN","degreesN","deg north"    /)
+
+      lonUnits  = (/"degrees"      \ ; not udunits but .....
+                   ,"degrees_east","degrees-east","degree_east"   \
+                   ,"degrees east","degrees_E","Degrees_east"     \
+                   ,"degree_E","degreeE","degreesE","deg east"    /)
+                                               ; sizes source grid
+      if (isfilevar(fwt,"src_grid_dims") ) then   
+          dim_src = fwt->src_grid_dims         ; straight forward       
+          ilon    = dim_src(0)
+          jlat    = dim_src(1)
+      else                                     ; try another approach
+          if (any(fdimNames.eq."ni_a") .and. any(fdimNames.eq."nj_a")) then
+              dim_src   = (/0,0/)
+              ia        = ind(fdimNames.eq."ni_a")     ; index 
+              ja        = ind(fdimNames.eq."nj_a")
+              ilon      = toint(fdimSizes(ia))
+              jlat      = toint(fdimSizes(ja))
+              dim_src(0)= ilon
+              dim_src(1)= ilat
+          else
+              print("remap_elements: FATAL: src_grid_dims, ni_a, nj_a missing")
+              print("                Cannot determine the output grid sizes")
+              exit
+          end if
+      end if
+     ;print("remap_elements: ilon="+ilon+"   jlat="+jlat)
+                                               ; sizes destination grid
+      if (isfilevar(fwt,"dst_grid_dims") ) then   
+          dim_dst = fwt->dst_grid_dims         ; straight forward       
+          mlon    = dim_dst(0)
+          nlat    = dim_dst(1)
+      else                                     ; try another approach
+          fdimNames = getvardims(fwt)          ; names of dimensions on file 
+          if (any(fdimNames.eq."ni_b") .and. any(fdimNames.eq."nj_b")) then
+              dim_dst   = (/0,0/)
+              fdimSizes = getfiledimsizes(fwt) ; sizes of dimensions on file
+              ib        = ind(fdimNames.eq."ni_b")     ; index 
+              jb        = ind(fdimNames.eq."nj_b")
+              mlon      = toint(fdimSizes(ib))
+              nlat      = toint(fdimSizes(jb))
+              dim_dst(0)= mlon
+              dim_dst(1)= nlat
+          else
+              print("remap_elements: FATAL: dst_grid_dims, ni_b, nj_b missing")
+              print("                Cannot determine the output grid sizes")
+              exit
+          end if
+      end if
+     ;print("remap_elements: mlon="+mlon+"   nlat="+nlat)
+
+; coordinate information: rectilinear or curvilinear
+; rectilinear: return coordinate variables with xout
+
+      if (all(isfilevar(fwt,(/"xc_a","yc_a"/))) ) then
+                   ; Is grid "a" rectilinear or curvilinear; only way I can test?
+          xc_a     = fwt->xc_a
+          yc_a     = fwt->yc_a
+          nycb     = dimsizes(yc_a)
+          nycb     = nycb - mlon
+          if (isMonotonic(xc_a(0:mlon-1)).ne.0  .and. \
+              all(yc_a(0:mlon-1).eq.yc_a(0))    .and. \
+              all(yc_a(nycb:).eq.yc_a(nycb))   ) then 
+              gridType_a = "rectilinear"              ; rectilinear grid (hopefully)
+              lon        = fwt->xc_a(0:mlon-1)  
+              lon!0      = "lon"
+              if (isatt(lon,"units").and.any(radUnits.eq.lon@units)) then
+                  lon    = 57.29577951308232d0*lon    ; convert to degrees_east
+              end if
+              lon@units  = "degrees_east"             ; force these units
+              lon&lon    = lon
+             
+              lat        = fwt->yc_a(::mlon)
+              lat!0      = "lat"
+              if (isatt(lat,"units").and.any(radUnits.eq.lat@units)) then
+                  lat = 57.29577951308232d0*lat       ; convert to degrees_north
+              end if
+              lat@units  = "degrees_north"
+              lat&lat    = lat
+          else
+              gridType_a = "curvilinear"     
+          end if
+      else
+          print("remap_elements: FATAL: xc_a and/or yc_a missing")
+          print("                Cannot determine the output lat/lon locations")
+          exit
+      end if
+
+      if (all(isfilevar(fwt,(/"xc_b","yc_b"/))) ) then
+                   ; Is grid "b" rectilinear or curvilinear; only way I can test?
+          xc_b     = fwt->xc_b
+          yc_b     = fwt->yc_b
+          nycb     = dimsizes(yc_b)
+          nycb     = nycb - mlon
+          if (isMonotonic(xc_b(0:mlon-1)).ne.0  .and. \
+              all(yc_b(0:mlon-1).eq.yc_b(0))    .and. \
+              all(yc_b(nycb:).eq.yc_b(nycb))   ) then 
+              gridType_b = "rectilinear"              ; rectilinear grid (hopefully)
+              lon        = fwt->xc_b(0:mlon-1)  
+              lon!0      = "lon"
+              if (isatt(lon,"units").and.any(radUnits.eq.lon@units)) then
+                  lon    = 57.29577951308232d0*lon    ; convert to degrees_east
+              end if
+              lon@units  = "degrees_east"             ; force these units
+              lon&lon    = lon
+             
+              lat        = fwt->yc_b(::mlon)
+              lat!0      = "lat"
+              if (isatt(lat,"units").and.any(radUnits.eq.lat@units)) then
+                  lat = 57.29577951308232d0*lat       ; convert to degrees_north
+              end if
+              lat@units  = "degrees_north"
+              lat&lat    = lat
+          else
+              gridType_b = "curvilinear"     
+          end if
+      else
+          print("remap_elements: FATAL: xc_b and/or yc_b missing")
+          print("                Cannot determine the output lat/lon locations")
+          exit
+      end if
+     ;print("remap_elements: gridType_a="+gridType_a+"    gridType_b="+gridType_b)
                                         ; read info from file
       dst_add = fwt->row                ; destination grid [linear] 
       src_add = fwt->col                ; source grid [linear] 
@@ -12144,82 +12490,255 @@ begin
       map_wts(:,0) = s 
 
       ntim    = dimx(0)
-      xout1d  = new ( nlat*mlon, typeof(xin), 1e20)
+      xout1d  = new ( nlat*mlon, typeof(xin), getFillValue(xin))
 
-      errMsg = NhlGetErrorObjectId()       ; only print Fatal messages
+      errMsg  = NhlGetErrorObjectId()   ; only print Fatal messages
       setvalues errMsg
           "errLevel" : "Fatal"
       end setvalues
 
-      if (rank.eq.2) then               ; (ntim,ncol
-          xout = new ( (/ntim,nlat,mlon/), typeof(xin), 1e20)
-
-          do nt=0,ntim-1
-              pop_remap(xout1d,map_wts,dst_add,src_add,xin(nt,:)) 
-              xout(nt,:,:) = onedtond(xout1d, (/nlat,mlon/))
-          end do
-
-          xout!1   = "lat"
-          xout!2   = "lon"
+      mask_b  = fwt->mask_b
+      if (all(mask_b.eq.1) .or. \
+         (opt .and. isatt(opt,"mask") .and. opt@mask.eq.False)) then
+          doMask = False              ; no mask  
+          dFill  = "No_FillValue"
+      else
+          doMask = True               ; mask
+          if (isatt(xin,"_FillValue")) then
+              dFill = xin@_FillValue
+          else
+              dFill = 1d36
+          end if
       end if
 
-      if (rank.eq.3) then               ; (ntim,klev,ncol)
-          klev = dimx(1)
-          xout = new ( (/ntim,klev,nlat,mlon/), typeof(xin), 1e20)
+      xinDimNames = getvardims(xin)
+      if (any(xinDimNames.eq."ncol")) then
+          ncolFlag = True 
+      else
+          ncolFlag = False 
+      end if
 
+      if (rank.eq.2) then     ; xin(ntim,ncol) 
+          if (ncolFlag) then  ; xin(ntim,ncol)
+              xout = new ( (/ntim,nlat,mlon/), typeof(xin), dFill)
+    
+              do nt=0,ntim-1
+                  pop_remap(xout1d,map_wts,dst_add,src_add,xin(nt,:)) 
+                  if (doMask) then
+                      xout1d = mask(xout1d, mask_b.eq.0, False)
+                  end if
+                  xout(nt,:,:) = onedtond(xout1d, (/nlat,mlon/))
+              end do
+    
+              if (gridType_b.eq."rectilinear") then
+                  xout!1   = "lat"
+                  xout!2   = "lon"
+              else
+                  xout!1   = "lat2d"
+                  xout!2   = "lon2d"
+              end if
+          end if           ; ncolFlag
+      end if
+
+      if (rank.eq.3) then     ; xin(ntim,klev,ncol) or (time,lat,lon)
+          if (ncolFlag) then  ; xin(ntim,klev,ncol)
+              klev = dimx(1)
+              knam = dnam(1)
+              xout = new ( (/ntim,klev,nlat,mlon/), typeof(xin), 1e20)
+    
+              do nt=0,ntim-1
+                do kl=0,klev-1
+                   pop_remap(xout1d,map_wts,dst_add,src_add,xin(nt,kl,:)) 
+                   if (doMask) then
+                      xout1d = mask(xout1d, mask_b.eq.0, False)
+                   end if
+                   xout(nt,kl,:,:) = onedtond(xout1d, (/nlat,mlon/))
+                end do
+              end do
+
+              xout!1   = knam                 ; xout!1 = xin!1
+              xout&$knam$ = xin&$knam$        ; xout!&$xin!1$ = xin&$xin!1$
+              if (gridType_b.eq."rectilinear") then
+                  xout!2   = "lat"
+                  xout!3   = "lon"
+              else
+                  xout!2   = "lat2d"
+                  xout!3   = "lon2d"
+              end if
+          else
+              xout = new ( (/ntim,nlat,mlon/), typeof(xin), 1e20)
+    
+              do nt=0,ntim-1
+                 pop_remap(xout1d,map_wts,dst_add,src_add,ndtooned(xin(nt,:,:))) 
+                 if (doMask) then
+                     xout1d = mask(xout1d, mask_b.eq.0, False)
+                 end if
+                 xout(nt,:,:) = onedtond(xout1d, (/nlat,mlon/))
+              end do
+              if (gridType_b.eq."rectilinear") then
+                  xout!1   = "lat"
+                  xout!2   = "lon"
+              else
+                  xout!1   = "lat2d"
+                  xout!2   = "lon2d"
+              end if
+          end if           ; ncolFlag
+      end if
+
+      if (rank.eq.4) then     ; xin(ntim,klev,lat,lon) 
+          klev = dimx(1)
+          knam = dnam(1)
+          xout = new ( (/ntim,klev,nlat,mlon/), typeof(xin), 1e20)
+    
           do nt=0,ntim-1
             do kl=0,klev-1
-               pop_remap(xout1d,map_wts,dst_add,src_add,xin(nt,kl,:)) 
+               pop_remap(xout1d,map_wts,dst_add,src_add,ndtooned(xin(nt,kl,:,:)))
+               if (doMask) then
+                   xout1d = mask(xout1d, mask_b.eq.0, False)
+               end if
                xout(nt,kl,:,:) = onedtond(xout1d, (/nlat,mlon/))
             end do
           end do
-
-          xout!1   = "lev"                ; xout!1 = xin!1
-          xout&lev = xin&lev              ; xout!&$xin!1$ = xin&$xin!1$
-          xout!2   = "lat"
-          xout!3   = "lon"
-      end if
+          if (gridType_b.eq."rectilinear") then
+              xout!2   = "lat"
+              xout!3   = "lon"
+          else
+              xout!2   = "lat2d"
+              xout!3   = "lon2d"
+           end if
+      end if               ; rank=4
 
       xout!0    = "time"
       xout&time =  xin&time
-      xout&lat  =  lat 
-      xout&lon  =  lon 
+      if (gridType_b.eq."rectilinear") then
+          xout&lat  =  lat 
+          xout&lon  =  lon 
+      end if
 
       setvalues errMsg
           "errLevel" : "Warning"          ; return to default
       end setvalues
 
-      if (isatt(xin,"_FillValue")) then
-          xout@_FillValue = xin@_FillValue
-      else
-          delete(xout@_FillValue)
-      end if
+    ;;if (isatt(xin,"_FillValue")) then
+    ;;    xout@_FillValue = xin@_FillValue
+    ;;else
+    ;;    delete(xout@_FillValue)
+    ;;end if
 
       copy_VarAtts(xin, xout)
+                            ; get rid of any spaces at end
+      if (isatt(xout,"long_name")) then
+          xout@long_name = str_right_strip(xout@long_name)
+      end if
+      if (isatt(xout,"units")) then
+          xout@units     = str_right_strip(xout@units)
+      end if
+      if (isatt(xout,"cell_methods")) then
+          xout@cell_methods= str_right_strip(xout@cell_methods)
+      end if
 
       if (opt) then
 
-          if (isatt(opt,"return_type") .and. opt@return_type.eq."float") then
+          if (typeof(xout).eq."double" .and. \
+              isatt(opt,"return_type") .and. opt@return_type.eq."float") then
               xoutf = tofloat( xout )
+                    ; the following to to get around an irritating Warning
+                    ; message about _FillValue when copy_VarMeta is used
+              if (isatt(xout,"_FillValue")) then   ; xout is 'double'
+                  delete(xout@_FillValue)
+              end if
+
               copy_VarMeta(xout,xoutf)
+
               delete(xout)
               xout  = xoutf
               delete(xoutf)
           end if              ; float
 
-          if (isatt(opt,"latS") .and. isatt(opt,"latN")   .or. \
-              isatt(opt,"lonL") .and. isatt(opt,"lonR") ) then  
-              if (rank.eq.2) then
-                  return( xout(:,{latS:latN},{lonL:lonR}) ) 
-              else
-                  return( xout(:,:,{latS:latN},{lonL:lonR}) ) 
+          if (gridType.eq."rectilinear") then
+              if (isatt(opt,"latS") .and. isatt(opt,"latN")   .or. \
+                  isatt(opt,"lonL") .and. isatt(opt,"lonR") ) then  
+             
+                  if (rank.eq.2) then
+                      return( xout(:,{latS:latN},{lonL:lonR}) ) 
+                  else
+                      return( xout(:,:,{latS:latN},{lonL:lonR}) ) 
+                  end if
               end if
+          else
+              print("remap_elements: WARNING: The latS, latN, lonL and lon")
+              print("                requires a rectilinear grid.         ")
           end if
       end if
 
       return( xout )
 end
+;---------------------------------------------------------
+undef("remap_elements_2d")
+function remap_elements_2d(fwt[1]:file, latlon[1]:string)
+; latlon="lat2d" or "lon2d"
+local dim_dst, nlat, mlon, coords, fdimNames, fdimSizes \
+    , ib, jb, radUnits, slatlon, latNames 
+begin
+                                               ; sizes destination grid
+      if (isfilevar(fwt,"dst_grid_dims") ) then   
+          dim_dst = fwt->dst_grid_dims         ; straight forward       
+          mlon    = dim_dst(0)
+          nlat    = dim_dst(1)
+      else                                     ; try another approach
+          fdimNames = getvardims(fwt)          ; names of dimensions on file 
+          if (any(fdimNames.eq."ni_b") .and. any(fdimNames.eq."nj_b")) then
+              dim_dst   = (/0,0/)
+              fdimSizes = getfiledimsizes(fwt) ; sizes of dimensions on file
+              ib        = ind(fdimNames.eq."ni_b")     ; index 
+              jb        = ind(fdimNames.eq."nj_b")
+              mlon      = toint(fdimSizes(ib))
+              nlat      = toint(fdimSizes(jb))
+              dim_dst(0) = mlon
+              dim_dst(1) = nlat
+          else
+              print("remap_elements_2d: FATAL: dst_grid_dims, ni_b, nj_b missing")
+              print("                   Cannot determine the output grid sizes")
+              exit
+          end if
+      end if
+     ;print("remap_elements_2d: mlon="+mlon+"   nlat="+nlat)
 
+; 2d coordinate information
+
+      if (all(isfilevar(fwt,(/"xc_b","yc_b"/))) ) then
+          radUnits = (/"radians","radian","Radians","Radian"/)
+          latNames = (/"lat2d", "LAT2D", "LAT2d", "lat2D"  \
+                      ,"lat"  , "latitude"/) 
+
+          slatlon = str_lower(latlon)
+          if (any(latNames.eq.slatlon)) then
+              c1d    = fwt->yc_b
+          else
+              c1d    = fwt->xc_b
+          end if
+          coords = onedtond(c1d, (/nlat,mlon/))
+
+          if (isatt(c1d,"units").and.any(radUnits.eq.c1d@units)) then
+              coords  = 57.29577951308232d0*coords       ; convert to degrees
+          end if
+                                                         ; had to repeat this
+          if (any(latNames.eq.slatlon)) then
+              coords@long_name = "array of latitudes"
+              coords@units = "degrees_north"             ; force these units
+          else
+              coords@long_name = "array of longitudes"
+              coords@units = "degrees_east"              ; force these units
+          end if
+          coords!0 = "nlat"
+          coords!1 = "nlon"
+          return( coords )
+      else
+          print("remap_elements_2d: FATAL: xc_b and/or yc_b are missing")
+          exit
+      end if
+end
+;---------------------------------------------------------
 undef("homme2latlon")
 function homme2latlon(fwt[1]:file, fhom, var[1]:string, opt[1]:logical)
 ;
@@ -12239,4 +12758,196 @@ function homme2latlon(fwt[1]:file, fhom, var[1]:string, opt[1]:logical)
 ;  ----
 begin
    return( remap_elements(fwt, fhom, var, opt) )
+end
+;---------------------------------------------------
+; Rob Nicholas [U. Washington] & D. Shea
+undef("pattern_cor2")
+function pattern_cor2 (x[*][*],y[*][*],w, opt:integer)
+; This function should NOT be called directly by  users.
+; Please use "pattern_cor"
+; --
+; Compute the pattern correlation between two fields
+; (lat,lon)  .... wgt(lat)
+
+local dimx, dimy, dimw, wgt, WGT, sumWGT, xAvgArea, xAnom, yAnom \
+    , i, j, W1D, z1d, xyCov, xAnom2, yAnom2, r
+begin
+  if (isatt(x,"_FillValue")) then
+      if (all(ismissing(x))) then
+          return(x@_FillValue)
+      end if
+  end if
+  if (isatt(y,"_FillValue")) then
+      if (all(ismissing(y))) then
+          return(y@_FillValue)
+      end if
+  end if
+                             ; x and y must have the same sizes
+  dimx  = dimsizes(x)
+  dimy  = dimsizes(y)
+  if (.not.all(dimx.eq.dimy)) then
+      print("pattern_cor: Fatal: x and y do not have the same dimension sizes")
+      print("       dimx: "+dimx+"    dimy="+dimy)
+      exit
+  end if 
+
+  dimw  = dimsizes(w)      
+  rankw = dimsizes(dimw)
+  if (rankw.gt.2) then
+      print("pattern_cor: Fatal: w can be a scalar, w[*] or w[*][*]")
+      print("      rankw: "+rankw)
+      exit
+  end if
+
+  if (rankw.eq.2 .and. .not.all(dimx.eq.dimw)) then
+      print("pattern_cor: Fatal: w[*][*] must have the same dimensions as x[*][*]")
+      print("       dimx: "+dimx+"    dimw="+dimw)
+      exit
+  end if
+                                     ; w can be w[1], w[*] or w[*][*]
+  if (rankw.eq.1) then
+      if (dimw.eq.1) then            ; if w is w(1) (scalar) set to 1.0 
+          WGT = new(dimx, typeof(w),"No_FillValue")
+          WGT = 1.0
+      end if
+      if (dimx(0).eq.dimw .and. .not.isvar("WGT")) then
+          WGT = conform(x, w, 0)     ; broadcast dimensions to match x/y
+      end if
+  else                               ; must be 2D
+      WGT     = w
+  end if
+
+; if x/y  has _Fillvalue attribute; set WGT=0.0 where x or y = _FillValue
+
+  if (isatt(x,"_FillValue") .or. isatt(y,"_FillValue")) then
+      W1D  = ndtooned(WGT)
+      if (isatt(x,"_FillValue") .and. any(ismissing(x)) ) then
+          z1d    = ndtooned(x)
+          i      = ind(ismissing(z1d))
+          W1D(i) = 0.0
+      end if
+      if (isatt(y,"_FillValue") .and. any(ismissing(y)) ) then
+          z1d    = ndtooned(y)
+          j      = ind(ismissing(z1d))
+          W1D(j) = 0.0
+      end if
+      WGT  = onedtond(W1D, dimx)
+  end if
+
+  if (opt.eq.0) then                    ; centered correlation
+      sumWGT   = sum(WGT)
+      xAvgArea = sum(x*WGT)/sumWGT      ; weighted area average
+      yAvgArea = sum(y*WGT)/sumWGT
+
+      xAnom    = x - xAvgArea           ; anomalies
+      yAnom    = y - yAvgArea
+
+      xyCov    = sum(WGT*xAnom*yAnom)
+      xAnom2   = sum(WGT*xAnom^2)
+      yAnom2   = sum(WGT*yAnom^2)
+  else 
+      xyCov    = sum(WGT*x*y)
+      xAnom2   = sum(WGT*x^2)
+      yAnom2   = sum(WGT*y^2)
+  end if
+
+
+  if (xAnom2.gt.0.0 .and. yAnom2.gt.0.0) then
+      r   = xyCov/(sqrt(xAnom2)*sqrt(yAnom2))
+  else
+      if (isatt(x,"_FillValue")) then
+          r = x@_FillValue
+      else
+          if (isatt(y,"_FillValue")) then
+              r = y@_FillValue
+          else            
+              r = -999.0 
+          end if
+      end if
+  end if
+
+  if (opt.eq.0) then    
+      r@long_name = "pattern correlation (centered)"
+  else
+      r@long_name = "pattern correlation (uncentered)"
+  end if
+ ;r@units     = ""
+
+  return(r)
+end
+;---------------------------------------------------
+; Rob Nichols [U. Washington] & D. Shea
+undef("pattern_cor")
+function pattern_cor (x, y, w, opt:integer)
+; Compute the centered or uncentered pattern correlation 
+; between two fields
+; (lat,lon)  .... wgt(1) or wgt(lat) or wgt(lat,lon)
+
+local dimx, dimy, rankx, ranky, nt, kl, xc, rpc
+begin
+  if (isatt(x,"_FillValue")) then
+      if (all(ismissing(x))) then
+          return(x@_FillValue)
+      end if
+  end if
+  if (isatt(y,"_FillValue")) then
+      if (all(ismissing(y))) then
+          return(y@_FillValue)
+      end if
+  end if
+                             ; x and y must have the same sizes
+  dimx  = dimsizes(x)
+  dimy  = dimsizes(y)
+  dimw  = dimsizes(w)         ; if w is scalar set to 1.0 
+
+  rankx = dimsizes(dimx)
+  ranky = dimsizes(dimy)
+  rankw = dimsizes(dimw)
+
+  if (rankx.ne.ranky) then
+      print("pattern_cor: Fatal: x and y do not have the same rank")
+      print("      rankx: "+rankx+"   ranky="+ranky)
+      exit
+  end if
+  if (rankx.ge.5) then
+      print("pattern_cor: Fatal: function only works with 2D, 3D or 4D")
+      print("       rank: "+rankx+"D")
+      exit
+  end if
+  if (.not.all(dimx.eq.dimy)) then
+      print("pattern_cor: Fatal: x and y do not have the same dimension sizes")
+      print("       dimx: "+dimx+"    dimy="+dimy)
+      exit
+  end if
+  if (rankw.gt.2) then
+      print("pattern_cor: Fatal: w can be a scalar, w[*] or w[*][*]")
+      print("      rankw: "+rankw)
+      exit
+  end if
+
+  if (rankx.eq.2) then
+      return( pattern_cor2 (x,y,w,opt) )    ; scalar returned
+  end if
+
+  if (rankx.eq.3) then
+      rpc = new ( dimx(0), typeof(x), "No_FillValue")
+      do nt=0,dimx(0)-1
+         rpc(nt) = pattern_cor2 (x(nt,:,:),y(nt,:,:),w,opt)
+      end do
+      xc = x(:,0,0)
+      copy_VarCoords(xc, rpc)
+      return( rpc )
+  end if
+
+  if (rankx.eq.4) then
+      rpc = new ( (/dimx(0),dimx(1)/), typeof(x), "No_FillValue")
+      do nt=0,dimx(0)-1
+        do kl=0,dimx(1)-1
+           rpc(nt,kl) = pattern_cor2 (x(nt,kl,:,:),y(nt,kl,:,:),w,opt)
+        end do
+      end do
+      xc = x(:,:,0,0)
+      copy_VarCoords(xc, rpc)
+      return( rpc )
+  end if
 end

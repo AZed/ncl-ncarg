@@ -4190,8 +4190,8 @@ int* nrotatts;
 	kgds[4] = 187000;
 	kgds[5] = 010;  /* 0000 1000 */
 	kgds[6] = 225000;
-	kgds[7] = 11500;
-	kgds[8] = 11500;
+	kgds[7] = 11250;
+	kgds[8] = 11250;
 	kgds[9] = 0;
 	kgds[10] = 0100; /* 0100 000 */
 
@@ -6662,6 +6662,9 @@ GribParamList* thevarrec;
 
 
 	spherical_harm = (int)(bds[3] & (char)0200) ? 1 : 0;
+	if (therec->gds_type < 50 || therec->gds_type > 80) {
+		spherical_harm = False;
+	}
 	second_order = (int)(bds[3] & (char)0100) ? 1 : 0;
 	integer = (int)(bds[3] & (char)0040) ? 1 : 0;
 	additional_flags = (bds[3] & (char)0020) ? 1 : 0;

@@ -1,6 +1,6 @@
 
 /*
- *      $Id: Keywords.h 12092 2011-02-09 22:36:30Z haley $
+ *      $Id: Keywords.h 12293 2011-05-16 23:04:01Z dbrown $
  */
 /************************************************************************
 *									*
@@ -85,6 +85,7 @@ static struct {
 {"nclexternal",	NCLEXTERNAL},
 {"null",	NCLNULL},
 {"_Missing",      NCLMISSING},
+{"Missing",      NCLMISSING},
 /*
 {"objdata",	RKEY},
 */

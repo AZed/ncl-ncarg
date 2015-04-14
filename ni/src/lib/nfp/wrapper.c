@@ -452,11 +452,12 @@ extern NhlErrorTypes jul2greg_W(void);
 extern NhlErrorTypes utm2latlon_W(void);
 extern NhlErrorTypes latlon2utm_W(void);
 
+extern NhlErrorTypes cd_calendar_W(void);
+extern NhlErrorTypes cd_inv_calendar_W(void);
+
 #ifdef BuildUdunits
 extern NhlErrorTypes ut_calendar_W(void);
-extern NhlErrorTypes ut_calendar_test_W(void);
 extern NhlErrorTypes ut_inv_calendar_W(void);
-extern NhlErrorTypes ut_inv_calendar_test_W(void);
 #endif
 
 /*
@@ -6377,6 +6378,32 @@ void NclAddUserFuncs(void)
     SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
     NclRegisterFunc(jul2greg_W,args,"jul2greg",nargs);
 
+/*
+ * Register "cd_calendar".
+ */
+    nargs = 0;
+    args = NewArgs(2);
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    dimsizes[0] = 1;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    NclRegisterFunc(cd_calendar_W,args,"cd_calendar",nargs);
+
+/*
+ * Register "ut_inv_calendar".
+ */
+    nargs = 0;
+    args = NewArgs(8);
+    SetArgTemplate(args,nargs,"integer",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"integer",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"integer",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"integer",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"integer",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    dimsizes[0] = 1;
+    SetArgTemplate(args,nargs,"string",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    NclRegisterFunc(cd_inv_calendar_W,args,"cd_inv_calendar",nargs);
+
 #ifdef BuildUdunits
 /*
  * Register "ut_calendar".
@@ -6403,30 +6430,6 @@ void NclAddUserFuncs(void)
     SetArgTemplate(args,nargs,"string",1,dimsizes);nargs++;
     SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
     NclRegisterFunc(ut_inv_calendar_W,args,"ut_inv_calendar",nargs);
-/*
- * Register "ut_calendar_test".
- */
-    nargs = 0;
-    args = NewArgs(1);
-    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
-    NclRegisterFunc(ut_calendar_test_W,args,"ut_calendar_test",nargs);
-
-/*
- * Register "ut_inv_calendar_test".
- */
-    nargs = 0;
-    args = NewArgs(8);
-    SetArgTemplate(args,nargs,"integer",0,NclANY);nargs++;
-    SetArgTemplate(args,nargs,"integer",0,NclANY);nargs++;
-    SetArgTemplate(args,nargs,"integer",0,NclANY);nargs++;
-    SetArgTemplate(args,nargs,"integer",0,NclANY);nargs++;
-    SetArgTemplate(args,nargs,"integer",0,NclANY);nargs++;
-    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
-    dimsizes[0] = 1;
-    SetArgTemplate(args,nargs,"string",1,dimsizes);nargs++;
-    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
-    NclRegisterFunc(ut_inv_calendar_test_W,args,"ut_inv_calendar_test",nargs);
-
 #endif
 
 /*
@@ -8612,23 +8615,35 @@ ng_size_t *get_dimensions(void *tmp_dimensions,ng_size_t n_dimensions,
 {
   ng_size_t i, *dimensions;
 
+  dimensions = (ng_size_t *)NclMalloc(sizeof(ng_size_t) * n_dimensions);
   switch (type_dimensions) {
+  case NCL_byte:
+    for (i = 0; i < n_dimensions; i++) {
+      ((ng_size_t *)dimensions)[i] = ((byte*)tmp_dimensions)[i];
+    }
+    break;
+
+  case NCL_short:
+    for (i = 0; i < n_dimensions; i++) {
+      ((ng_size_t *)dimensions)[i] = ((short*)tmp_dimensions)[i];
+    }
+    break;
+
   case NCL_int:
-    dimensions = (ng_size_t *)NclMalloc(sizeof(ng_size_t) * n_dimensions);
     for (i = 0; i < n_dimensions; i++) {
       ((ng_size_t *)dimensions)[i] = ((int*)tmp_dimensions)[i];
     }
     break;
     
   case NCL_long:
-    dimensions = (ng_size_t *)NclMalloc(sizeof(ng_size_t) * n_dimensions);
     for (i = 0; i < n_dimensions; i++) {
       ((ng_size_t *)dimensions)[i] = ((long*)tmp_dimensions)[i];
     }
     break;
 
   default:
-    NhlPError(NhlFATAL,NhlEUNKNOWN,"%s: The input dimension sizes must be integer or long",name);
+    NhlPError(NhlFATAL,NhlEUNKNOWN,"%s: The input dimension sizes must be byte, short, integer or long",name);
+    NclFree(dimensions);
     return(NULL);
   }
   return(dimensions);
