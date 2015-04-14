@@ -1,5 +1,5 @@
 /*
- *      $Id: VarSupport.h,v 1.12 2001-03-07 22:28:29 ethan Exp $
+ *      $Id: VarSupport.h,v 1.13 2010/04/14 21:29:48 huangwei Exp $
  */
 /************************************************************************
 *									*
@@ -21,6 +21,10 @@
  */
 #ifndef _VarSupport_h
 #define _VarSupport_h
+
+#define MAX_ALLOWED_NUMBER 10001
+
+unsigned int _closest_prime(unsigned int prime_in);
 
 extern NclSelectionRecord* _NclGetVarSelRec(
 #if     NhlNeedProto
@@ -247,6 +251,12 @@ extern NhlErrorTypes _NclPrintVarSummary(
 extern struct _NclApiDataList *_NclGetVarInfo2(
 #if     NhlNeedProto
 NclVar
+#endif
+);
+
+extern NhlErrorTypes _PrintListVarSummary(
+#if     NhlNeedProto
+NclObj self, FILE *fp
 #endif
 );
 

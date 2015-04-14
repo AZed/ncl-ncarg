@@ -1,5 +1,5 @@
 /*
- *      $Id: Project,v 1.120.4.3 2010-05-02 18:47:51 haley Exp $
+ *      $Id: Project,v 1.125 2010-05-03 18:22:29 haley Exp $
  */
 
 /************************************************************************
@@ -17,15 +17,15 @@
  *			National Center for Atmospheric Research
  *			PO 3000, Boulder, Colorado
  *
- *	$Date: 2010-05-02 18:47:51 $
+ *	$Date: 2010-05-03 18:22:29 $
  *
  *	Description:	This file sets up defaults for all variables specific
  *			to the ncarg project.  System defaults - ie compilers
  *			etc are in the Template file.
  */
 
-#define NcargVersion 5.2.1
-#define NclVersion 5.2.1
+#define NcargVersion 6.0.0-beta
+#define NclVersion 6.0.0-beta
 
 #ifndef	BuildNCL
 #define	BuildNCL
@@ -43,6 +43,14 @@
 #endif
 #endif /* BuildNetCDF4 */
 
+#ifndef	BuildHDF4
+#define	BuildHDF4
+#else
+#if	!BuildHDF4
+#undef	BuildHDF4
+#endif
+#endif	/* BuildHDF4 */
+
 #ifndef	BuildHDFEOS
 #define	BuildHDFEOS
 #else
@@ -58,6 +66,14 @@
 #undef	BuildHDFEOS5
 #endif
 #endif	/* BuildHDFEOS5 */
+
+#ifndef BuildHDF5
+#define BuildHDF5
+#else
+#if     !BuildHDF5
+#undef  BuildHDF5
+#endif
+#endif  /* BuildHDF5 */
 
 #ifndef	BuildGRIB2
 #define	BuildGRIB2
@@ -84,11 +100,7 @@
 #endif	/* BuildUdunits */
 
 #ifndef    BuildV5D
-#define    BuildV5D
-#else
-#if    !BuildV5D
 #undef BuildV5D
-#endif
 #endif /* BuildV5D */
 
 /* No longer build the old PNG driver since we have the new cairo one. */
@@ -103,6 +115,10 @@
 
 #if !BuildGDAL
 #undef BuildGDAL
+#endif
+
+#if !BuildGRIDSPEC
+#undef BuildGRIDSPEC
 #endif
 
 #ifndef	BuildRasterHDF
@@ -202,6 +218,7 @@
 #ifdef BuildCAIRO
 #ifndef CAIROlib
 #define CAIROlib  -lcairo -lfontconfig -lpixman-1 -lfreetype -lexpat -lpng -lz
+/*#define CAIROlib  -lcairo -lfontconfig -lpixman-1 -lfreetype -lexpat -lpng -lz -lpthread */
 #endif
 #else
 #define CAIROlib
@@ -215,6 +232,10 @@
 #define	HDFEOS5lib   -lhe5_hdfeos -lGctp
 #endif	/* HDFEOS5lib */
 
+#ifndef	HDF5lib
+#define	HDF5lib	-lhdf5_hl -lhdf5 -lsz -lz
+#endif	/* HDF5lib */
+
 #ifdef BuildGDAL
 #ifndef	GDALlib
 #define	GDALlib   -lgdal -lproj
@@ -223,12 +244,22 @@
 #define GDALlib
 #endif
 
+#ifdef BuildGRIDSPEC
+#ifndef	GRIDSPEClib
+#define	GRIDSPEClib   -lcf
+#endif
+#else
+#define GRIDSPEClib
+#endif
+
 #ifndef	GRIB2lib
 #define       GRIB2lib   -lgrib2c -ljasper -lpng -lz
 #endif	/* GRIB2lib */
 
 #ifndef	NetCDFlib
 #define	NetCDFlib	-lnetcdf -lcurl
+/*#define	NetCDFlib	-lnetcdf -lcurl -lcrypto -lssl -lrt */
+/*#define	NetCDFlib	-lnetcdf -lcurl  -lrt -lssl -lcrypto -lldap  */
 #endif	/* NetCDFlib */
 
 #ifndef	NetCDF4lib
@@ -431,6 +462,7 @@ NISRC		= $(TOP)/ni/src
 NIBINSRC	= $(NISRC)/bin
 NILIBSRC	= $(NISRC)/lib
 EXTERNALSRC	= $(TOP)/external
+PYNIOSRC        = $(TOP)/pynio
 NCARGCLIBSRC	= $(COMMONSRC)/libncarg_c
 NCARGLIBSRC	= $(NCARG2DSRC)/libncarg
 NCARGGKSLIBSRC	= $(NCARG2DSRC)/libncarg_gks
@@ -449,7 +481,7 @@ XCBLIBSRC	= $(NILIBSRC)/xcb
 NFPLIBSRC	= $(NILIBSRC)/nfp
 NFPFORTLIBSRC	= $(NILIBSRC)/nfpfort
 NCLLIBSRC	= $(NISRC)/ncl
-NIOLIBSRC	= $(NCLLIBSRC)
+NIOLIBSRC	= $(NILIBSRC)/nio
 
 #ifdef	BuildShared
 NCARGCLIB	= -lNGc
@@ -587,10 +619,12 @@ HDFLIB		= HDFlib
 NETCDF4LIB      = NetCDF4lib
 HDFEOSLIB	= HDFEOSlib
 HDFEOS5LIB	= HDFEOS5lib
+HDF5LIB		= HDF5lib
 GDALLIB		= GDALlib
 GRIB2LIB	= GRIB2lib
 UDUNITSLIB	= UdUnitslib
-V5DLIB      = V5Dlib
+V5DLIB      	= V5Dlib
+GRIDSPECLIB     = GRIDSPEClib
 XDRLIB		= XdrLibrary
 HDFDEFINES	= HdfDefines
 VDEFINE		= -DNGVERSION='"$(NGVERSION)"'  -DNCLVERSION='"$(NCLVERSION)"'

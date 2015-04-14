@@ -1,5 +1,5 @@
 /*
- *      $Id: niohlu.h,v 1.2 2009-07-17 00:47:34 dbrown Exp $
+ *      $Id: niohlu.h,v 1.3 2010-04-26 14:48:54 huangwei Exp $
  */
 /************************************************************************
 *									*
@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 #include "nioc.h"
 
 /* these are required defs from ncarg/hlu/defs.h which is not included here */
@@ -33,7 +34,7 @@
 #define NhlDOCREF(url,anchortext)
 #define NhlSRCREF(srcfileurl)
 #define _NhlMAXRESNAMLEN        (128)
-#define  NhlDEFAULT_APP  ((int)(NULL))
+#define  NhlDEFAULT_APP  ((int)0)
 #define _NhlMAXFNAMELEN   (256)
 
 /*
@@ -90,6 +91,7 @@
 /* public int types supported */
 #define NhlTCharacter	"Character"
 #define NhlTByte	"Byte"
+#define NhlTUbyte	"Ubyte"
 #define NhlTShort	"Short"
 #define NhlTInteger	"Integer"
 #define NhlTLong	"Long"
@@ -120,6 +122,7 @@
 #define NhlTStringGenArray	"StringGenArray"
 
 #define NhlTByteGenArray	"ByteGenArray"
+#define NhlTUbyteGenArray	"UbyteGenArray"
 #define NhlTCharacterGenArray	"CharacterGenArray"
 #define NhlTShortGenArray	"ShortGenArray"
 #define NhlTIntegerGenArray	"IntegerGenArray"
@@ -167,6 +170,8 @@ union _NhlType_ {
 	NhlPointer	ptrval;
 	unsigned char	byteval;
 	char		charval;
+	unsigned char	uint8val;
+	char		int8val;
 	short		shrtval;
 	int		intval;
 	long		lngval;
@@ -223,7 +228,7 @@ extern NhlGenArray NhlCreateGenArray(
 	NhlString	type,		/* type of each element	*/
 	unsigned int	size,		/* size of each element	*/
 	int		num_dimensions,	/* number of dimensions	*/
-	int		*len_dimensions	/* number of dimensions	*/
+	ng_size_t	*len_dimensions	/* number of dimensions	*/
 #endif
 );
 

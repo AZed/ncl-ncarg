@@ -78,18 +78,22 @@ char *ncl_cur_func = NULL;
 	void *src_node;
 	struct src_node_list *list;
 	struct ncl_rcl_list *array;
+	struct ncl_rcl_list *listvar;
 }
 
 %token	<void> EOLN 
 %token  <void> EOFF
 %token	<void> RP LP RBC LBC RBK LBK COLON ',' SEMI MARKER LPSLSH SLSHRP DIM_MARKER FSTRING EFSTRING ASTRING CSTRING
+%token	<void> GSTRING LBKSLSH SLSHRBK
 %token <integer> DIMNUM
 %token <int_val> INT
 %token <real> REAL
 %token <str> DIM DIMNAME ATTNAME COORDV FVAR 
+%token <str> GVAR
 %token <sstr> STRING
-%token <sym> INTEGER UINT FLOAT LONG ULONG INT64 UINT64 DOUBLE BYTE CHARACTER GRAPHIC STRNG
+%token <sym> INTEGER UINT FLOAT LONG ULONG INT64 UINT64 DOUBLE BYTE UBYTE CHARACTER GRAPHIC STRNG
 %token <sym> NUMERIC ENUMERIC SNUMERIC FILETYPE SHORT USHORT LOGICAL
+%token <sym> GROUP GROUPTYPE COMPOUND UNDEFFILEGROUP
 %token <sym> UNDEF VAR WHILE DO QUIT  NPROC PIPROC IPROC UNDEFFILEVAR BREAK NOPARENT NCLNULL LIST
 %token <sym> BGIN END NFUNC IFUNC FDIM IF THEN VBLKNAME CONTINUE
 %token <sym> DFILE KEYFUNC KEYPROC ELSE EXTERNAL NCLEXTERNAL RETURN VSBLKGET NEW
@@ -125,12 +129,14 @@ char *ncl_cur_func = NULL;
 %left '^'
 %left UNOP NOT
 %type <array> expr_list
+%type <listvar> list_expr_list
 %type <src_node> statement assignment 
 %type <src_node> procedure function_def procedure_def fp_block block do conditional
 %type <src_node> visblk statement_list
 %type <src_node> declaration identifier expr v_parent 
 %type <src_node> subscript0 subscript2 break_cont vcreate list_subscript 
-%type <src_node> subscript3 subscript1 subexpr primary function array error filevarselector coordvarselector attributeselector 
+%type <src_node> subscript3 subscript1 subexpr primary function array listvar error filevarselector coordvarselector attributeselector 
+%type <src_node> filegroupselector
 %type <list> the_list arg_dec_list subscript_list opt_arg_list named_subscript_list normal_subscript_list
 %type <list> block_statement_list resource_list dim_size_list  
 %type <list> arg_list do_stmnt resource vset vget get_resource get_resource_list
@@ -1450,7 +1456,11 @@ datatype : FLOAT	{ $$ = $1; }
 	| DOUBLE	{ $$ = $1; }
 	| CHARACTER	{ $$ = $1; }
 	| BYTE		{ $$ = $1; }
+	| UBYTE		{ $$ = $1; }
 	| FILETYPE	{ $$ = $1; }
+	| GROUP		{ $$ = $1; }
+	| GROUPTYPE	{ $$ = $1; }
+	| COMPOUND	{ $$ = $1; }
 	| NUMERIC	{ $$ = $1; }
 	| ENUMERIC	{ $$ = $1; }
 	| SNUMERIC	{ $$ = $1; }
@@ -1578,6 +1588,13 @@ filevarselector : FVAR {
 		_NclValOnly($2);
 		$$ = $2;
 	}
+filegroupselector : GVAR {
+		$$ = _NclMakeIdnExpr(_NclMakeStringExpr($1));
+	}
+	| GSTRING primary EFSTRING {
+		_NclValOnly($2);
+		$$ = $2;
+	}
 coordvarselector : COORDV{
 			$$ = _NclMakeIdnExpr(_NclMakeStringExpr($1));
 	}
@@ -1616,6 +1633,13 @@ identifier : vname list_subscript 	{
 							$$ = _NclMakeFileVarListRef($1,$2,$3,NULL);
 						}
 			 		}
+	| vname list_subscript filegroupselector {
+						if($2 == NULL) {
+							$$ = _NclMakeFileGroupRef($1,$3,Ncl_FILEGROUP);
+						} else {
+							$$ = _NclMakeFileGroupListRef($1,$2,$3,NULL);
+						}
+					}
 	| vname list_subscript filevarselector MARKER		{
 						NclSymbol *tmp;
 						NclSymbol *tmp0;
@@ -2197,6 +2221,9 @@ anysym : FLOAT {
 	| BYTE {
 		$$ = $1;
 	}
+	| UBYTE {
+		$$ = $1;
+	}
 	| CHARACTER {
 		$$ = $1;
 	}
@@ -2204,6 +2231,12 @@ anysym : FLOAT {
 		$$ = $1;
 	}
 	| STRNG {
+		$$ = $1;
+	}
+	| GROUP {
+		$$ = $1;
+	}
+	| COMPOUND {
 		$$ = $1;
 	}
 	| NUMERIC {
@@ -2216,6 +2249,9 @@ anysym : FLOAT {
 		$$ = $1;
 	}
 	| FILETYPE {
+		$$ = $1;
+	}
+	| GROUPTYPE {
 		$$ = $1;
 	}
 	| SHORT {
@@ -2252,6 +2288,9 @@ anysym : FLOAT {
 		$$ = $1;
 	}
 	| UNDEFFILEVAR {
+		$$ = $1;
+	}
+	| UNDEFFILEGROUP {
 		$$ = $1;
 	}
 	| BREAK {
@@ -2383,6 +2422,9 @@ primary : REAL				{
 	| array 		 	{
 						$$ = _NclMakeIdnExpr($1);
 					}
+	| listvar 		 	{
+						$$ = _NclMakeIdnExpr($1);
+					}
 	| vcreate			{
 						$$ = $1;
 					}
@@ -2408,6 +2450,13 @@ primary : REAL				{
 						_NclValOnly($3);
 						_NclValOnly($5);
 						$$ = _NclMakeExprNewOp($3,$5,NULL);
+					}
+	| LBK expr RBK			{ 
+						$$ = $2;
+					}
+	| NEW LBK expr ',' datatype RBK	{
+						_NclValOnly($3);
+						$$ = _NclMakeNewOp($3,$5,NULL);
 					}
 	| NCLNULL			{
 						$$ = _NclMakeNULLNode();
@@ -2589,6 +2638,41 @@ array : LPSLSH expr_list SLSHRP	 {
 							 
 					}
 
+;
+listvar : LBKSLSH list_expr_list SLSHRBK	{ 
+							$$ = _NclMakeListVarNode($2);
+					}
+
+;
+list_expr_list :  expr				{	
+							$$ = _NclMakeRowList();
+							$$->list = _NclMakeNewListNode();
+							$$->list->next = NULL;
+							$$->list->node = $1;
+							$$->currentitem= NULL; 
+							$$->nelem = 1;
+						}
+	| list_expr_list ',' expr   		{ 
+						/* pushed on backwards so they can be popped of in correct order*/
+							if($1 == NULL) {
+								$$ = _NclMakeRowList();
+								$$->nelem = 1;
+								$$->list = _NclMakeNewListNode();
+								$$->list->next = NULL;
+								$$->list->node = $1;
+								$$->currentitem= NULL; 
+								$$->nelem = 1;
+							} else {
+								NclSrcListNode *tmp;
+
+								tmp = _NclMakeNewListNode();
+								tmp->next = $1->list;
+								tmp->node = $3;
+								$1->list = tmp;
+								$1->nelem++;
+								$$ = $1;
+							}
+						}
 ;
 expr_list :  expr				{	
 							_NclValOnly($1);

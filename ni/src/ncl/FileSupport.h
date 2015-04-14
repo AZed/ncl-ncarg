@@ -1,5 +1,5 @@
 /*
- *      $Id: FileSupport.h,v 1.12 2006-04-18 01:10:10 dbrown Exp $
+ *      $Id: FileSupport.h,v 1.14 2010-04-28 23:02:03 huangwei Exp $
  */
 /************************************************************************
 *									*
@@ -87,6 +87,13 @@ NclQuark /* name */
 #endif
 );
 
+extern int _NclFileIsGroup(
+#if	NhlNeedProto
+NclFile /*thefile */,
+NclQuark /* name */
+#endif
+);
+
 extern NhlErrorTypes _NclFileWriteVar(
 #if	NhlNeedProto
 NclFile /*thefile */,
@@ -106,6 +113,13 @@ struct _NclSelectionRecord * /* rhs_sel_ptr */
 #endif
 );
 
+extern struct _NclFileRec *_NclFileReadGroup(
+#if	NhlNeedProto
+NclFile /*thefile*/,
+NclQuark /* grp_name */
+#endif
+);
+
 extern struct _NclVarRec *_NclFileReadVar(
 #if	NhlNeedProto
 NclFile /*thefile*/,
@@ -117,7 +131,7 @@ struct _NclSelectionRecord * /*sel_ptr*/
 extern struct _NclMultiDValDataRec *_NclFileReadVarValue(
 #if	NhlNeedProto
 NclFile /*thefile*/,
-NclQuark /*var_name */,
+NclQuark /*grp_name */,
 struct _NclSelectionRecord * /*sel_ptr*/
 #endif
 );
@@ -263,7 +277,16 @@ extern NhlErrorTypes _NclFileAddDim(
 #if	NhlNeedProto
 NclFile /* thefile */,
 NclQuark /* dimname */,
-int	/* dimsize */,
+ng_size_t	/* dimsize */,
+int	/* is_unlimited*/
+#endif
+);
+
+extern NhlErrorTypes _NclFileAddChunkDim(
+#if	NhlNeedProto
+NclFile /* thefile */,
+NclQuark /* dimname */,
+ng_size_t	/* dimsize */,
 int	/* is_unlimited*/
 #endif
 );
@@ -276,10 +299,50 @@ int	/* n_dims */,
 NclQuark * /* dimnames */
 #endif
 );
+extern NhlErrorTypes _NclFileAddVarChunk(
+#if NhlNeedProto
+NclFile /* thefile */,
+NclQuark /* varname */,
+int	 /* n_dims */,
+ng_size_t *    /* dims */
+#endif
+);
+extern NhlErrorTypes _NclFileAddVarChunkCache(
+#if NhlNeedProto
+NclFile /* thefile */,
+NclQuark /* varname */,
+ng_size_t	 /* cache_size */,
+ng_size_t   /* cache_nelems */,
+float    /* cache_preemption */
+#endif
+);
+extern NhlErrorTypes _NclFileSetVarCompressLevel(
+#if NhlNeedProto
+NclFile /* thefile */,
+NclQuark /* varname */,
+int	 /* compress-level */
+#endif
+);
 extern NhlErrorTypes _NclPrintFileVarSummary(
 #if NhlNeedProto
 NclFile /* thefile */,
 NclQuark /* varname */
+#endif
+);
+extern NclQuark *_NclGetFileGroupsList(
+#if NhlNeedProto
+NclFile  /* the file*/,
+NclQuark /* base_group_name */,
+int      /* depth */,
+int *    /* n_grps */
+#endif
+);
+extern NclQuark *_NclGetGroupVarsList(
+#if NhlNeedProto
+NclFile  /* the file*/,
+NclQuark /* base_group_name */,
+int      /* depth */,
+int *    /* n_grps */
 #endif
 );
 extern struct _NclApiDataList *_NclGetFileVarInfoList2(

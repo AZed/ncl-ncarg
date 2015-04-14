@@ -3,6 +3,7 @@
 typedef struct _NclFormatFunctionRecord *NclFormatFunctionRecPtr;
 typedef struct _NclFormatFunctionRecord NclFormatFunctionRec;
 typedef struct _NclFAttRec	NclFAttRec;
+typedef struct _NclFGrpRec	NclFGrpRec;
 typedef struct _NclFVarRec	NclFVarRec;
 typedef struct _NclFDimRec	NclFDimRec;
 
@@ -10,22 +11,37 @@ typedef struct _NclFDimRec	NclFDimRec;
 struct _NclFAttRec {
 	NclQuark att_name_quark;
 	NclBasicDataTypes data_type;
-	int	num_elements;
+	ng_size_t	num_elements;
+};
+
+struct _NclFGrpRec {
+	NclQuark grp_name_quark;
+	NclQuark grp_real_name_quark;
+	NclQuark grp_full_name_quark;
+	NclBasicDataTypes data_type;
+	int	num_dimensions;
+	int     file_dim_num[NCL_MAX_DIMENSIONS];
 };
 
 struct _NclFVarRec {
 	NclQuark var_name_quark;
+	NclQuark var_real_name_quark;
+	NclQuark var_full_name_quark;
 	NclBasicDataTypes data_type;
 	int	num_dimensions;
 /*
-	int	dim_sizes[NCL_MAX_DIMENSIONS];
+	ng_size_t	dim_sizes[NCL_MAX_DIMENSIONS];
 */
 	int     file_dim_num[NCL_MAX_DIMENSIONS];
+
+	int	 num_compounds;
+	NclQuark component_name[NCL_MAX_COMPOUND_COMPONETS];
+	NclBasicDataTypes component_type[NCL_MAX_COMPOUND_COMPONETS];
 };
 
 struct _NclFDimRec {
 	NclQuark dim_name_quark;
-	long dim_size;
+	ng_size_t dim_size;
 	int is_unlimited;
 };	
 
@@ -51,13 +67,14 @@ typedef enum _NclFileFormat {
 	_NclCCM = 1,
 	_NclNETCDF,
 	_NclHDF,
-#ifdef BuildHDF5
 	_NclHDF5,
-#endif
 	_NclHDFEOS,
 	_NclHDFEOS5,
 	_NclGRIB,
 	_NclGRIB2,
+#ifdef BuildOPENDAP
+	_NclOPENDAP,
+#endif
         _NclOGR
 } NclFileFormat;
 
@@ -326,7 +343,16 @@ typedef NhlErrorTypes (*NclAddDimFunc) (
 #if	NhlNeedProto
 void *,
 NclQuark,
-int,
+ng_size_t,
+int
+#endif
+);
+
+typedef NhlErrorTypes (*NclAddChunkDimFunc) (
+#if	NhlNeedProto
+void *,
+NclQuark,
+ng_size_t,
 int
 #endif
 );
@@ -345,7 +371,34 @@ NclQuark, /*var_name */
 NclBasicDataTypes, /* data_type */
 int, /* n_dims */
 NclQuark *, /* dim_names */
-long * /* dim_sizes */
+ng_size_t * /* dim_sizes */
+#endif
+);
+
+typedef NhlErrorTypes (*NclAddVarChunkFunc) (
+#if     NhlNeedProto
+void*, /* record */
+NclQuark, /*var_name */
+int, /* n_dims */
+ng_size_t * /* dims */
+#endif
+);
+
+typedef NhlErrorTypes (*NclAddVarChunkCacheFunc) (
+#if     NhlNeedProto
+void *,   /* record */
+NclQuark, /* var_name */
+ng_size_t,   /* cache_size */
+ng_size_t,   /* cache_nelems */
+float     /* cache_preemption */
+#endif
+);
+
+typedef NhlErrorTypes (*NclSetVarCompressLevelFunc) (
+#if     NhlNeedProto
+void*,    /* record */
+NclQuark, /*var_name */
+int       /* compress-level */
 #endif
 );
 
@@ -405,6 +458,49 @@ void * /*values*/
 #endif
 );
 
+/*
+* Returns an array of string containg the group names.
+*/
+typedef NclQuark* (*NclGetGrpNamesFunc)(
+#if	NhlNeedProto
+void *, /* Private record used to identify which file is being accessed */
+int *   /* number of total groups. */
+#endif
+);
+
+/*
+* Returns a structure containg type, dimension names and dimension sizes
+*/
+typedef NclFGrpRec* (*NclGetGrpInfoFunc)(
+#if	NhlNeedProto
+void *, /* Private record used to identify which file is being accessed */
+NclQuark /* group name */
+#endif
+);
+
+/*
+* Returns all atribute names belonging to the group.
+*/
+typedef NclQuark* (*NclGetGrpAttNamesFunc)(
+#if	NhlNeedProto
+void *,  /* Private record used to identify which file is being accessed */
+NclQuark, /* the group */
+int *   /* number of attributes in return list */
+#endif
+);
+
+/*
+* Returns a record containing the type of the attribute and the number of
+* elements
+*/
+typedef NclFAttRec *(*NclGetGrpAttInfoFunc)(
+#if	NhlNeedProto
+void *,
+NclQuark, /* Group name */
+NclQuark  /* Atribute name */
+#endif
+);
+
 struct _NclFormatFunctionRecord {
 NclInitializeFileRecFunc	initialize_file_rec;
 NclCreateFileFunc	create_file;
@@ -432,15 +528,23 @@ NclWriteNoStrideVarFunc		write_var_ns;
 NclWriteAttFunc		write_att;
 NclWriteVarAttFunc	write_var_att;
 NclAddDimFunc 		add_dim;
-NclRenameDimFunc 		rename_dim;
+NclAddChunkDimFunc 	add_chunk_dim;
+NclRenameDimFunc 	rename_dim;
 NclAddVarFunc		add_var;
-NclAddVarCoordFunc add_coord_var;
+NclAddVarChunkFunc	add_var_chunk;
+NclAddVarChunkCacheFunc	add_var_chunk_cache;
+NclSetVarCompressLevelFunc  set_var_compress_level;
+NclAddVarCoordFunc	add_coord_var;
 NclAddAttFunc		add_att;
 NclAddVarAttFunc	add_var_att;
 NclMapFormatTypeToNcl	map_format_type_to_ncl;
 NclMapNclTypeToFormat	map_ncl_type_to_format;
 NclDelAttFunc		del_att;
 NclDelVarAttFunc	del_var_att;
+NclGetGrpNamesFunc	get_grp_names;
+NclGetGrpInfoFunc       get_grp_info;
+NclGetGrpAttNamesFunc   get_grp_att_names;
+NclGetGrpAttInfoFunc    get_grp_att_info;
 NclSetOptionFunc        set_option;  
 };
 

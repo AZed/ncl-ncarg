@@ -1,6 +1,6 @@
 
 /*
- *      $Id: NclFile.h,v 1.24 2009-12-04 23:44:35 huangwei Exp $
+ *      $Id: NclFile.h,v 1.26 2010-04-28 23:02:03 huangwei Exp $
  */
 /************************************************************************
 *									*
@@ -30,6 +30,8 @@ typedef struct _NclFileRec NclFileRec;
 typedef struct _NclFileClassRec NclFileClassRec;
 typedef NclFileRec *NclFile;
 typedef NclFileClassRec *NclFileClass;
+
+typedef NclFileRec NclGroup;
 
 typedef NclObjTypes (*NclFileVarRepValueFunc)(
 #if	NhlNeedProto
@@ -76,6 +78,13 @@ typedef struct _NclVarRec* (*NclGetFileVarFunc)(
 NclFile /*thefile*/,
 NclQuark /* var_name */,
 struct _NclSelectionRecord * /*sel_ptr*/
+#endif
+);
+
+typedef NclGroup* (*NclGetFileGroupFunc)(
+#if	NhlNeedProto
+NclFile /*thefile*/,
+NclQuark /* group_name */
 #endif
 );
 
@@ -203,7 +212,16 @@ typedef NhlErrorTypes (*NclAddFileDimFunc)(
 #if	NhlNeedProto
 NclFile	/*thefile*/,
 NclQuark /* dimname */,
-int	/*dimsize*/,
+ng_size_t	/*dimsize*/,
+int	/*is_unlimited*/
+#endif
+);
+
+typedef NhlErrorTypes (*NclAddFileChunkDimFunc)(
+#if	NhlNeedProto
+NclFile	/*thefile*/,
+NclQuark /* dimname */,
+ng_size_t	/*dimsize*/,
 int	/*is_unlimited*/
 #endif
 );
@@ -215,6 +233,33 @@ NclQuark /* var_name */,
 NclQuark /* type */,
 int	/*n_dims*/,
 NclQuark */* dimnames */
+#endif
+);
+
+typedef NhlErrorTypes (*NclAddFileVarChunkFunc)(
+#if	NhlNeedProto
+NclFile	/*thefile*/,
+NclQuark /* var_name */,
+int	 /*n_dims*/,
+ng_size_t *    /* dims */
+#endif
+);
+
+typedef NhlErrorTypes (*NclAddFileVarChunkCacheFunc)(
+#if	NhlNeedProto
+NclFile	 /* thefile */,
+NclQuark /* var_name */,
+ng_size_t	 /* cache_size */,
+ng_size_t	 /* cache_nelems */,
+float    /* cache_preemption */
+#endif
+);
+
+typedef NhlErrorTypes (*NclSetFileVarCompressLevelFunc)(
+#if	NhlNeedProto
+NclFile	/*thefile*/,
+NclQuark /* var_name */,
+int	 /* compress_level */
 #endif
 );
 
@@ -274,6 +319,17 @@ typedef enum {
 	Ncl_MISSING_TO_FILL_VALUE,
 #ifdef USE_NETCDF4
 	Ncl_COMPRESSION_LEVEL,
+	Ncl_USE_CACHE,
+	Ncl_CACHE_SIZE,
+	Ncl_CACHE_NELEMS,
+	Ncl_CACHE_PREEMPTION,
+#endif
+#ifdef BuildHDF5
+        Ncl_H5_COMPRESSION_LEVEL,
+        Ncl_H5_USE_CACHE,
+        Ncl_H5_CACHE_SIZE,
+        Ncl_H5_CACHE_NELEMS,
+        Ncl_H5_CACHE_PREEMPTION,
 #endif
 	Ncl_DEFAULT_NCEP_PTABLE,
 	Ncl_PRINT_RECORD_INFO,
@@ -307,11 +363,17 @@ typedef struct _NclFileClassPart {
 	NclReadFileCoordFunc	read_coord_func;
 	NclWriteFileCoordFunc	write_coord_func;
 	NclAddFileDimFunc	add_dim_func;
+	NclAddFileChunkDimFunc	add_chunk_dim_func;
 	NclAddFileVarFunc	add_var_func;
+	NclAddFileVarChunkFunc	add_var_chunk_func;
+	NclAddFileVarChunkCacheFunc	add_var_chunk_cache_func;
+	NclSetFileVarCompressLevelFunc	set_var_compress_level_func;
 	NclAddFileVarAttFunc	add_var_att_func;
 	NclAddFileAttFunc	add_att_func;
 	NclSetFileOptionFunc    set_file_option;
 	NclFileOption           *options;
+	NclFileIsAFunc		is_group;
+	NclGetFileGroupFunc 	read_group_func;
 	int                     num_options;
 } NclFileClassPart;
 
@@ -323,23 +385,31 @@ typedef struct _NclFileAttInfoList {
 typedef struct _NclFilePart {
 	NclQuark	fname;
 	NclQuark	fpath;
+	NclQuark	file_ext_q;
 	int		wr_status;
 	NclFileFormat	file_format;
-	int		n_vars;
-	struct _NclFVarRec 	*var_info[NCL_MAX_FVARS];
-	NclFileAttInfoList *var_att_info[NCL_MAX_FVARS];
-	_NhlCB		var_att_cb[NCL_MAX_FVARS];
-	struct _FileCallBackRec *var_att_udata[NCL_MAX_FVARS];
-	int 		var_att_ids[NCL_MAX_FVARS];
+	int		         n_grps;
+	struct _NclFGrpRec      *grp_info[NCL_MAX_FVARS];
+	NclFileAttInfoList      *grp_att_info[NCL_MAX_FVARS];
+	_NhlCB		         grp_att_cb[NCL_MAX_FVARS];
+	struct _FileCallBackRec *grp_att_udata[NCL_MAX_FVARS];
+	int 		         grp_att_ids[NCL_MAX_FVARS];
 
-	int 	   	n_file_dims;
+	int		         n_vars;
+	struct _NclFVarRec      *var_info[NCL_MAX_FVARS];
+	NclFileAttInfoList      *var_att_info[NCL_MAX_FVARS];
+	_NhlCB		         var_att_cb[NCL_MAX_FVARS];
+	struct _FileCallBackRec *var_att_udata[NCL_MAX_FVARS];
+	int 		         var_att_ids[NCL_MAX_FVARS];
+
+	int 	   	         n_file_dims;
 	struct _NclFDimRec  	*file_dim_info[NCL_MAX_FVARS];
 	struct _NclFVarRec	*coord_vars[NCL_MAX_FVARS];
 
-	int		n_file_atts;
+	int                      n_file_atts;
 	struct _NclFAttRec	*file_atts[NCL_MAX_FVARS];
-	int 		file_atts_id;
-	_NhlCB 		file_att_cb;
+	int 	                 file_atts_id;
+	_NhlCB 		         file_att_cb;
 	struct _FileCallBackRec *file_att_udata;
 	struct _NclFormatFunctionRecord *format_funcs;
 	void	*private_rec;
@@ -376,6 +446,30 @@ extern NclQuark FileGetDimName(
 #if     NhlNeedProto
 NclFile /* thefile */,
 int /*num*/
+#endif
+);
+
+extern void LoadVarAtts(
+#if     NhlNeedProto
+NclFile thefile, NclQuark var
+#endif
+);
+
+extern NhlErrorTypes UpdateDims(
+#if     NhlNeedProto
+        NclFile  thefile
+#endif
+);
+
+extern void AddAttInfoToList(
+#if     NhlNeedProto
+	NclFileAttInfoList **list_handle, struct _NclFAttRec *the_att
+#endif
+);
+
+extern void FileAttIsBeingDestroyedNotify(
+#if     NhlNeedProto
+NhlArgVal cbdata, NhlArgVal udata
 #endif
 );
 

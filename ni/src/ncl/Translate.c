@@ -74,6 +74,9 @@ int break_off;
 		case Ncl_CONTINUES:
 			_NclPutInstrAt(tmp2->off,cont_off,tmp2->line,tmp2->file);
 		break;
+		default:
+			NHLPERROR((NhlFATAL,NhlEUNKNOWN,"Internal Error"));
+			return;
 		}
 		tmp3= tmp2;
 		tmp2 = tmp2->next;
@@ -158,7 +161,7 @@ int number_of_constants = 0;
 
 static NclObj CreateConst
 #if     NhlNeedProto
-(NclObj inst, NclObjClass theclass, NclObjTypes obj_type, unsigned int obj_type_mask, void *val, NclScalar *missing_value, int n_dims, int *dim_sizes, NclStatus status, NclSelectionRecord *sel_rec, NclTypeClass type)
+(NclObj inst, NclObjClass theclass, NclObjTypes obj_type, unsigned int obj_type_mask, void *val, NclScalar *missing_value, int n_dims, ng_size_t *dim_sizes, NclStatus status, NclSelectionRecord *sel_rec, NclTypeClass type)
 #else
 (inst, theclass, obj_type, obj_type_mask, val, missing_value, n_dims, dim_sizes, status, sel_rec, type)
 NclObj inst;
@@ -168,7 +171,7 @@ unsigned int obj_type_mask;
 void *val;
 NclScalar *missing_value;
 int n_dims;
-int *dim_sizes;
+ng_size_t *dim_sizes;
 NclStatus status;
 NclSelectionRecord *sel_rec;
 NclTypeClass type;
@@ -269,7 +272,7 @@ int _NclTranslate
 	static int nesting = 0;
 	NclObj tmp_md = NULL;
 	void *tmp_val = NULL;
-	int dim_size = 1;
+	ng_size_t dim_size = 1;
 
 	nesting++;
 
@@ -460,12 +463,6 @@ if(groot != NULL) {
 		case Ncl_DOFROMTO:
                 {
                         NclDoFromTo *dofromto = (NclDoFromTo*)root;
-                        int off6 = -1;
-                        int off7 = -1;
-                        int off8 = -1;
-                        int off9 = -1;
-                        int off10 = -1;
-			int id;
 
 			if(dofromto->block_stmnt_list != NULL) {
 				_NclNewLoop();
@@ -556,13 +553,6 @@ if(groot != NULL) {
 		case Ncl_DOFROMTOSTRIDE:
 		{
 			NclDoFromToStride *dofromtostride = (NclDoFromToStride*)root;
-                        int off6 = -1;
-                        int off7 = -1;
-                        int off8 = -1;
-                        int off9 = -1;
-                        int off10 = -1;
-                        int off11 = -1;
-                        int off12 = -1;
 		
 			if(dofromtostride->block_stmnt_list != NULL) {	
 				_NclNewLoop();	
@@ -1041,8 +1031,8 @@ if(groot != NULL) {
 			off1 = _NclPutInstr(PUSH_INT_LIT_OP,integer->line,integer->file);
 			switch (integer->int_type) {
 			case 'b':
-				tmp_val = NclMalloc(sizeof(short));
-				*(byte*)tmp_val = (byte) integer->integer;
+				tmp_val = NclMalloc(sizeof(char));
+				*(char*)tmp_val = (char) integer->integer;
 				tclass = (NclTypeClass) nclTypebyteClass;
 				break;
 			case 'h':
@@ -1065,9 +1055,9 @@ if(groot != NULL) {
 				*(long long*)tmp_val = integer->integer;
 				tclass = (NclTypeClass) nclTypeint64Class;
 				break;
-			case 'B':
-				tmp_val = NclMalloc(sizeof(char));
-				*(char*)tmp_val = (char) integer->integer;
+			case 'C':
+				tmp_val = NclMalloc(sizeof(byte));
+				*(unsigned char*)tmp_val = (unsigned char) integer->integer;
 				tclass = (NclTypeClass) nclTypecharClass;
 				break;
 			case 'H':
@@ -1089,6 +1079,11 @@ if(groot != NULL) {
 				tmp_val = NclMalloc(sizeof(unsigned long long));
 				*(unsigned long long*)tmp_val = (unsigned long long)integer->integer;
 				tclass = (NclTypeClass) nclTypeuint64Class;
+				break;
+			case 'B':
+				tmp_val = NclMalloc(sizeof(unsigned char));
+				*(unsigned char*)tmp_val = (unsigned char)integer->integer;
+				tclass = (NclTypeClass) nclTypeubyteClass;
 				break;
 			}
 
@@ -1402,6 +1397,23 @@ Unneeded translations
 			_NclPutInstr((NclValue)array->rcl->nelem,array->line,array->file);
 			break;
 		}
+		case Ncl_LISTVAR:
+		{
+			NclListVar *listvar = (NclListVar*)root;
+			
+			step = listvar->rcl->list;
+			if(step != NULL) {
+				off1 = _NclTranslate(step->node,fp);
+				step = step->next;
+			}
+			while(step != NULL) {
+				(void)_NclTranslate(step->node,fp);
+				step = step->next;	
+			}
+			_NclPutInstr(LISTVAR_LIT_OP,listvar->line,listvar->file);
+			_NclPutInstr((NclValue)listvar->rcl->nelem,listvar->line,listvar->file);
+			break;
+		}
 		case Ncl_DOWHILE:
 		{
 			NclDoWhile *dowhilel = (NclDoWhile*)root;
@@ -1550,6 +1562,9 @@ Unneeded translations
 				_NclPutInstr((NclValue)filevardim->filevar_q,filevardim->line,filevardim->file);
 */
 				break;
+			default:
+				NHLPERROR((NhlFATAL,NhlEUNKNOWN,"Internal error"));
+				return (NhlFATAL);
 			}
 			break;
 		}
@@ -1571,6 +1586,9 @@ Unneeded translations
 				_NclPutInstr(PARAM_VAR_DIM_OP,vardim->line,vardim->file);
 				_NclPutInstr((NclValue)vardim->sym,vardim->line,vardim->file);
 				break;
+			default:
+				NHLPERROR((NhlFATAL,NhlEUNKNOWN,"Internal error"));
+				return (NhlFATAL);
 			}
 			break;
 		}
@@ -1659,6 +1677,9 @@ Unneeded translations
 */
 				_NclPutIntInstr(nsubs,filevaratt->line,filevaratt->file);
 				break;	
+                        default:
+                                NHLPERROR((NhlFATAL,NhlEUNKNOWN,"Internal error"));
+                                return (NhlFATAL);
 			}	
 			break;
 		}
@@ -1736,6 +1757,9 @@ Unneeded translations
 */
 				_NclPutIntInstr(nsubs,varatt->line,varatt->file);
 				break;	
+                        default:
+                                NHLPERROR((NhlFATAL,NhlEUNKNOWN,"Internal error"));
+                                return (NhlFATAL);
 			}
 			break;
 		}
@@ -1826,6 +1850,9 @@ Unneeded translations
 */
 				_NclPutIntInstr(nsubs,filecoordatt->line,filecoordatt->file);
 				break;
+                        default:
+                                NHLPERROR((NhlFATAL,NhlEUNKNOWN,"Internal error"));
+                                return (NhlFATAL);
 			}
 			break;
 		}
@@ -1932,6 +1959,9 @@ Unneeded translations
 */
 				_NclPutIntInstr(nsubs,filecoord->line,filecoord->file);
 				break;
+                        default:
+                                NHLPERROR((NhlFATAL,NhlEUNKNOWN,"Internal error"));
+                                return (NhlFATAL);
 			}
 			break;
 		}
@@ -2013,6 +2043,9 @@ Unneeded translations
 */
 				_NclPutIntInstr(nsubs,coordatt->line,coordatt->file);
 				break;
+                        default:
+                                NHLPERROR((NhlFATAL,NhlEUNKNOWN,"Internal error"));
+                                return (NhlFATAL);
 			}
 			break;
 		}
@@ -2103,6 +2136,9 @@ Unneeded translations
 */
 				_NclPutIntInstr(nsubs,coord->line,coord->file);
 				break;
+                        default:
+                                NHLPERROR((NhlFATAL,NhlEUNKNOWN,"Internal error"));
+                                return (NhlFATAL);
 			}
 			break;
 		}
@@ -2200,6 +2236,9 @@ Unneeded translations
 */
 					_NclPutIntInstr(nsubs,filevar->line,filevar->file);
 				break;
+                        default:
+                                NHLPERROR((NhlFATAL,NhlEUNKNOWN,"Internal error"));
+                                return (NhlFATAL);
 			}
 			break;
 		}
@@ -2254,7 +2293,6 @@ Unneeded translations
 		case Ncl_LIST:
 		{
 			NclList *list_op = (NclList*)groot;
-			int nsubs = 0;
 
 			off1 = _NclPutInstr(ISDEFINED_OP,list_op->line,list_op->file);
 			_NclPutInstr((NclValue)list_op->sym,list_op->line,list_op->file);
@@ -2337,9 +2375,49 @@ Unneeded translations
 			_NclPutIntInstr(nsubs,list_op->line,list_op->file);
 			break;
 		}
-		default:
+		case Ncl_FILEGROUP:
+		{
+			NclFileGroup *filegroup = (NclFileGroup *)root;
+			int nsubs = 0;
 		
-		fprintf(stdout,"UNRECOGNIZED ENUM VALUE!\n");
+			off1 = _NclPutInstr(ISDEFINED_OP,filegroup->line,filegroup->file);
+			_NclPutInstr((NclValue)filegroup->dfile,filegroup->line,filegroup->file);
+
+			switch(filegroup->ref_type) {
+			case Ncl_VALONLY:
+				_NclTranslate(filegroup->filegroupnode,fp);
+				_NclPutInstr(FILE_GROUPVAL_OP,filegroup->line,filegroup->file);
+				_NclPutInstr((NclValue)filegroup->dfile,filegroup->line,filegroup->file);
+				_NclPutIntInstr(nsubs,filegroup->line,filegroup->file);
+				break;
+			case Ncl_READIT:	
+				_NclTranslate(filegroup->filegroupnode,fp);
+				_NclPutInstr(FILE_GROUP_OP,filegroup->line,filegroup->file);
+				_NclPutInstr((NclValue)filegroup->dfile,filegroup->line,filegroup->file);
+				_NclPutIntInstr(nsubs,filegroup->line,filegroup->file);
+				break;
+			case Ncl_WRITEIT:
+				_NclTranslate(filegroup->filegroupnode,fp);
+				_NclPutInstr(ASSIGN_FILE_GROUP_OP,filegroup->line,filegroup->file);
+				_NclPutInstr((NclValue)filegroup->dfile,filegroup->line,filegroup->file);
+				_NclPutIntInstr(nsubs,filegroup->line,filegroup->file);
+				break;
+			case Ncl_PARAMIT:
+				_NclTranslate(filegroup->filegroupnode,fp);
+				_NclPutInstr(PARAM_FILE_VAR_OP,filegroup->line,filegroup->file);
+				_NclPutInstr((NclValue)filegroup->dfile,filegroup->line,filegroup->file);
+				_NclPutIntInstr(nsubs,filegroup->line,filegroup->file);
+				break;
+			}
+			break;
+		}
+		default:
+			fprintf(stdout, "\n\nfile: %s, line: %d\n", __FILE__, __LINE__);
+			fprintf(stdout,"\tgroot->name = %s\n", groot->name);
+			fprintf(stdout,"\tgroot->file = %s\n", groot->file);
+			fprintf(stdout,"\tgroot->line = %d\n", groot->line);
+			fprintf(stdout,"\tgroot->kind = %d\n", groot->kind);
+			fprintf(stdout,"\tUNRECOGNIZED ENUM VALUE!\n");
 			break;
 	}
 	nesting--;

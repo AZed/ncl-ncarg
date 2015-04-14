@@ -1,5 +1,5 @@
 /*
- *      $Id: NclHDFEOS.c,v 1.13 2010/03/16 20:32:51 dbrown Exp $
+ *      $Id: NclHDFEOS.c,v 1.16 2010-05-06 22:52:28 huangwei Exp $
  */
 /************************************************************************
 *									*
@@ -31,7 +31,9 @@
 #include <hdf/mfhdf.h>
 #include "NclDataDefs.h"
 #include "NclFileInterfaces.h"
+#include "NclData.h"
 #include <math.h>
+#include <ctype.h>
 #include <HdfEosDef.h>
 
 /*
@@ -488,9 +490,7 @@ static void HDFEOSIntAddIndexedMapVars
 	int i;
 	char *tcp,*cp,*dim1, *dim2;
 	char name_buf[1024];
-	int* mapvals;
 	NrmQuark hdf_name1,ncl_name1,hdf_name2,ncl_name2;
-	int32 rank = 1;
 
 	cp = idxmaps;
 	for (i = 0; i < nmaps; i++) {
@@ -581,14 +581,10 @@ int wr_status;
 	int32 ndims;
 	int32 nmaps;
 	int32 ngeofields;
-	int32 georank[100];
-	int32 geotype[100];
-	int32 nentries;
 	int32 npt,nsw,ngd,i,j,k;
-	int ngroups;
+/*	long bsize;*/
 	int32 bsize;
 	int32 *dimsizes;
-	char *tmp,*tmp2;
 	int32 ndata = 0;
 	NclQuark *sw_hdf_names;
 	NclQuark *sw_ncl_names;
@@ -606,12 +602,6 @@ int wr_status;
 	NclQuark *tmp_names;
 	int32 tmp_rank;
 	int32 tmp_type;
-	int32 HDFid;
-	int32 sdInterfaceID;
-	int32 ref_array[1000];
-	char vgroup_class[100];
-  	int32 tmp_id;
-	intn oginfo;
 	int32 origincode=0;
 	int32 projcode = 0;
 	int32 zonecode =0 ;
@@ -620,8 +610,6 @@ int wr_status;
 	int32 att_type;
 	int32 att_size;
 	intn nrc,nfd,nlv;
-	int32 strbufsize = 0;
-	char version[100];
 	int32 *fldorder = NULL;
 	int32 *fldtype = NULL;
 	float64 projparm[15];
@@ -942,9 +930,7 @@ int wr_status;
 		GDfid = GDopen(NrmQuarkToString(path),DFACC_READ);
 		HDFEOSParseName(buffer,&gd_hdf_names,&gd_ncl_names,ngd);
 		for(i = 0; i < ngd; i++) {
-			double *lat2d, *lon2d;
-			int32 *cols, *rows;
-			int k, l;
+			int k;
 			int32 pixregcode;
 			intn status;
 			int has_xdim_var = 0, has_ydim_var = 0;
@@ -1481,7 +1467,6 @@ NclQuark var_name;
 	HDFEOSFileRecord * thefile = (HDFEOSFileRecord *) therec;
 	HDFEOSVarInqRecList * thelist;
 	NclFVarRec *var_info = NclMalloc(sizeof(NclFVarRec));
-	int32 is_unsigned;
 
 	int i,j;
 
@@ -1490,6 +1475,8 @@ NclQuark var_name;
 	for (i = 0; i < thefile->n_vars; i++) {
 		if(thelist->var_inq->name == var_name) {
 			var_info->var_name_quark = var_name;
+			var_info->var_full_name_quark = var_name;
+			var_info->var_real_name_quark = var_name;
 			var_info->data_type = HDFEOSMapTypeNumber(thelist->var_inq->typenumber);
 			var_info->num_dimensions = thelist->var_inq->n_dims;
 			for(j = 0; j < thelist->var_inq->n_dims; j++) {
@@ -1499,7 +1486,7 @@ NclQuark var_name;
 		}
 		thelist = thelist->next;
 	}
-	
+	return NULL;
 }
 static NclQuark *HDFEOSGetDimNames
 #if	NhlNeedProto
@@ -1549,6 +1536,7 @@ NclQuark dim_name_q;
 		}
 		thelist= thelist->next;
 	}
+	return NULL;
 }
 static NclQuark *HDFEOSGetAttNames
 #if	NhlNeedProto
@@ -1562,7 +1550,6 @@ int *num_atts;
 	HDFEOSFileRecord * thefile = (HDFEOSFileRecord *) therec;
 	HDFEOSAttInqRecList * the_int_att_list;
 	NclQuark* output = NULL;
-	int i;
 
 	*num_atts = 0;
 	if(thefile->n_int_atts > 0) {
@@ -1685,6 +1672,7 @@ void* therec;
 NclQuark thevar;
 #endif
 {
+	return NULL;
 }
 
 static int ReadCoordVar
@@ -1797,7 +1785,7 @@ void* storage;
 {
         HDFEOSFileRecord * thefile = (HDFEOSFileRecord *) therec;
 	HDFEOSVarInqRecList *thelist;
-	int i,j,out;
+	int i,j,out = 0;
 	int32 fid; 
 	int32 did; 
 	int32 starti[NCL_MAX_DIMENSIONS];
@@ -1911,7 +1899,6 @@ void* storage;
 {
 	HDFEOSFileRecord * thefile = (HDFEOSFileRecord *) therec;
 	HDFEOSAttInqRecList * the_int_att_list;
-	int i;
 
 	the_int_att_list = thefile->att_int_list;
 	while(the_int_att_list != NULL) {
@@ -1938,7 +1925,6 @@ void* storage;
 	HDFEOSFileRecord * thefile = (HDFEOSFileRecord *) therec;
 	HDFEOSVarInqRecList * thelist;
 	HDFEOSAttInqRecList * the_int_att_list;
-	NclFAttRec* output = NULL;
 	int i;
 
 	thelist = thefile->vars;
@@ -1964,38 +1950,46 @@ NclFormatFunctionRec HDFEOSRec = {
 /* NclCreateFileFunc	   create_file; */		NULL,
 /* NclOpenFileFunc         open_file; */		HDFEOSOpenFile,
 /* NclFreeFileRecFunc      free_file_rec; */		HDFEOSFreeFileRec,
-/* NclGetVarNamesFu_nc      get_var_names; */		HDFEOSGetVarNames,
-/* NclGetVarInfoFusd_nc       get_var_info; */		HDFEOSGetVarInfo,
-/* NclGetDimNamesFusd_nc      get_dim_names; */		HDFEOSGetDimNames,
-/* NclGetDimInfoFusd_nc       get_dim_info; */		HDFEOSGetDimInfo,
-/* NclGetAttNamesFusd_nc      get_att_names; */		HDFEOSGetAttNames,
-/* NclGetAttInfoFusd_nc       get_att_info; */		HDFEOSGetAttInfo,
-/* NclGetVarAttNamesFusd_nc   get_var_att_names; */	HDFEOSGetVarAttNames,
-/* NclGetVarAttInfoFusd_nc    get_var_att_info; */		HDFEOSGetVarAttInfo,
-/* NclGetCoordInfoFusd_nc     get_coord_info; */		HDFEOSGetCoordInfo,
-/* NclReadCoordFusd_nc        read_coord; */		HDFEOSReadCoord,
-/* NclReadCoordFusd_nc        read_coord; */		NULL,
-/* NclReadVarFusd_nc          read_var; */			HDFEOSReadVar,
-/* NclReadVarFusd_nc          read_var; */			NULL,
-/* NclReadAttFusd_nc          read_att; */			HDFEOSReadAtt,
-/* NclReadVarAttFusd_nc       read_var_att; */		HDFEOSReadVarAtt,
-/* NclWriteCoordFusd_nc       write_coord; */		NULL,
-/* NclWriteCoordFusd_nc       write_coord; */		NULL,
-/* NclWriteVarFusd_nc         write_var; */		NULL,
-/* NclWriteVarFusd_nc         write_var; */		NULL,
-/* NclWriteAttFusd_nc         write_att; */		NULL,
-/* NclWriteVarAttFusd_nc      write_var_att; */		NULL,
-/* NclAddDimFusd_nc           add_dim; */			NULL,
-/* NclAddDimFusd_nc           rename_dim; */		NULL,
-/* NclAddVarFusd_nc           add_var; */			NULL,
-/* NclAddVarFusd_nc           add_coord_var; */		NULL,
-/* NclAddAttFusd_nc           add_att; */			NULL,
-/* NclAddVarAttFusd_nc        add_var_att; */		NULL,
-/* NclMapFormatTypeToNcl   map_format_type_to_sd_ncl; */	NULL,
-/* NclMapNclTypeToFormat   map_sd_ncl_type_to_format; */	NULL,
-/* NclDelAttFusd_nc           del_att; */			NULL,
-/* NclDelVarAttFusd_nc        del_var_att; */	        NULL,
-/* NclSetOptionFunc           set_option;  */           NULL
+/* NclGetVarNamesFunc      get_var_names; */		HDFEOSGetVarNames,
+/* NclGetVarInfoFunc       get_var_info; */		HDFEOSGetVarInfo,
+/* NclGetDimNamesFunc      get_dim_names; */		HDFEOSGetDimNames,
+/* NclGetDimInfoFunc       get_dim_info; */		HDFEOSGetDimInfo,
+/* NclGetAttNamesFunc      get_att_names; */		HDFEOSGetAttNames,
+/* NclGetAttInfoFunc       get_att_info; */		HDFEOSGetAttInfo,
+/* NclGetVarAttNamesFunc   get_var_att_names; */	HDFEOSGetVarAttNames,
+/* NclGetVarAttInfoFunc    get_var_att_info; */		HDFEOSGetVarAttInfo,
+/* NclGetCoordInfoFunc     get_coord_info; */		HDFEOSGetCoordInfo,
+/* NclReadCoordFunc        read_coord; */		HDFEOSReadCoord,
+/* NclReadCoordFunc        read_coord; */		NULL,
+/* NclReadVarFunc          read_var; */			HDFEOSReadVar,
+/* NclReadVarFunc          read_var; */			NULL,
+/* NclReadAttFunc          read_att; */			HDFEOSReadAtt,
+/* NclReadVarAttFunc       read_var_att; */		HDFEOSReadVarAtt,
+/* NclWriteCoordFunc       write_coord; */		NULL,
+/* NclWriteCoordFunc       write_coord; */		NULL,
+/* NclWriteVarFunc         write_var; */		NULL,
+/* NclWriteVarFunc         write_var; */		NULL,
+/* NclWriteAttFunc         write_att; */		NULL,
+/* NclWriteVarAttFunc      write_var_att; */		NULL,
+/* NclAddDimFunc           add_dim; */			NULL,
+/* NclAddChunkDimFunc      add_chunk_dim; */		NULL,
+/* NclRenameDimFunc        rename_dim; */		NULL,
+/* NclAddVarFunc           add_var; */			NULL,
+/* NclAddVarChunkFunc      add_var_chunk; */		NULL,
+/* NclAddVarChunkCacheFunc add_var_chunk_cache; */	NULL,
+/* NclSetVarCompressLevelFunc set_var_compress_level; */ NULL,
+/* NclAddVarFunc           add_coord_var; */		NULL,
+/* NclAddAttFunc           add_att; */			NULL,
+/* NclAddVarAttFunc        add_var_att; */		NULL,
+/* NclMapFormatTypeToNcl   map_format_type_to_ncl; */	NULL,
+/* NclMapNclTypeToFormat   map_ncl_type_to_format; */	NULL,
+/* NclDelAttFunc           del_att; */			NULL,
+/* NclDelVarAttFunc        del_var_att; */	        NULL,
+/* NclGetGrpNamesFunc      get_grp_names; */		NULL,
+/* NclGetGrpInfoFunc       get_grp_info; */             NULL,
+/* NclGetGrpAttNamesFunc   get_grp_att_names; */	NULL, 
+/* NclGetGrpAttInfoFunc    get_grp_att_info; */		NULL,
+/* NclSetOptionFunc        set_option;  */		NULL
 };
 NclFormatFunctionRecPtr HDFEOSAddFileFormat 
 #if	NhlNeedProto

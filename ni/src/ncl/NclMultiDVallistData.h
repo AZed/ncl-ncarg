@@ -1,6 +1,6 @@
 
 /*
- *      $Id: NclMultiDVallistData.h,v 1.1 1999-11-12 18:36:42 ethan Exp $
+ *      $Id: NclMultiDVallistData.h,v 1.2 2010/04/14 21:29:47 huangwei Exp $
  */
 /************************************************************************
 *									*
@@ -65,12 +65,10 @@ unsigned int    /* obj_type_mask */,
 void *          /* val */,
 NclScalar *     /*missing_value*/,
 int             /*n_dims*/,
-int *           /*dim_sizes*/,
+ng_size_t *           /*dim_sizes*/,
 NclStatus       /*status*/,
 NclSelectionRecord * /*sel_rec*/
 #endif
 );
-
-
 
 #endif /*NclMultiDVallistData_h */

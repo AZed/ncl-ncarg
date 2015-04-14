@@ -263,9 +263,11 @@ int status;
 %o 4000
 let	[_a-zA-Z]
 alnum   [_a-zA-Z0-9]
+file_grp_var_alnum   [_a-zA-Z0-9/]
+file_grp_var_compound_alnum   [_a-zA-Z0-9/.]
 white	[\t ]
 digit	[0-9]
-inttype [bBhHiIlLqQ]
+inttype [bBChHiIlLqQ]
 %x incl
 %%
 	if(inc_line) {
@@ -509,77 +511,77 @@ inttype [bBhHiIlLqQ]
 	return REAL;
 }
 {digit}+{inttype}? {
-	sscanf(yytext,"%lld",&(yylval.int_val));
+	sscanf(yytext,"%llu",&(yylval.int_val));
 	printtoken(INT,yytext);
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
 	return INT;
 }
 {digit}+{inttype}?(".gt."|".GT.") {
 	yyless(yyleng - strlen(".gt."));
-	sscanf(yytext,"%lld",&(yylval.int_val));
+	sscanf(yytext,"%llu",&(yylval.int_val));
         printtoken(INT,yytext);
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
         return INT;
 }
 {digit}+{inttype}?(".lt."|".LT.") {
 	yyless(yyleng - strlen(".lt."));
-	sscanf(yytext,"%lld",&(yylval.int_val));
+	sscanf(yytext,"%llu",&(yylval.int_val));
         printtoken(INT,yytext);
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
         return INT;
 }
 {digit}+{inttype}?(".le."|".LE.") {
 	yyless(yyleng - strlen(".le."));
-	sscanf(yytext,"%lld",&(yylval.int_val));
+	sscanf(yytext,"%llu",&(yylval.int_val));
         printtoken(INT,yytext);
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
         return INT;
 }
 {digit}+{inttype}?(".eq."|".EQ.") {
 	yyless(yyleng - strlen(".eq."));
-	sscanf(yytext,"%lld",&(yylval.int_val));
+	sscanf(yytext,"%llu",&(yylval.int_val));
         printtoken(INT,yytext);
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
         return INT;
 }
 {digit}+{inttype}?(".ge."|".GE.") {
 	yyless(yyleng - strlen(".ge."));
-	sscanf(yytext,"%lld",&(yylval.int_val));
+	sscanf(yytext,"%llu",&(yylval.int_val));
         printtoken(INT,yytext);
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
         return INT;
 }
 {digit}+{inttype}?(".ne."|".NE.") {
 	yyless(yyleng - strlen(".ne."));
-	sscanf(yytext,"%lld",&(yylval.int_val));
+	sscanf(yytext,"%llu",&(yylval.int_val));
         printtoken(INT,yytext);
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
         return INT;
 }
 {digit}+{inttype}?(".and."|".AND.") {
 	yyless(yyleng - strlen(".and."));
-	sscanf(yytext,"%lld",&(yylval.int_val));
+	sscanf(yytext,"%llu",&(yylval.int_val));
         printtoken(INT,yytext);
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
         return INT;
 }
 {digit}+{inttype}?(".or."|".OR.") {
 	yyless(yyleng - strlen(".or."));
-	sscanf(yytext,"%lld",&(yylval.int_val));
+	sscanf(yytext,"%llu",&(yylval.int_val));
         printtoken(INT,yytext);
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
         return INT;
 }
 {digit}+{inttype}?(".xor."|".XOR.") {
 	yyless(yyleng - strlen(".xor."));
-	sscanf(yytext,"%lld",&(yylval.int_val));
+	sscanf(yytext,"%llu",&(yylval.int_val));
         printtoken(INT,yytext);
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
         return INT;
 }
 {digit}+{inttype}?(".not."|".NOT.") {
 	yyless(yyleng - strlen(".not."));
-	sscanf(yytext,"%lld",&(yylval.int_val));
+	sscanf(yytext,"%llu",&(yylval.int_val));
         printtoken(INT,yytext);
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
         return INT;
@@ -609,7 +611,7 @@ inttype [bBhHiIlLqQ]
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
 	return GE;
 }
-".not."|".not." {
+".not."|".NOT." {
 	printtoken(NOT,(char*)NULL);
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
 	return NOT;
@@ -634,7 +636,31 @@ inttype [bBhHiIlLqQ]
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
 	return XOR;
 }
-"->"{alnum}+ {
+"->"{file_grp_var_compound_alnum}+?(".eq."|".EQ."|".ne."|".NE."|".le."|".LE."|".lt."|".LT."|".ge."|".GE."|".gt."|".GT."|".or."|".OR.") {
+	char *tmp;
+
+	yyless(yyleng - strlen(".eq."));
+
+	tmp = yytext + 2;
+
+	strcpy(yylval.str,tmp);
+	printtoken(FVAR,yylval.str);
+	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
+	return FVAR;
+}
+"->"{file_grp_var_compound_alnum}+?(".and."|".AND."|".xor."|".XOR."|".not."|".NOT.") {
+        char *tmp;
+
+        yyless(yyleng - strlen(".and."));
+
+        tmp = yytext + 2;
+
+        strcpy(yylval.str,tmp);
+        printtoken(FVAR,yylval.str);
+        CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
+        return FVAR;
+}
+"->"{file_grp_var_compound_alnum}+ {
 	char *tmp;
 
 	tmp = yytext + 2;
@@ -647,6 +673,7 @@ inttype [bBhHiIlLqQ]
 "$" {
 	strcpy(yylval.str,yytext);
 	printtoken(EFSTRING,yylval.str);
+
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
 	return EFSTRING;
 }
@@ -656,6 +683,25 @@ inttype [bBhHiIlLqQ]
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
 	return FSTRING;
 }
+"=>"{file_grp_var_alnum}+ {
+	char *tmp;
+
+	tmp = yytext + 2;
+
+	strcpy(yylval.str,tmp);
+
+	printtoken(GVAR,yylval.str);
+	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
+	return GVAR;
+}
+"=>$" {
+	strcpy(yylval.str,yytext);
+	printtoken(GSTRING,yylval.str);
+
+	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
+	return GSTRING;
+}
+
 {let}{alnum}* {
         NclSymbol *s;
 
@@ -780,7 +826,6 @@ inttype [bBhHiIlLqQ]
 	return(SLSHRP); 
 }
 \[ { 
-	printtoken(yytext[0],(char*)NULL); 
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
 	return(LBK); 
 }
@@ -788,6 +833,16 @@ inttype [bBhHiIlLqQ]
 	printtoken(yytext[0],(char*)NULL); 
 	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
 	return(RBK); 
+}
+"[\/" { 
+	printtoken(yytext[0],(char*)NULL); 
+	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
+	return(LBKSLSH); 
+}
+"\/]" { 
+	printtoken(yytext[0],(char*)NULL); 
+	CopyIt(&cur_line_text_pos,&cur_line_length,yyleng,yytext);
+	return(SLSHRBK); 
 }
 \' {
 	printtoken(yytext[0],(char*)NULL);

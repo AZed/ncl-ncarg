@@ -1,6 +1,6 @@
 
 /*
- *      $Id: NclVar.c,v 1.80 2010-01-27 00:20:21 dbrown Exp $
+ *      $Id: NclVar.c,v 1.81 2010-04-14 21:29:48 huangwei Exp $
  */
 /************************************************************************
 *									*
@@ -34,10 +34,13 @@
 #include "NclMdInc.h"
 #include "NclAtt.h"
 #include "NclVar.h"
+#include "NclList.h"
+#include "NclCoordVar.h"
 #include "DataSupport.h"
+#include "TypeSupport.h"
 #include "AttSupport.h"
 #include "VarSupport.h"
-#include "NclCoordVar.h"
+#include "ListSupport.h"
 #include "NclCallBacksI.h"
 #include <math.h>
 #ifdef NIO_LIB_ONLY
@@ -65,13 +68,6 @@ static struct _NclDataRec *VarValRead(
 	struct _NclVarRec * /* self*/,
 	struct _NclSelectionRecord * /*sel_ptr*/,
 	NclScalar * /*new_missing*/
-#endif
-);
-
-static NhlErrorTypes VarPrint(
-#if	NhlNeedProto
-struct	_NclObjRec*	/*self*/,
-FILE	*		/*fp*/
 #endif
 );
 
@@ -149,7 +145,6 @@ long                     /*dim_num*/,
 char    *               /*dim_name*/
 #endif
 );
-
 
 static int VarIsACoord(
 #if     NhlNeedProto
@@ -281,7 +276,6 @@ NhlArgVal udata;
 {
 	NclVar self = NULL;
 	NclMultiDValData theval = NULL;
-	NclMultiDValData themis = NULL;
 
 	self = (NclVar)_NclGetObj(udata.intval);
 	if(self != NULL) {
@@ -417,7 +411,7 @@ NclStatus requested;
 }
 */
 
-static NhlErrorTypes VarPrint
+NhlErrorTypes VarPrintVarSummary
 #if	NhlNeedProto
 (NclObj theobj,FILE *fp)
 #else
@@ -430,11 +424,11 @@ FILE *fp;
 	NclVar cvar= NULL;
 	NclMultiDValData tmp_md = NULL;
 	char *v_name;
+	char v_type[256];
 	int i;
 	NclMultiDValData thevalue = NULL;
 	int ret;
 	NhlErrorTypes ret0 = NhlNOERROR;
-	NhlErrorTypes ret1 = NhlNOERROR;
 
 	thevalue = (NclMultiDValData)_NclGetObj(self->var.thevalue_id);
 	
@@ -523,11 +517,29 @@ FILE *fp;
 	if(ret < 0) {
 		return(NhlWARNING);
 	}
-	ret = nclfprintf(fp,"Total Size: %d bytes\n",thevalue->multidval.totalsize);
+
+	/* Wei added for print list information */
+	strcpy(v_type, _NclBasicDataTypeToName(thevalue->multidval.data_type));
+	if(0 == strcmp(v_type, "list"))
+	{
+		NclObj obj;
+		NclListObjList *step;
+		NclList thelist = (NclList) _NclGetObj(*(int *)thevalue->multidval.val);
+		ret0 = NhlNOERROR;
+
+		ret = nclfprintf(fp,"Total items: %ld\n\n",(long)thelist->list.nelem);
+		if(ret < 0) {
+			return(NhlWARNING);
+		}
+
+		return(ret0);
+	}
+
+	ret = nclfprintf(fp,"Total Size: %lld bytes\n",(long long)thevalue->multidval.totalsize);
 	if(ret < 0) {
 		return(NhlWARNING);
 	}
-	ret = nclfprintf(fp,"            %d values\n",thevalue->multidval.totalelements);
+	ret = nclfprintf(fp,"            %lld values\n",(long long)thevalue->multidval.totalelements);
 	if(ret < 0) {
 		return(NhlWARNING);
 	}
@@ -550,7 +562,7 @@ FILE *fp;
 				return(NhlWARNING);
 			}
 		}
-		ret = nclfprintf(fp,"%d]",self->var.dim_info[i].dim_size);
+		ret = nclfprintf(fp,"%lld]",(long long)self->var.dim_info[i].dim_size);
 		if(ret < 0) {
 			return(NhlWARNING);
 		}
@@ -609,8 +621,29 @@ FILE *fp;
 	}
 	ret0 = _NclPrint(_NclGetObj(self->var.att_id),fp);
 	
-	if((self != NULL) && (thevalue != NULL) &&(ret > NhlWARNING)) {
-		ret0 = _NclPrint((NclObj)thevalue,fp);
+	return(ret0);
+}
+
+NhlErrorTypes VarPrint
+#if	NhlNeedProto
+(NclObj theobj,FILE *fp)
+#else
+(theobj,fp)
+NclObj theobj;
+FILE *fp;
+#endif
+{
+	NclVar self = (NclVar) theobj;
+	NclMultiDValData thevalue = NULL;
+	NhlErrorTypes ret0 = NhlNOERROR;
+
+	VarPrintVarSummary(theobj, fp);
+
+	thevalue = (NclMultiDValData)_NclGetObj(self->var.thevalue_id);
+	
+	if((self != NULL) && (thevalue != NULL)) {
+		if(thevalue->multidval.data_type)
+			ret0 = _NclPrint((NclObj)thevalue,fp);
 	}
 	return(ret0);
 }
@@ -653,7 +686,7 @@ NclStatus status)
 	NhlErrorTypes ret = NhlNOERROR;
 	NclMultiDValData tmp = NULL,tmp_md = NULL;
 	NclScalar *tmp_s = NULL;
-	int tmp_dim_size =1;
+	ng_size_t tmp_dim_size =1;
 	NclAtt tmp_att;
 
 
@@ -1103,7 +1136,7 @@ long dim_num;
 #endif
 {
 	int index;
-	int dim_size = 1;
+	ng_size_t dim_size = 1;
 	string* nameptr;
 	int *numptr;
 	char *v_name= NULL;
@@ -1249,7 +1282,6 @@ char *dim_name;
 	}
 }
 
-
 static int VarIsACoord
 #if	NhlNeedProto
 (struct _NclVarRec *self, char* coordname)
@@ -1289,10 +1321,9 @@ NclSelectionRecord *sel_ptr;
 	NclMultiDValData thevalue;
 	NclMultiDValData attvalue;
 	NclMultiDValData tmp_md;
-	NclMultiDValData tmp_md1;
 	int i,j;
 	NclScalar *missing_ptr;
-	int miss_dim_sizes[NCL_MAX_DIMENSIONS];
+	ng_size_t miss_dim_sizes[NCL_MAX_DIMENSIONS];
 	NclVar self_var = (NclVar)self;
 	NclSelectionRecord mysel;
 	int theval_ndims, tmpmd_ndims;
@@ -1308,13 +1339,35 @@ NclSelectionRecord *sel_ptr;
 * When id's are equal a write screws things up
 */
 	if(thevalue->obj.id != value->obj.id) {
-		if(sel_ptr == NULL) {
+		/*Handle NCL_list*/
+		if(NCL_list == thevalue->multidval.data_type)
+		{
+			NclObj theobj = (NclObj)_NclGetObj(*(int *)thevalue->multidval.val);
+			NclObj rhsobj = (NclObj)_NclGetObj(*(int *)value->multidval.val);
+			NclObj tmp = NULL;
+			NclList thelist = (NclList) theobj;
+			NclList rhslist = (NclList) rhsobj;
+
+			while(0 < thelist->list.nelem)
+			{
+				tmp = (NclObj)_NclListPop((NclObj)thelist);
+			}
+
+			while(0 < rhslist->list.nelem)
+			{
+				tmp = (NclObj)_NclListPop((NclObj)rhslist);
+				_NclListPush((NclObj)thelist, tmp);
+			}
+
+			return (NhlNOERROR);
+		}
+		else if(sel_ptr == NULL) {
 			if(value->multidval.type->type_class.type != thevalue->multidval.type->type_class.type) {
 				tmp_md = _NclCoerceData(value,
 						thevalue->multidval.type->type_class.type,
 						NULL);
 				if(tmp_md == NULL) {
-					NhlPError(NhlFATAL,NhlEUNKNOWN,"Assignment type mismatch, right hand side can't be coerced to type of left hand side");
+					NHLPERROR((NhlFATAL,NhlEUNKNOWN,"Assignment type mismatch, right hand side can't be coerced to type of left hand side"));
 					return(NhlFATAL);
 				}
 			} else {
@@ -1508,9 +1561,6 @@ char* coord_name;
 #endif
 {
 	int index;
-	NclDimRec tmp;
-	NclObj tmp_obj;
-
 	
 	index = VarIsADim(self,coord_name);
 	if((index>=0)&&(index < self->var.n_dims))  {
@@ -1614,6 +1664,7 @@ NclSelectionRecord *sel_ptr;
 			j = 0;
 			tmp_att = _NclCopyAtt((NclAtt)_NclGetObj(self->var.att_id),NULL);
 			for(i = 0; i< sel_ptr->n_entries; i++) {
+				coord_var = NULL;
 				if((self->var.coord_vars[sel_ptr->selection[i].dim_num] != -1)&&(_NclGetObj(self->var.coord_vars[sel_ptr->selection[i].dim_num]) != NULL)) {
 					if(sel_ptr->selection[i].sel_type == Ncl_VECSUBSCR) {
 						tmp_sel.selection[0].sel_type = sel_ptr->selection[i].sel_type;
@@ -1678,7 +1729,7 @@ NclSelectionRecord *sel_ptr;
 							tmp_att = (NclAtt)_NclGetObj(_NclAttCreate(NULL,NULL,Ncl_Att,0,NULL));
 						}
 						_NclAddAtt(tmp_att->obj.id,NrmQuarkToString(self->var.dim_info[sel_ptr->selection[i].dim_num].dim_quark),_NclVarValueRead(coord_var,NULL,NULL),NULL);
-						if(coord_var->obj.status != PERMANENT) {
+						if(coord_var && coord_var->obj.status != PERMANENT) {
 							_NclDestroyObj((NclObj)coord_var);
 						}
 					} 
@@ -1810,58 +1861,19 @@ struct _NclVarRec *storage;
 {
 	struct _NclVarRec *tmp_var = NULL;
 	NclObj tmp_obj = NULL;
-	int i;
-/*
-	if(thevar == NULL)
-		return(NULL);
 
-	if(storage != NULL) {
-		tmp_var = storage;
-	} else {
-		tmp_var = (NclVar)NclMalloc(thevar->obj.class_ptr->obj_class.obj_size);
-	}
-	if(tmp_var == NULL) {
-		return(NULL);
-	}
-	(void)_NclObjCreate((NclObj)tmp_var,thevar->obj.class_ptr,thevar->obj.obj_type ,thevar->obj.obj_type_mask,TEMPORARY);
-	
-	tmp_var->var = thevar->var;
-
-
-	tmp_obj = (NclObj)_NclCopyVal((NclMultiDValData)_NclGetObj(thevar->var.thevalue_id),new_missing);
-	_NclSetStatus((NclObj)tmp_obj,PERMANENT);
-	_NclAddParent(tmp_obj,(NclObj)tmp_var);
-	if(tmp_obj != NULL) {
-		tmp_var->var.thevalue_id = tmp_obj->obj.id;
-	} else {
-		tmp_var->var.thevalue_id = -1;
-	}
 	tmp_obj = (NclObj)_NclCopyAtt((NclAtt)_NclGetObj(thevar->var.att_id),NULL);
-	if(tmp_obj != NULL) {
-		_NclAddParent(tmp_obj,(NclObj)tmp_var);
-		tmp_var->var.att_cb = _NclAddCallback((NclObj)tmp_obj,(NclObj)tmp_var,_NclVarMissingNotify,MISSINGNOTIFY,NULL);
-		tmp_var->var.att_id = tmp_obj->obj.id;
-	} else {
-		tmp_var->var.att_id = -1;
-	}
-	for(i = 0; i < tmp_var->var.n_dims; i++) {
-		if((tmp_var->var.coord_vars[i] == -1)
-			||(_NclGetObj(tmp_var->var.coord_vars[i]) == NULL)) {
-			tmp_var->var.coord_vars[i] = -1;
-		} else {
-			tmp_obj = (NclObj)_NclCopyVar((NclVar)_NclGetObj(tmp_var->var.coord_vars[i]),NULL,NULL);
-			if(tmp_obj == NULL) {
-				tmp_var->var.coord_vars[i] = -1;
-			} else {
-				_NclAddParent(tmp_obj,(NclObj)tmp_var);
-				tmp_var->var.coord_vars[i] = tmp_obj->obj.id;
-			}
-		}
-	}
-*/
-	tmp_obj = (NclObj)_NclCopyAtt((NclAtt)_NclGetObj(thevar->var.att_id),NULL);
-	tmp_var = _NclVarNclCreate(NULL,thevar->obj.class_ptr,thevar->obj.obj_type,thevar->obj.obj_type_mask,new_name,(NclMultiDValData)_NclGetObj(thevar->var.thevalue_id),thevar->var.dim_info,((tmp_obj != NULL)?tmp_obj->obj.id:-1),thevar->var.coord_vars,(thevar->var.var_type == PARAM)?NORMAL:thevar->var.var_type,(new_name == NULL)?NrmQuarkToString(thevar->var.var_quark):new_name->name,TEMPORARY);
-	
+	tmp_var = _NclVarNclCreate(NULL,
+				   thevar->obj.class_ptr,thevar->obj.obj_type,
+				   thevar->obj.obj_type_mask,
+				   new_name,
+				   (NclMultiDValData)_NclGetObj(thevar->var.thevalue_id),
+				   thevar->var.dim_info,
+				   ((tmp_obj != NULL)?tmp_obj->obj.id:-1),
+				   thevar->var.coord_vars,
+				   (thevar->var.var_type == PARAM)?NORMAL:thevar->var.var_type,
+				   (new_name == NULL)?NrmQuarkToString(thevar->var.var_quark):new_name->name,
+				   TEMPORARY);
 
 	return(tmp_var);
 }
@@ -1885,7 +1897,7 @@ struct _NclSelectionRecord * rhs_sel_ptr;
 	NclSelectionRecord tmp_sel;
 	NclMultiDValData val_md = NULL;
 	int i,j,done,m;
-	int lhs_n_elem,rhs_n_elem;
+	ng_size_t lhs_n_elem,rhs_n_elem;
 	void *tmp_coord;
 	char *tmp_ptr;
 	NclMultiDValData *tmp_coord_array;
@@ -2134,15 +2146,9 @@ struct _NclSelectionRecord * rhs_sel_ptr;
 				rhs_n_elem = rhs_sel_ptr->selection[j].u.vec.n_ind;
 				break;
 			default:
-				if(rhs_sel_ptr->selection[j].u.sub.finish < rhs_sel_ptr->selection[j].u.sub.start){
-					rhs_n_elem = (int)(((double) (rhs_sel_ptr->selection[j].u.sub.start
-                                        	- rhs_sel_ptr->selection[j].u.sub.finish))
-                                        	/(double)fabs(((double)rhs_sel_ptr->selection[j].u.sub.stride))) + 1;
-				} else {
-					rhs_n_elem = (int)(((double) (rhs_sel_ptr->selection[j].u.sub.finish
-                                        	- rhs_sel_ptr->selection[j].u.sub.start))
-                                        	/((double)rhs_sel_ptr->selection[j].u.sub.stride)) + 1;
-				}
+				rhs_n_elem =  (ng_size_t) labs((rhs_sel_ptr->selection[j].u.sub.finish
+								- rhs_sel_ptr->selection[j].u.sub.start)
+							       / rhs_sel_ptr->selection[j].u.sub.stride) + 1;
 				break;
 			}
 			switch(lhs_sel_ptr->selection[i].sel_type) {
@@ -2150,18 +2156,12 @@ struct _NclSelectionRecord * rhs_sel_ptr;
 				lhs_n_elem = lhs_sel_ptr->selection[i].u.vec.n_ind;
 				break;
 			default:
-				if(lhs_sel_ptr->selection[i].u.sub.finish < lhs_sel_ptr->selection[i].u.sub.start){
-					lhs_n_elem = (int)(((double) (lhs_sel_ptr->selection[i].u.sub.start
-                                        	- lhs_sel_ptr->selection[i].u.sub.finish))
-                                        	/(double)fabs(((double)lhs_sel_ptr->selection[i].u.sub.stride))) + 1;
-				} else {
-					lhs_n_elem = (int)(((double) (lhs_sel_ptr->selection[i].u.sub.finish
-                                        	- lhs_sel_ptr->selection[i].u.sub.start))
-                                        	/((double)lhs_sel_ptr->selection[i].u.sub.stride)) + 1;
-				}
+				lhs_n_elem =  (ng_size_t) labs((lhs_sel_ptr->selection[i].u.sub.finish
+								- lhs_sel_ptr->selection[i].u.sub.start)
+							       / lhs_sel_ptr->selection[i].u.sub.stride) + 1;
 				break;
 			}
-			if((lhs_n_elem != 1)&&(rhs_n_elem != 1)||(lhs_n_elem == 1)&&(rhs_n_elem == 1)) {
+			if(((lhs_n_elem != 1)&&(rhs_n_elem != 1))||((lhs_n_elem == 1)&&(rhs_n_elem == 1))) {
 /*
 * Nothing needs to be done unless right hand side has defined dimension 
 */
@@ -2565,15 +2565,9 @@ struct _NclSelectionRecord * rhs_sel_ptr;
 				lhs_n_elem = lhs_sel_ptr->selection[i].u.vec.n_ind;
 				break;
 			default:
-				if(lhs_sel_ptr->selection[i].u.sub.finish < lhs_sel_ptr->selection[i].u.sub.start){
-					lhs_n_elem = (int)(((double) (lhs_sel_ptr->selection[i].u.sub.start
-						- lhs_sel_ptr->selection[i].u.sub.finish))
-						/(double)fabs(((double)lhs_sel_ptr->selection[i].u.sub.stride))) + 1;
-				} else {
-					lhs_n_elem = (int)(((double) (lhs_sel_ptr->selection[i].u.sub.finish
-						- lhs_sel_ptr->selection[i].u.sub.start))
-						/((double)lhs_sel_ptr->selection[i].u.sub.stride)) + 1;
-				}
+				lhs_n_elem =  (ng_size_t) labs((lhs_sel_ptr->selection[i].u.sub.finish
+								- lhs_sel_ptr->selection[i].u.sub.start)
+							       / lhs_sel_ptr->selection[i].u.sub.stride) + 1;
 				break;
 			}
 			if((lhs_n_elem != 1)||((lhs_n_elem == 1)&&(rhs_md->multidval.totalelements ==1))||((lhs_n_elem == 1)&&(rhs_md->multidval.n_dims > j )&&(rhs_md->multidval.dim_sizes[j] == 1))){
@@ -2807,15 +2801,9 @@ if(rhs_md->multidval.totalelements !=1) {
 				rhs_n_elem = rhs_sel_ptr->selection[j].u.vec.n_ind;
 				break;
 			default:
-				if(rhs_sel_ptr->selection[j].u.sub.finish < rhs_sel_ptr->selection[j].u.sub.start){
-					rhs_n_elem = (int)(((double) (rhs_sel_ptr->selection[j].u.sub.start
-						- rhs_sel_ptr->selection[i].u.sub.finish))
-						/(double)fabs(((double)rhs_sel_ptr->selection[j].u.sub.stride))) + 1;
-				} else {
-					rhs_n_elem = (int)(((double) (rhs_sel_ptr->selection[j].u.sub.finish
-						- rhs_sel_ptr->selection[j].u.sub.start))
-						/((double)rhs_sel_ptr->selection[j].u.sub.stride)) + 1;
-				}
+				rhs_n_elem =  (ng_size_t) labs((rhs_sel_ptr->selection[j].u.sub.finish
+								- rhs_sel_ptr->selection[j].u.sub.start)
+							       / rhs_sel_ptr->selection[j].u.sub.stride) + 1;
 				break;
 			}
 

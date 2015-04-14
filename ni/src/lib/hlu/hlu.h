@@ -1,5 +1,5 @@
 /*
- *      $Id: hlu.h,v 1.41 2009-07-28 15:49:02 huangwei Exp $
+ *      $Id: hlu.h,v 1.42 2010-04-14 21:29:47 huangwei Exp $
  */
 /************************************************************************
 *									*
@@ -91,6 +91,7 @@
 #define NhlTUint	"Uint"
 #define NhlTUlong	"Ulong"
 #define NhlTUint64	"Uint64"
+#define NhlTUbyte	"Ubyte"
 
 /* public real types supported */
 #define NhlTFloat	"Float"
@@ -122,6 +123,7 @@
 #define NhlTUintGenArray	"UintGenArray"
 #define NhlTUlongGenArray	"UlongGenArray"
 #define NhlTUint64GenArray	"Uint64GenArray"
+#define NhlTUbyteGenArray	"UbyteGenArray"
 
 #define NhlTFloatGenArray	"FloatGenArray"
 #define NhlTDoubleGenArray	"DoubleGenArray"
@@ -173,6 +175,8 @@ union _NhlType_ {
 	NhlPointer	ptrval;
 	unsigned char	byteval;
 	char		charval;
+	unsigned char	ubyteval;
+	int		listval;
 	short		shrtval;
 	int		intval;
 	long		lngval;
@@ -230,7 +234,7 @@ extern NhlGenArray NhlCreateGenArray(
 	NhlString	type,		/* type of each element	*/
 	unsigned int	size,		/* size of each element	*/
 	int		num_dimensions,	/* number of dimensions	*/
-	int		*len_dimensions	/* number of dimensions	*/
+	ng_size_t	*len_dimensions	/* number of dimensions	*/
 #endif
 );
 
@@ -248,14 +252,14 @@ extern void NhlFreeGenArray(
 
 extern void *NhlMalloc(
 #if	NhlNeedProto
-	unsigned int	size
+	ng_usize_t	size
 #endif
 );
 
 extern void *NhlRealloc(
 #if	NhlNeedProto
 	void*,		/* pointer to copy		*/
-	unsigned int	/* size of requested memory	*/
+	ng_usize_t	/* size of requested memory	*/
 #endif
 );
 

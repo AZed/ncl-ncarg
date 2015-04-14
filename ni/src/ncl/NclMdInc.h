@@ -13,6 +13,7 @@
 #include "NclTypeuint.h"
 #include "NclTypeushort.h"
 #include "NclTypeuint64.h"
+#include "NclTypeubyte.h"
 #include "NclMultiDValData.h"
 #include "NclMultiDValHLUObjData.h"
 #include "NclMultiDValnclfileData.h"

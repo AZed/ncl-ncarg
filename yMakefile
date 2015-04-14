@@ -1,5 +1,5 @@
 /*
- *      $Id: yMakefile,v 1.44 2010-02-22 05:37:55 haley Exp $
+ *      $Id: yMakefile,v 1.45 2010-04-30 23:17:54 huangwei Exp $
  */
 /************************************************************************
 *									*
@@ -157,10 +157,10 @@ XSTUFF:
 #endif
 
 #ifdef	BuildRasterHDF
-HDFSTUFF:
+RASTERHDFSTUFF:
 	@echo "y"
 #else
-HDFSTUFF:
+RASTERHDFSTUFF:
 	@echo "n"
 #endif
 
@@ -188,6 +188,14 @@ NETCDF4STUFF:
 	@echo "n"
 #endif
 
+#ifdef	BuildHDF
+HDFSTUFF:
+	@echo "y"
+#else
+HDFSTUFF:
+	@echo "n"
+#endif
+
 #ifdef	BuildHDFEOS
 HDFEOSSTUFF:
 	@echo "y"
@@ -204,6 +212,14 @@ HDFEOS5STUFF:
 	@echo "n"
 #endif
 
+#ifdef	BuildHDF5
+HDF5STUFF:
+	@echo "y"
+#else
+HDF5STUFF:
+	@echo "n"
+#endif
+
 #ifdef	BuildCAIRO
 CAIROSTUFF:
 	@echo "y"
@@ -217,6 +233,14 @@ GDALSTUFF:
 	@echo "y"
 #else
 GDALSTUFF:
+	@echo "n"
+#endif
+
+#ifdef	BuildGRIDSPEC
+GRIDSPECSTUFF:
+	@echo "y"
+#else
+GRIDSPECSTUFF:
 	@echo "n"
 #endif
 
