@@ -1,6 +1,6 @@
 Name:           ncl
 Version:        6.2.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        NCAR Command Language and NCAR Graphics
 
 Group:          Applications/Engineering
@@ -128,7 +128,7 @@ Example programs and data using NCL.
 %patch13 -p1 -b .includes
 %patch16 -p1 -b .secondary
 # Build against atlas
-%if 0%{?fedora} >= 21 || %{?rhel} >= 7
+%if 0%{?fedora} >= 21 || 0%{?rhel} >= 7
 %global atlasblaslib -ltatlas
 %global atlaslapacklib -ltatlas
 %else
@@ -338,6 +338,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Jan 08 2015 Orion Poplawski <orion@cora.nwra.com> - 6.2.1-2
+- Rebuild for hdf5 1.8.14
+
 * Fri Sep 5 2014 Orion Poplawski - 6.2.1-1
 - Update to 6.2.1
 
