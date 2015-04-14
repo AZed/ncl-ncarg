@@ -1,6 +1,6 @@
 #!/bin/csh -f
 #
-#	$Id: nhlcc.csh,v 1.3 2008/02/07 00:22:03 haley Exp $
+#	$Id: nhlcc.csh,v 1.6 2010/04/02 17:52:38 haley Exp $
 #
 
 #*********************************************#
@@ -15,7 +15,7 @@ if ($status != 0) then
 endif
 
 set xlibs = "SED_XLIB"
-set pnglib = "SED_PNGLIB"
+set cairolib = "SED_CAIROLIB"
 set system   = "SED_SYSTEM_INCLUDE"
 set cc       = "SED_CC"
 set defines  = "SED_STDDEF SED_PROJDEF"
@@ -34,15 +34,18 @@ set incpath = "-I$incdir $sysincdir"
 # set up default libraries
 #
 set libncarg    = "-lncarg"
-set libgks      = "-lncarg_gks"
+set libgks      = "-lSED_LIBNCARG_GKS"
+set libcgks     = "-lSED_LIBNCARG_CGKS"
 set libmath     = ""
 set libncarg_c  = "-lncarg_c"
-set libhlu      = "-lhlu"
+set libhlu      = "-lSED_LIBHLU"
+set libchlu     = "-lSED_LIBCHLU"
 set ncarbd      = "$ro/libncarbd.o"
 set ngmathbd    = "$ro/libngmathbd.o"
 set extra_libs
 
 set robjs
+unset CAIRO_LD
 unset NGMATH_LD
 unset NGMATH_BLOCKD_LD
 
@@ -52,6 +55,10 @@ foreach arg ($argv)
   case "-XmXt":
   case "-xmxt":
     set extra_libs = "$extra_libs SED_XMOTIFLIB SED_XTOOLLIB"
+    breaksw
+
+  case "-cairo":
+    set CAIRO_LD
     breaksw
 
   case "-ngmath":
@@ -92,9 +99,13 @@ if ($?NGMATH_LD && $?NGMATH_BLOCKD_LD) then
   set robjs = "$robjs $ngmathbd"
 endif
 
-set ncarg_libs = "$libhlu $libncarg $libgks $libncarg_c $libmath"
-
-set newargv = "$newargv $libpath $incpath $extra_libs $robjs $ncarg_libs $xlibs $pnglib $f77libs"
+if ($?CAIRO_LD) then
+  set ncarg_libs = "$libchlu $libncarg $libcgks $libncarg_c $libmath"
+  set newargv = "$newargv $libpath $incpath $extra_libs $robjs $ncarg_libs $xlibs $cairolib $f77libs"
+else
+  set ncarg_libs = "$libhlu $libncarg $libgks $libncarg_c $libmath"
+  set newargv = "$newargv $libpath $incpath $extra_libs $robjs $ncarg_libs $xlibs $f77libs"
+endif
 
 echo $newargv
 eval $newargv

@@ -58,24 +58,8 @@ begin
 ;
 ; Create workstation object.
 ;
-
-  NCGM=1
-  X11=0
-  PS=0
-  PDF=0
- 
-  if (NCGM .eq. 1) then
-    wid = gsn_open_wks("ncgm","nm17n")
-  end if
-  if (X11 .eq. 1) then
-    wid = gsn_open_wks("x11","nm17n")
-  end if
-  if (PS .eq. 1) then
-    wid = gsn_open_wks("ps","nm17n")
-  end if
-  if (PDF .eq. 1) then
-    wid = gsn_open_wks("pdf","nm17n")
-  end if
+  wks_type = "ncgm"
+  wid = gsn_open_wks(wks_type,"nm17n")
 
 ;
 ;  Draw an isosurface plot of the approximated function at isovalue = 3.

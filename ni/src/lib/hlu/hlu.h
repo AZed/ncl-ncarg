@@ -1,5 +1,5 @@
 /*
- *      $Id: hlu.h,v 1.39 2003/04/04 18:34:08 dbrown Exp $
+ *      $Id: hlu.h,v 1.41 2009/07/28 15:49:02 huangwei Exp $
  */
 /************************************************************************
 *									*
@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 
 #include <ncarg/hlu/defs.h>
 
@@ -85,6 +86,11 @@
 #define NhlTShort	"Short"
 #define NhlTInteger	"Integer"
 #define NhlTLong	"Long"
+#define NhlTInt64	"Int64"
+#define NhlTUshort	"Ushort"
+#define NhlTUint	"Uint"
+#define NhlTUlong	"Ulong"
+#define NhlTUint64	"Uint64"
 
 /* public real types supported */
 #define NhlTFloat	"Float"
@@ -111,6 +117,11 @@
 #define NhlTShortGenArray	"ShortGenArray"
 #define NhlTIntegerGenArray	"IntegerGenArray"
 #define NhlTLongGenArray	"LongGenArray"
+#define NhlTInt64GenArray	"Int64GenArray"
+#define NhlTUshortGenArray	"UshortGenArray"
+#define NhlTUintGenArray	"UintGenArray"
+#define NhlTUlongGenArray	"UlongGenArray"
+#define NhlTUint64GenArray	"Uint64GenArray"
 
 #define NhlTFloatGenArray	"FloatGenArray"
 #define NhlTDoubleGenArray	"DoubleGenArray"
@@ -123,6 +134,19 @@
  /* They are only supported in converters as a "from" type */
 #define	NhlTQuark		"Quark"
 #define	NhlTQuarkGenArray	"QuarkGenArray"
+
+#ifndef LLONG_MAX
+/* Minimum and maximum values a `signed long long int' can hold.  */
+#   define LLONG_MAX    9223372036854775807LL
+#   define LLONG_MIN    (-LLONG_MAX - 1LL)
+#endif
+
+#ifndef ULLONG_MAX
+/* Maximum value an `unsigned long long int' can hold.  (Minimum is 0.)  */
+#   define ULLONG_MAX   18446744073709551615ULL
+#endif
+
+extern long long local_strtoll(const char *nptr, char **endptr, int base);
 
 typedef	char	*NhlString;
 typedef	void	*NhlPointer;
@@ -155,7 +179,11 @@ union _NhlType_ {
 	float		fltval;
 	NhlString	strval;
 	double		dblval;
-	unsigned long	ulngval;/* no converter support */
+	long long	int64val;
+	unsigned short	        ushortval;
+	unsigned int		uintval;
+	unsigned long		ulongval;
+	unsigned long long	uint64val;
 };
 
 typedef	union _NhlType_	NhlArgVal;

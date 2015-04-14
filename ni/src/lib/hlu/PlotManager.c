@@ -1,5 +1,5 @@
 /*
- *      $Id: PlotManager.c,v 1.72 2004/12/20 20:14:21 dbrown Exp $
+ *      $Id: PlotManager.c,v 1.74 2010/03/19 22:44:25 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -667,7 +667,9 @@ PlotManagerClassInitialize
 		{NhlNOCREATE,		"NoCreate"},
 		{NhlNEVER,		"Never"},
 		{NhlCONDITIONAL,	"Conditional"},
-		{NhlALWAYS,		"Always"}
+		{NhlALWAYS,		"Always"},
+		{NhlFORCEALWAYS,	"ForceAlways"},
+
         };
 
         _NhlRegisterEnumType(NhlviewClass,NhlTAnnotationDisplayMode,
@@ -1289,6 +1291,9 @@ static NhlErrorTypes PlotManagerSetValues
 		 * associated with member overlay plots need to be updated.
 		 */
 
+		if (ovp->trans_changed) {
+			plot_tfp->overlay_trans_obj = ovnew->trans.trans_obj;
+		}
 		if (ovl && (ovp->update_req || ovp->trans_changed))
 			NhlSetSArg(&sargs[nargs++],NhlNpmUpdateReq,True);
 		if (ovl && ovp->update_anno_req)

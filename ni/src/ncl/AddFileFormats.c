@@ -32,6 +32,22 @@ void
 );
 #endif
 
+#ifdef BuildHDFEOS5
+extern NclFormatFunctionRecPtr HDFEOS5AddFileFormat(
+#if     NhlNeedProto
+void
+#endif
+);
+#endif
+
+#ifdef BuildHDF5
+extern NclFormatFunctionRecPtr HDF5AddFileFormat(
+#if     NhlNeedProto
+void
+#endif
+);
+#endif
+
 extern NclFormatFunctionRecPtr NetCdfAddFileFormat(
 #if	NhlNeedProto
 void
@@ -81,6 +97,13 @@ void _NclAddFileFormats
 	_NclRegisterFormat(HDFEOSAddFileFormat,"hdfeos");
 	_NclRegisterFormat(HDFEOSAddFileFormat,"he2");
 	_NclRegisterFormat(HDFEOSAddFileFormat,"he4");
+#endif
+#ifdef BuildHDFEOS5
+	_NclRegisterFormat(HDFEOS5AddFileFormat,"hdfeos5");
+	_NclRegisterFormat(HDFEOS5AddFileFormat,"he5");
+#endif
+#ifdef BuildHDF5
+        _NclRegisterFormat(HDF5AddFileFormat,"h5");
 #endif
 	_NclRegisterFormat(GribAddFileFormat,"gr");
 	_NclRegisterFormat(GribAddFileFormat,"gr1");

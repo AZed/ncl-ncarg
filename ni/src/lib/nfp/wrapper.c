@@ -9,7 +9,9 @@
  * Declare wrapper function
  */
 extern NhlErrorTypes vinth2p_W(void);
+extern NhlErrorTypes vinth2p_nodes_W(void);
 extern NhlErrorTypes vinth2p_ecmwf_W(void);
+extern NhlErrorTypes vinth2p_ecmwf_nodes_W(void);
 extern NhlErrorTypes vintp2p_ecmwf_W(void);
 
 extern NhlErrorTypes g2gsh_W(void);
@@ -39,7 +41,9 @@ extern NhlErrorTypes eofcor_ts_pcmsg_W(void);
 extern NhlErrorTypes eof2data_W(void);
 extern NhlErrorTypes eof_varimax_W(void);
 extern NhlErrorTypes eofunc_varimax_W(void);
+extern NhlErrorTypes eofunc_varimax_jl_W(void);
 extern NhlErrorTypes center_finite_diff_W(void);
+extern NhlErrorTypes center_finite_diff_n_W(void);
 extern NhlErrorTypes uv2vr_cfd_W(void);
 extern NhlErrorTypes uv2dv_cfd_W(void);
 extern NhlErrorTypes svdcov_W(void);
@@ -76,6 +80,7 @@ extern NhlErrorTypes wrf_dbz_W(void);
 extern NhlErrorTypes wrf_eth_W(void);
 extern NhlErrorTypes wrf_pvo_W(void);
 extern NhlErrorTypes wrf_avo_W(void);
+extern NhlErrorTypes wrf_helicity_W(void);
 extern NhlErrorTypes wrf_ll_to_ij_W(void);
 extern NhlErrorTypes wrf_ij_to_ll_W(void);
 extern NhlErrorTypes cape_thermo_W(void);
@@ -89,6 +94,7 @@ extern NhlErrorTypes mjo_cross_coh2pha_W(void);
 extern NhlErrorTypes bin_sum_W(void);
 extern NhlErrorTypes bin_avg_W(void);
 extern NhlErrorTypes trop_wmo_W(void);
+extern NhlErrorTypes moc_globe_atl_W(void);
 
 extern NhlErrorTypes rgbhsv_W(void);
 extern NhlErrorTypes hsvrgb_W(void);
@@ -396,18 +402,23 @@ extern NhlErrorTypes rdsstoi_W(void);
 extern NhlErrorTypes vibeta_W(void);
 extern NhlErrorTypes prcwater_dp_W(void);
 extern NhlErrorTypes int2p_W(void);
+extern NhlErrorTypes int2p_n_W(void);
 extern NhlErrorTypes zonal_mpsi_W(void);
 extern NhlErrorTypes taper_W(void);
+extern NhlErrorTypes taper_n_W(void);
 extern NhlErrorTypes hydro_W(void);
 extern NhlErrorTypes mixhum_ptrh_W(void);
 extern NhlErrorTypes mixhum_ptd_W(void);
 extern NhlErrorTypes dewtemp_trh_W(void);
 extern NhlErrorTypes lclvl_W(void);
 extern NhlErrorTypes linmsg_W(void);
+extern NhlErrorTypes linmsg_n_W(void);
 extern NhlErrorTypes linint1_W(void);
+extern NhlErrorTypes linint1_n_W(void);
 extern NhlErrorTypes linint2_W(void);
 extern NhlErrorTypes linint2_points_W(void);
 extern NhlErrorTypes area_hi2lores_W(void);
+extern NhlErrorTypes area_conserve_remap_W(void);
 extern NhlErrorTypes rcm2rgrid_W(void);
 extern NhlErrorTypes rgrid2rcm_W(void);
 extern NhlErrorTypes rcm2points_W(void);
@@ -425,6 +436,7 @@ extern NhlErrorTypes pslec_W(void);
 extern NhlErrorTypes pslhor_W(void);
 extern NhlErrorTypes dz_height_W(void);
 extern NhlErrorTypes gc_latlon_W(void);
+extern NhlErrorTypes testspan_W(void);
 
 extern NhlErrorTypes monthday_W(void);
 extern NhlErrorTypes day_of_year_W(void);
@@ -456,7 +468,9 @@ extern NhlErrorTypes    v5d_missing_W(void);
 extern NhlErrorTypes angmom_atm_W(void);
 extern NhlErrorTypes relhum_W(void);
 extern NhlErrorTypes runave_W(void);
+extern NhlErrorTypes runave_n_W(void);
 extern NhlErrorTypes wgt_runave_W(void);
+extern NhlErrorTypes wgt_runave_n_W(void);
 extern NhlErrorTypes wgt_areaave_W(void);
 extern NhlErrorTypes wgt_areaave2_W(void);
 extern NhlErrorTypes wgt_areasum2_W(void);
@@ -470,8 +484,10 @@ extern NhlErrorTypes filwgts_lancos_W(void);
 extern NhlErrorTypes filwgts_lanczos_W(void);
 extern NhlErrorTypes filwgts_normal_W(void);
 extern NhlErrorTypes dtrend_W(void);
+extern NhlErrorTypes dtrend_n_W(void);
 extern NhlErrorTypes dtrend_quadratic_W(void);
 extern NhlErrorTypes dtrend_msg_W(void);
+extern NhlErrorTypes dtrend_msg_n_W(void);
 extern NhlErrorTypes local_min_W(void);
 extern NhlErrorTypes local_max_W(void);
 extern NhlErrorTypes fluxEddy_W(void);
@@ -506,6 +522,7 @@ extern NhlErrorTypes wavelet_default_W(void);
 extern NhlErrorTypes grid2triple_W(void);
 extern NhlErrorTypes triple2grid_W(void);
 extern NhlErrorTypes triple2grid2d_W(void);
+extern NhlErrorTypes obj_anal_ic_W(void);
 
 extern NhlErrorTypes random_setallseed_W(void);
 extern NhlErrorTypes random_chi_W(void);
@@ -567,6 +584,26 @@ void NclAddUserFuncs(void)
         NclRegisterFunc(vinth2p_W,args,"vinth2p",nargs);
 
 /*
+ * Register "vinth2p_nodes".
+ *
+ * Create private argument array.
+ */
+ 
+        nargs = 0;
+        args = NewArgs(9);
+        SetArgTemplate(args,0,"numeric",0,NclANY);nargs++;
+        SetArgTemplate(args,1,"numeric",1,NclANY);nargs++;
+        SetArgTemplate(args,2,"numeric",1,NclANY);nargs++;
+        SetArgTemplate(args,3,"numeric",1,NclANY);nargs++;
+        SetArgTemplate(args,4,"numeric",0,NclANY);nargs++;
+        dimsizes[0] = 1;
+        SetArgTemplate(args,5,"integer",1,dimsizes);nargs++;
+        SetArgTemplate(args,6,"numeric",1,dimsizes);nargs++;
+        SetArgTemplate(args,7,"integer",1,dimsizes);nargs++;
+        SetArgTemplate(args,8,"logical",1,dimsizes);nargs++;
+        NclRegisterFunc(vinth2p_nodes_W,args,"vinth2p_nodes",nargs);
+
+/*
  * Register "vinth2p_ecmwf".
  *
  * Create private argument array.
@@ -589,6 +626,30 @@ void NclAddUserFuncs(void)
         SetArgTemplate(args,10,"numeric",0,NclANY);nargs++;
         SetArgTemplate(args,11,"numeric",0,NclANY);nargs++;
         NclRegisterFunc(vinth2p_ecmwf_W,args,"vinth2p_ecmwf",nargs);
+
+/*
+ * Register "vinth2p_ecmwf_nodes".
+ *
+ * Create private argument array.
+ */
+ 
+        nargs = 0;
+        args = NewArgs(12);
+        SetArgTemplate(args,0,"numeric",0,NclANY);nargs++;
+        SetArgTemplate(args,1,"numeric",1,NclANY);nargs++;
+        SetArgTemplate(args,2,"numeric",1,NclANY);nargs++;
+        SetArgTemplate(args,3,"numeric",1,NclANY);nargs++;
+        SetArgTemplate(args,4,"numeric",0,NclANY);nargs++;
+        dimsizes[0] = 1;
+        SetArgTemplate(args,5,"integer",1,dimsizes);nargs++;
+        SetArgTemplate(args,6,"numeric",1,dimsizes);nargs++;
+        SetArgTemplate(args,7,"integer",1,dimsizes);nargs++;
+        SetArgTemplate(args,8,"logical",1,dimsizes);nargs++;
+
+        SetArgTemplate(args,9,"integer",1,dimsizes);nargs++;
+        SetArgTemplate(args,10,"numeric",0,NclANY);nargs++;
+        SetArgTemplate(args,11,"numeric",0,NclANY);nargs++;
+        NclRegisterFunc(vinth2p_ecmwf_nodes_W,args,"vinth2p_ecmwf_nodes",nargs);
 
 /*
  * Register "vintp2p_ecmwf".
@@ -938,6 +999,18 @@ void NclAddUserFuncs(void)
     NclRegisterFunc(eofunc_varimax_W,args,"eofunc_varimax",nargs);
 
 /*
+ * Register "eofunc_varimax_jl".
+ *
+ * Create private argument array.
+ */
+    nargs = 0;
+    args = NewArgs(2);
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    dimsizes[0] = 1;
+    SetArgTemplate(args,nargs,0,1,dimsizes);nargs++;
+    NclRegisterFunc(eofunc_varimax_jl_W,args,"eofunc_varimax_jl",nargs);
+
+/*
  * Register "eof2data".
  *
  * Create private argument array.
@@ -960,6 +1033,20 @@ void NclAddUserFuncs(void)
     SetArgTemplate(args,nargs,"logical",1,dimsizes);nargs++;
     SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
     NclRegisterFunc(center_finite_diff_W,args,"center_finite_diff",nargs);
+/*
+ * Register "center_finite_diff_n".
+ *
+ * Create private argument array.
+ */
+    nargs = 0;
+    args = NewArgs(5);
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    dimsizes[0] = 1;
+    SetArgTemplate(args,nargs,"logical",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    NclRegisterFunc(center_finite_diff_n_W,args,"center_finite_diff_n",nargs);
 /*
  * Register "uv2vr_cfd".
  *
@@ -1488,6 +1575,23 @@ void NclAddUserFuncs(void)
         NclRegisterFunc(wrf_avo_W,args,"wrf_avo",nargs);
 
 /*
+ * Register "wrf_helicity".
+ *
+ * Create private argument array
+ */
+        nargs = 0;
+        args = NewArgs(5);
+
+        dimsizes[0] = 1;
+        SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+        SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+        SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+        SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+        SetArgTemplate(args,nargs,"numeric",1,dimsizes);nargs++;
+
+        NclRegisterFunc(wrf_helicity_W,args,"wrf_helicity",nargs);
+
+/*
  * Register "wrf_ll_to_ij".
  *
  * Create private argument array
@@ -1671,6 +1775,23 @@ void NclAddUserFuncs(void)
         SetArgTemplate(args,nargs,"logical",1,dimsizes);nargs++;
 
         NclRegisterFunc(trop_wmo_W,args,"trop_wmo",nargs);
+
+/*
+ * Register "moc_globe_atl".
+ *
+ * Create private argument array
+ */
+    nargs = 0;
+    args = NewArgs(6);
+    
+    SetArgTemplate(args,nargs,"numeric",1,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",3,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",3,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",3,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",2,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"integer",3,NclANY);nargs++;
+
+    NclRegisterFunc(moc_globe_atl_W,args,"moc_globe_atl",nargs);
 
 /*
  * Register "gc_onarc".
@@ -3425,10 +3546,10 @@ void NclAddUserFuncs(void)
         nargs = 0;
         args = NewArgs(4);
 
-        SetArgTemplate(args,nargs,"float",2,NclANY);nargs++;
-        SetArgTemplate(args,nargs,"integer",1,NclANY);nargs++;
-        SetArgTemplate(args,nargs,"float",2,NclANY);nargs++;
         dimsizes[0] = 1;
+        SetArgTemplate(args,nargs,"float",2,NclANY);nargs++;
+        SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+        SetArgTemplate(args,nargs,"float",2,NclANY);nargs++;
         SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
 
         NclRegisterFunc(tdotri_W,args,"tdotri",nargs);
@@ -5647,6 +5768,18 @@ void NclAddUserFuncs(void)
     SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
     NclRegisterFunc(int2p_W,args,"int2p",nargs);
 /*
+ * Register "int2p_n".
+ */
+    nargs = 0;
+    args = NewArgs(5);
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    dimsizes[0] = 1;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    NclRegisterFunc(int2p_n_W,args,"int2p_n",nargs);
+/*
  * Register "zonal_mpsi".
  */
     nargs = 0;
@@ -5666,6 +5799,17 @@ void NclAddUserFuncs(void)
     SetArgTemplate(args,nargs,"numeric",1,dimsizes);nargs++;
     SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
     NclRegisterFunc(taper_W,args,"taper",nargs);
+/*
+ * Register "taper_n".
+ */
+    nargs = 0;
+    args = NewArgs(4);
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    dimsizes[0] = 1;
+    SetArgTemplate(args,nargs,"numeric",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    NclRegisterFunc(taper_n_W,args,"taper_n",nargs);
 /*
  * Register "hydro".
  */
@@ -5728,6 +5872,16 @@ void NclAddUserFuncs(void)
     NclRegisterFunc(linmsg_W,args,"linmsg",nargs);
 
 /*
+ * Register "linmsg_n".
+ */
+    nargs = 0;
+    args = NewArgs(3);
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,NclANY);nargs++;
+    NclRegisterFunc(linmsg_n_W,args,"linmsg_n",nargs);
+
+/*
  * Register "linint1".
  */
     nargs = 0;
@@ -5742,6 +5896,23 @@ void NclAddUserFuncs(void)
 
     SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
     NclRegisterFunc(linint1_W,args,"linint1",nargs);
+
+/*
+ * Register "linint1_n".
+ */
+    nargs = 0;
+    args = NewArgs(6);
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+
+    dimsizes[0] = 1;
+    SetArgTemplate(args,nargs,"logical",1,dimsizes);nargs++;
+
+    SetArgTemplate(args,nargs,"numeric",1,NclANY);nargs++;
+
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    NclRegisterFunc(linint1_n_W,args,"linint1_n",nargs);
 
 /*
  * Register "linint2".
@@ -5797,6 +5968,23 @@ void NclAddUserFuncs(void)
     SetArgTemplate(args,nargs,"logical",1,dimsizes);nargs++;
 
     NclRegisterFunc(area_hi2lores_W,args,"area_hi2lores",nargs);
+
+/*
+ * Register "area_conserve_remap".
+ *
+ * Create private argument array
+ */
+    nargs = 0;
+    args = NewArgs(6);
+
+    SetArgTemplate(args,nargs,"numeric",1,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",1,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",1,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",1,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"logical",1,dimsizes);nargs++;
+
+    NclRegisterFunc(area_conserve_remap_W,args,"area_conserve_remap",nargs);
 
 /*
  * Register "rcm2rgrid".
@@ -6039,6 +6227,20 @@ void NclAddUserFuncs(void)
 
     NclRegisterFunc(gc_latlon_W,args,"gc_latlon",nargs);
 /*
+ * Register "testspan".
+ *
+ * Create private argument array
+ */
+    nargs = 0;
+    args = NewArgs(3);
+
+    dimsizes[0] = 1;
+    SetArgTemplate(args,nargs,"numeric",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"numeric",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"numeric",1,dimsizes);nargs++;
+
+    NclRegisterFunc(testspan_W,args,"testspan",nargs);
+/*
  * Register "monthday".
  */
     nargs = 0;
@@ -6180,6 +6382,18 @@ void NclAddUserFuncs(void)
     NclRegisterFunc(runave_W,args,"runave",nargs);
 
 /*
+ * Register "runave_n".
+ */
+    nargs = 0;
+    args = NewArgs(4);
+    dimsizes[0] = 1;
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    NclRegisterFunc(runave_n_W,args,"runave_n",nargs);
+
+/*
  * Register "wgt_runave".
  */
     nargs = 0;
@@ -6189,6 +6403,18 @@ void NclAddUserFuncs(void)
     SetArgTemplate(args,nargs,"numeric",1,NclANY);nargs++;
     SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
     NclRegisterFunc(wgt_runave_W,args,"wgt_runave",nargs);
+
+/*
+ * Register "wgt_runave_n".
+ */
+    nargs = 0;
+    args = NewArgs(4);
+    dimsizes[0] = 1;
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",1,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    NclRegisterFunc(wgt_runave_n_W,args,"wgt_runave_n",nargs);
 
 /*
  * Register "wgt_areaave".
@@ -6341,6 +6567,17 @@ void NclAddUserFuncs(void)
     NclRegisterFunc(dtrend_W,args,"dtrend",nargs);
 
 /*
+ * Register "dtrend_n".
+ */
+    nargs = 0;
+    args = NewArgs(3);
+    dimsizes[0] = 1;
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"logical",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    NclRegisterFunc(dtrend_n_W,args,"dtrend_n",nargs);
+
+/*
  * Register "dtrend_quadratic".
  */
     nargs = 0;
@@ -6361,6 +6598,19 @@ void NclAddUserFuncs(void)
     SetArgTemplate(args,nargs,"logical",1,dimsizes);nargs++;
     SetArgTemplate(args,nargs,"logical",1,dimsizes);nargs++;
     NclRegisterFunc(dtrend_msg_W,args,"dtrend_msg",nargs);
+
+/*
+ * Register "dtrend_msg_n".
+ */
+    nargs = 0;
+    args = NewArgs(5);
+    SetArgTemplate(args,nargs,"numeric",1,NclANY);nargs++;
+    SetArgTemplate(args,nargs,"numeric",0,NclANY);nargs++;
+    dimsizes[0] = 1;
+    SetArgTemplate(args,nargs,"logical",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"logical",1,dimsizes);nargs++;
+    SetArgTemplate(args,nargs,"integer",1,dimsizes);nargs++;
+    NclRegisterFunc(dtrend_msg_n_W,args,"dtrend_msg_n",nargs);
 
 /*
  * Register "local_min".
@@ -6726,6 +6976,24 @@ void NclAddUserFuncs(void)
 
     NclRegisterFunc(triple2grid2d_W, args, "triple2grid2d", nargs);
 
+/*
+ * Register "obj_anal_ic".
+ *
+ * Create private argument array
+ */
+    nargs = 0;
+    args = NewArgs(7);
+
+    SetArgTemplate(args, nargs, "numeric", 1, NclANY);  nargs++;
+    SetArgTemplate(args, nargs, "numeric", 1, NclANY);  nargs++;
+    SetArgTemplate(args, nargs, "numeric", 0, NclANY);  nargs++;
+    SetArgTemplate(args, nargs, "numeric", 1, NclANY);  nargs++;
+    SetArgTemplate(args, nargs, "numeric", 1, NclANY);  nargs++;
+    SetArgTemplate(args, nargs, "numeric", 1, NclANY);  nargs++;
+    dimsizes[0] = 1;
+    SetArgTemplate(args, nargs, "logical", 1, dimsizes);  nargs++;
+
+    NclRegisterFunc(obj_anal_ic_W,args,"obj_anal_ic",nargs);
 /*
  *  Register paleo_outline.
  */
@@ -7329,7 +7597,7 @@ NclScalar         *missing_dx)
 }
 
 /*
- * Coerce a subset of the data to double.
+ * Coerce a contiguous subset of the data to double.
  */
 void coerce_subset_input_double(
 void              *x,
@@ -7374,6 +7642,63 @@ NclScalar         *missing_dx
                NULL,
                NULL,
                typeclass_x);
+  }
+}
+
+/*
+ * Coerce a non-contiguous subset of the data to double.
+ */
+void coerce_subset_input_double_step(
+void              *x,
+double            *tmp_x,
+int               index_x,
+int               step_x,
+NclBasicDataTypes type_x,
+int               size_x,
+int               has_missing_x,
+NclScalar         *missing_x,
+NclScalar         *missing_dx
+)
+{
+  int i, ii;
+  NclTypeClass typeclass_x;
+  
+/*
+ * typeclass_x is what allows us to get the size of the type of x.
+ */
+  typeclass_x = (NclTypeClass)_NclNameToTypeClass(NrmStringToQuark(_NclBasicDataTypeToName(type_x)));
+/*
+ * Coerce x to double.
+ */
+  if(has_missing_x) {
+/*
+ * Coerce subset to double, with missing values.
+ */
+    for(i = 0; i < size_x; i++ ) {
+      ii = step_x*i;
+      _Nclcoerce((NclTypeClass)nclTypedoubleClass,
+                 &tmp_x[i],
+                 (void*)((char*)x+(index_x+ii)*(typeclass_x->type_class.size)),
+                 1,
+                 missing_x,
+                 missing_dx,
+                 typeclass_x);
+    }
+  }
+  else {
+/*
+ * Coerce subset to double, with no missing values.
+ */
+    for(i = 0; i < size_x; i++ ) {
+      ii = step_x*i;
+      _Nclcoerce((NclTypeClass)nclTypedoubleClass,
+                 &tmp_x[i],
+                 (void*)((char*)x+(index_x+ii)*(typeclass_x->type_class.size)),
+                 1,
+                 NULL,
+                 NULL,
+                 typeclass_x);
+    }
   }
 }
 
@@ -7583,6 +7908,29 @@ double            missing_x)
 }
 
 
+/*
+ * Sets a subset of non-contiguous output data to missing.
+ */
+void set_subset_output_missing_step(
+void              *x,
+int               index_x,
+int               step_x,
+NclBasicDataTypes type_x,
+int               size_x,
+double            missing_x)
+{
+  int i;
+  for(i = 0; i < size_x; i++) {
+    if(type_x != NCL_double) {
+      ((float*)x)[index_x + i*step_x] = (float)missing_x;
+    }
+    else {
+      ((double*)x)[index_x + i*step_x] = missing_x;
+    }
+  }
+}
+
+
 void compute_nlatnlon(
 int *dsizes,
 int ndims,
@@ -7703,6 +8051,30 @@ int    index_x
 }
 
 
+/*
+ * Copy double data back to double or float non-contiguous array,
+ * using a void array. 
+ */
+void coerce_output_float_or_double_step(
+void   *x,
+double *dx,
+NclBasicDataTypes type_x,
+int    size_x,
+int    index_x,
+int    step_x
+)
+{
+  int i;
+
+  if(type_x == NCL_double) {
+    for( i = 0; i < size_x; i++ ) ((double*)x)[index_x+(step_x*i)] = dx[i];
+  }
+  else {
+    for( i = 0; i < size_x; i++ ) ((float*)x)[index_x+(step_x*i)]  = (float)dx[i];
+  }
+}
+
+
 
 /*
  * Coerce data to float, or just return a pointer to it if
@@ -7752,7 +8124,7 @@ NclScalar         *missing_fx)
 }
 
 /*
- * Coerce a subset of the data to float.
+ * Coerce a contiguous subset of the data to float.
  */
 void coerce_subset_input_float(
 void              *x,

@@ -49,49 +49,63 @@ begin
 ;
 ; Default is to display output to an X workstation
 ;
-  NCGM=0
-  X11=1
-  PS=0
-  PDF=0
+wks_type = "x11"
 
-  if (NCGM .eq. 1) then
+  if (str_lower(wks_type).eq."ncgm") then
 ;
 ; Create an ncgmWorkstation object.
 ;
-      wid = create "cn13Work" ncgmWorkstationClass defaultapp
-         "wkColorMap"         : cmap
-         "wkMetaName" : "./cn13n.ncgm"
-      end create
-  else
-    if (X11 .eq. 1) then
+    wid = create "cn13Work" ncgmWorkstationClass defaultapp
+       "wkColorMap"         : cmap
+       "wkMetaName" : "./cn13n.ncgm"
+    end create
+  end if
+  if (str_lower(wks_type).eq."x11") then
 ;
 ; Create an XWorkstation object.
 ;
-      wid = create "cn13Work" xWorkstationClass defaultapp
-          "wkColorMap"         : cmap
-          "wkPause" : True
-      end create
-    else
-      if (PS .eq. 1) then
+    wid = create "cn13Work" xWorkstationClass defaultapp
+      "wkColorMap"         : cmap
+      "wkPause" : True
+    end create
+  end if
+  if (str_lower(wks_type).eq."ps") then
 ;
 ; Create a PSWorkstation object.
 ;
-        wid = create "cn13Work" psWorkstationClass defaultapp
-         "wkPSFileName" : "./cn13n.ps"
-         "wkColorMap"         : cmap
-        end create
-      else
-        if (PDF .eq. 1) then
+    wid = create "cn13Work" psWorkstationClass defaultapp
+     "wkPSFileName" : "./cn13n.ps"
+     "wkColorMap"         : cmap
+    end create
+  end if
+  if (str_lower(wks_type).eq."pdf") then
 ;
 ; Create a PDFWorkstation object.
 ;
-          wid = create "cn13Work" pdfWorkstationClass defaultapp
-           "wkPDFFileName" : "./cn13n.pdf"
-           "wkColorMap"         : cmap
-          end create
-        end if
-      end if
-    end if
+    wid = create "cn13Work" pdfWorkstationClass defaultapp
+     "wkPDFFileName" : "./cn13n.pdf"
+     "wkColorMap"         : cmap
+    end create
+  end if
+  if (str_lower(wks_type).eq."newpdf".or.str_lower(wks_type).eq."newps") then
+;
+; Create a cairo PS/PDF Workstation object.
+;
+    wid = create "cn13Work" documentWorkstationClass defaultapp
+     "wkFileName" : "./cn13n"
+     "wkFormat" : wks_type
+     "wkColorMap"         : cmap
+    end create
+  end if
+  if (str_lower(wks_type).eq."newpng".or.str_lower(wks_type).eq."png") then
+;
+; Create a cairo PNG Workstation object.
+;
+    wid = create "cn13Work" imageWorkstationClass defaultapp
+     "wkFileName" : "./cn13n"
+     "wkFormat" : wks_type
+     "wkColorMap"         : cmap
+    end create
   end if
 ;
 ; Create a MapPlot object.

@@ -1,5 +1,5 @@
 ;
-; $Id: basic09n.ncl,v 1.6 1998/06/01 16:00:11 haley Exp $
+; $Id: basic09n.ncl,v 1.8 2010/03/15 22:49:23 haley Exp $
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                       ;
@@ -23,39 +23,57 @@
 
 begin
 
+wks_type = "x11"
 
-;
-; Set the display. Default is to display output to an X workstation
-;
-NCGM=0
-X11=1
-PS=0
-
-if (NCGM .eq. 1) then
+if (str_lower(wks_type).eq."ncgm") then
 ;
 ; Create an ncgmWorkstation object.
 ;
   wid = create "wks" ncgmWorkstationClass defaultapp
       "wkMetaName" : "basic09n.ncgm"
   end create
-else
-  if (X11 .eq. 1) then
+end if
+if (str_lower(wks_type).eq."x11") then
 ;
 ; Create an XWorkstation object.
 ;
-    wid = create "wks" xWorkstationClass defaultapp
-      "wkPause" : "True"
-    end create
-  else
-    if (PS .eq. 1) then
+  wid = create "wks" xWorkstationClass defaultapp
+    "wkPause" : "True"
+  end create
+end if
+if (str_lower(wks_type).eq."ps") then
 ;
 ; Create a PSWorkstation object.
 ;
-      wid = create "wks" psWorkstationClass defaultapp
-        "wkPSFileName" : "basic09n.ps"
-      end create
-    end if
-  end if
+  wid = create "wks" psWorkstationClass defaultapp
+    "wkPSFileName" : "basic09n.ps"
+  end create
+end if
+if (str_lower(wks_type).eq."pdf") then
+;
+; Create a PDFWorkstation object.
+;
+  wid = create "wks" pdfWorkstationClass defaultapp
+    "wkPDFFileName" : "basic09n.pdf"
+  end create
+end if
+if (str_lower(wks_type).eq."newpdf".or.str_lower(wks_type).eq."newps") then
+;
+; Create a cairo PS/PDF Workstation object.
+;
+  wid = create "wks" documentWorkstationClass defaultapp
+    "wkFileName" : "basic09n"
+    "wkFormat"   : wks_type
+  end create
+end if
+if (str_lower(wks_type).eq."newpng".or.str_lower(wks_type).eq."png") then
+;
+; Create a cairo PNG Workstation object.
+;
+  wid = create "wks" imageWorkstationClass defaultapp
+    "wkFileName" : "basic09n"
+    "wkFormat"   : wks_type
+  end create
 end if
 
 ;

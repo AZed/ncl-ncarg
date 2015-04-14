@@ -1,5 +1,5 @@
 /*
- *      $Id: cn14c.c,v 1.6 2003/02/28 22:19:25 grubin Exp $
+ *      $Id: cn14c.c,v 1.8 2010/03/15 22:49:23 haley Exp $
  */
 /***********************************************************************
 *                                                                      *
@@ -31,6 +31,8 @@
 #include <ncarg/hlu/NcgmWorkstation.h>
 #include <ncarg/hlu/PSWorkstation.h>
 #include <ncarg/hlu/PDFWorkstation.h>
+#include <ncarg/hlu/CairoWorkstation.h>
+#include <ncarg/hlu/ImageWorkstation.h>
 #include <ncarg/hlu/ContourPlot.h>
 #include <ncarg/hlu/MapPlot.h>
 #include <ncarg/hlu/ScalarField.h>
@@ -81,7 +83,7 @@ main()
 /*
  * Default is to display to an X11 window.
  */
-    int NCGM=0, X11=1, PS=0, PDF=0;
+    char const *wks_type = "x11";
 /*
  * Generate a color map.
  */
@@ -145,7 +147,7 @@ main()
 	NhlRLSetString(srlist,"appUsrDir","./");
 	NhlCreate(&appid,"cn14",NhlappClass,0,srlist);
 
-	if (NCGM) {
+	if (!strcmp(wks_type,"ncgm") || !strcmp(wks_type,"NCGM")) {
 /*
  * Create an NCGM workstation.
  */
@@ -153,7 +155,7 @@ main()
 	  NhlRLSetString(srlist,"wkMetaName","./cn14c.ncgm");
 	  NhlCreate(&workid,"cn14Work",NhlncgmWorkstationClass,0,srlist);
 	}
-	else if (X11) {
+	else if (!strcmp(wks_type,"x11") || !strcmp(wks_type,"X11")) {
 /*
  * Create an XWorkstation object.
  */
@@ -161,7 +163,7 @@ main()
 	  NhlRLSetString(srlist,"wkPause","True");
 	  NhlCreate(&workid,"cn14Work",NhlxWorkstationClass,0,srlist);
 	}
-	else if (PS) {
+	else if (!strcmp(wks_type,"ps") || !strcmp(wks_type,"PS")) {
 /*
  * Create a PostScript workstation.
  */
@@ -169,13 +171,33 @@ main()
 	  NhlRLSetString(srlist,"wkPSFileName","./cn14c.ps");
 	  NhlCreate(&workid,"cn14Work",NhlpsWorkstationClass,0,srlist);
 	}
-	else if (PDF) {
+	else if (!strcmp(wks_type,"pdf") || !strcmp(wks_type,"PDF")) {
 /*
  * Create a PDF workstation.
  */
 	  NhlRLClear(srlist);
 	  NhlRLSetString(srlist,"wkPDFFileName","./cn14c.pdf");
 	  NhlCreate(&workid,"cn14Work",NhlpdfWorkstationClass,0,srlist);
+	}
+        else if (!strcmp(wks_type,"newpdf") || !strcmp(wks_type,"NEWPDF") ||
+                 !strcmp(wks_type,"newps") || !strcmp(wks_type,"NEWPS")) {
+/*
+ * Create a cairo PS/PDF workstation.
+ */
+	  NhlRLClear(srlist);
+	  NhlRLSetString(srlist,"wkFileName","./cn14c");
+	  NhlRLSetString(srlist,"wkFormat",(char*)wks_type);
+	  NhlCreate(&workid,"cn14Work",NhlcairoPSPDFWorkstationClass,0,srlist);
+	}
+        else if (!strcmp(wks_type,"newpng") || !strcmp(wks_type,"NEWPNG") ||
+                 !strcmp(wks_type,"png") || !strcmp(wks_type,"PNG")) {
+/*
+ * Create a cairo PNG workstation.
+ */
+	  NhlRLClear(srlist);
+	  NhlRLSetString(srlist,"wkFileName","./cn14c");
+	  NhlRLSetString(srlist,"wkFormat",(char*)wks_type);
+	  NhlCreate(&workid,"cn14Work",NhlcairoImageWorkstationClass,0,srlist);
 	}
 /*
  * Set color map resource.

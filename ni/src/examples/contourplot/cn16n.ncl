@@ -41,45 +41,57 @@ begin
 ;
 ; Output to an X11 workstation
 ;
-  NCGM=0
-  X11=1
-  PS=0
-  PDF=0
+wks_type = "x11"
 
-if (NCGM.eq.1) then
+if (str_lower(wks_type).eq."ncgm")
 ;
 ; Create an ncgmWorkstation object.
 ;
   wid = create "cn16Work" ncgmWorkstationClass defaultapp
     "wkMetaName" : "./cn16n.ncgm"
   end create
-else
-  if (X11.eq.1) then
+end if
+if (str_lower(wks_type).eq."x11") then
 ;
 ; Create an XWorkstation object.
 ;
-   wid = create "cn16Work" xWorkstationClass defaultapp
-     "wkPause" : True
-   end create
-  else
-    if (PS .eq. 1) then
+ wid = create "cn16Work" xWorkstationClass defaultapp
+   "wkPause" : True
+ end create
+end if
+if (str_lower(wks_type).eq."ps") then
 ;
 ; Create a PSWorkstation object.
 ;
-      wid = create "cn16Work" psWorkstationClass defaultapp
-        "wkPSFileName" : "./cn16n.ps"
-      end create
-    else
-      if (PDF .eq. 1) then
+  wid = create "cn16Work" psWorkstationClass defaultapp
+    "wkPSFileName" : "./cn16n.ps"
+  end create
+end if
+if (str_lower(wks_type).eq."pdf") then
 ;
 ; Create a PDFWorkstation object.
 ;
-        wid = create "cn16Work" pdfWorkstationClass defaultapp
-          "wkPDFFileName" : "./cn16n.pdf"
-        end create
-      end if
-    end if
-  end if
+  wid = create "cn16Work" pdfWorkstationClass defaultapp
+    "wkPDFFileName" : "./cn16n.pdf"
+  end create
+end if
+if (str_lower(wks_type).eq."newpdf".or.str_lower(wks_type).eq."newps") then
+;
+; Create a cairo PS/PDF Workstation object.
+;
+  wid = create "cn16Work" documentWorkstationClass defaultapp
+    "wkFileName" : "./cn16n"
+    "wkFormat" : wks_type
+  end create
+end if
+if (str_lower(wks_type).eq."newpng".or.str_lower(wks_type).eq."png") then
+;
+; Create a cairo PNG Workstation object.
+;
+  wid = create "cn16Work" imageWorkstationClass defaultapp
+    "wkFileName" : "./cn16n"
+    "wkFormat" : wks_type
+  end create
 end if
 ;
 ; Create a ContourPlot Object

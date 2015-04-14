@@ -1,4 +1,4 @@
-; $Id: basic05n.ncl,v 1.13 2003/02/28 21:43:14 grubin Exp $
+; $Id: basic05n.ncl,v 1.15 2010/03/15 22:49:23 haley Exp $
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                       ;
 ;                Copyright (C)  1995                                    ;
@@ -34,55 +34,69 @@ colorindices = ispan(1,232,1)
 ;
 ; Set the display. Default is to display output to an X workstation
 ;
-NCGM=0
-X11=1
-PS=0
-PDF=0
+wks_type = "x11"
 
-if (NCGM .eq. 1) then
+if (str_lower(wks_type).eq."ncgm") then
 ;
 ; Create an ncgmWorkstation object with default colormap.
 ;
   wks = create "wks" ncgmWorkstationClass defaultapp
-      "wkMetaName" : "basic05n.ncgm"
-      "wkColorMap" : "default"        ; Set Colormap to default. Note,
-                                      ; this assignment is redundant.
+    "wkMetaName" : "basic05n.ncgm"
+    "wkColorMap" : "default"        ; Set Colormap to default. Note,
+                                    ; this assignment is redundant.
   end create
-else
-  if (X11 .eq. 1) then
+end if
+if (str_lower(wks_type).eq."x11") then
 ;
 ; Create an XWorkstation object with default colormap.
 ;
-    wks = create "wks" xWorkstationClass defaultapp
-      "wkPause" : "True"
-      "wkXColorMode" : "private"      ; Set color mode to private to avoid
-                                      ; contention for colors from other apps.
-      "wkColorMap" : "default"        ; Set Colormap to default. Note,
-                                      ; this assignment is redundant.
-    end create
-  else
-    if (PS .eq. 1) then
+  wks = create "wks" xWorkstationClass defaultapp
+    "wkPause" : "True"
+    "wkXColorMode" : "private"      ; Set color mode to private to avoid
+                                    ; contention for colors from other apps.
+    "wkColorMap" : "default"        ; Set Colormap to default. Note,
+                                    ; this assignment is redundant.
+  end create
+end if
+if (str_lower(wks_type).eq."ps") then
 ;
 ; Create a PSWorkstation object.
 ;
-      wks = create "wks" psWorkstationClass defaultapp
-        "wkPSFileName" : "basic05n.ps"
-        "wkColorMap" : "default"       ; Set Colormap to default. Note,
-                                       ; this assignment is redundant.
-      end create
-    else
-      if (PDF .eq. 1) then
+  wks = create "wks" psWorkstationClass defaultapp
+    "wkPSFileName" : "basic05n.ps"
+    "wkColorMap" : "default"       ; Set Colormap to default. Note,
+                                   ; this assignment is redundant.
+  end create
+end if
+if (str_lower(wks_type).eq."pdf") then
 ;
 ; Create a PDFWorkstation object.
 ;
-        wks = create "wks" pdfWorkstationClass defaultapp
-          "wkPDFFileName" : "basic05n.pdf"
-          "wkColorMap" : "default"       ; Set Colormap to default. Note,
-                                         ; this assignment is redundant.
-        end create
-      end if
-    end if
-  end if
+  wks = create "wks" pdfWorkstationClass defaultapp
+    "wkPDFFileName" : "basic05n.pdf"
+    "wkColorMap" : "default"       ; Set Colormap to default. Note,
+                                   ; this assignment is redundant.
+  end create
+end if
+if (str_lower(wks_type).eq."newpdf".or.str_lower(wks_type).eq."newps") then
+;
+; Create a cairo PS/PDF Workstation object.
+;
+  wks = create "wks" documentWorkstationClass defaultapp
+    "wkFileName" : "basic05n"
+    "wkFormat"   : wks_type
+    "wkColorMap" : "default"
+  end create
+end if
+if (str_lower(wks_type).eq."newpng".or.str_lower(wks_type).eq."png") then
+;
+; Create a cairo PNG Workstation object.
+;
+  wks = create "wks" imageWorkstationClass defaultapp
+    "wkFileName" : "basic05n"
+    "wkFormat"   : wks_type
+    "wkColorMap" : "default"
+  end create
 end if
 
 ; Create a labelbar object. 

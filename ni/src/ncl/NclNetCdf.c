@@ -1,5 +1,5 @@
 /*
- *      $Id: NclNetCdf.c,v 1.53 2009/05/04 19:23:30 dbrown Exp $
+ *      $Id: NclNetCdf.c,v 1.55 2010/02/12 23:47:10 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -442,11 +442,15 @@ static void *NetInitializeFileRec
 NclFileFormatType *format;
 #endif
 {
+	static int first = True;
 	NetCdfFileRecord *therec = NULL;
 	size_t blksize = getpagesize();
 
-	Qmissing_val = NrmStringToQuark("missing_value");
-	Qfill_val = NrmStringToQuark("_FillValue");
+	if (first) {
+		Qmissing_val = NrmStringToQuark("missing_value");
+		Qfill_val = NrmStringToQuark("_FillValue");
+		first = False;
+	}
 
         /*nc_set_log_level(3);*/
 
@@ -1903,6 +1907,13 @@ void* data;
 				stepal = stepvl->var_inq->att_list;
 				while(stepal != NULL) {
 					if(stepal->att_inq->name == theatt) {
+						if (! stepal->att_inq->virtual) {
+							/* if the value is the same as before don't bother writing it */
+							if (! memcmp(stepal->att_inq->value,data,
+								     nctypelen(stepal->att_inq->data_type)*stepal->att_inq->len)) {
+								return NhlNOERROR;
+							}
+						}
 						if (rec->open) {
 							cdfid = rec->cdfid;
 						}
@@ -1940,11 +1951,11 @@ void* data;
 							       stepvl->var_inq->varid,
 							       NrmQuarkToString(theatt),(int)stepal->att_inq->data_type,strlen(buffer));
 #endif                
-							if (stepal->att_inq->value != NULL)
+							if (ret != -1 && stepal->att_inq->value != NULL)
 								memcpy(stepal->att_inq->value,data,sizeof(NclQuark));
 							stepal->att_inq->virtual = 0;
-							
-						} else {
+						}
+						else {
 							if(stepal->att_inq->virtual) {
 								if (! rec->define_mode) {
 									ncredef(cdfid);
@@ -1961,7 +1972,7 @@ void* data;
 							       stepvl->var_inq->varid,
 							       NrmQuarkToString(theatt),(int)stepal->att_inq->data_type,stepal->att_inq->len);
 #endif                
-							if (stepal->att_inq->value != NULL) {
+							if (ret != -1 && stepal->att_inq->value != NULL) {
 								memcpy(stepal->att_inq->value,data,
 								       nctypelen(stepal->att_inq->data_type)*stepal->att_inq->len);
 							}
@@ -1973,8 +1984,14 @@ void* data;
 							CloseOrNot(rec,cdfid,0);
 						}
 						if(ret == -1) {
-							NhlPError(NhlFATAL,NhlEUNKNOWN,"NetCdf: An error occurred while attempting to write the attribute (%s) to variable (%s) in file (%s)",NrmQuarkToString(theatt),NrmQuarkToString(thevar),NrmQuarkToString(rec->file_path_q));
-							return(NhlFATAL);
+							if (theatt == NrmStringToQuark("_FillValue") && rec->format > 2) {
+								NhlPError(NhlWARNING,NhlEUNKNOWN,"NetCdf: NetCDF 4 does not allow the _FillValue attribute to be modified after data written to variable (%s) in file (%s)",NrmQuarkToString(thevar),NrmQuarkToString(rec->file_path_q));
+								return (NhlWARNING);
+							}
+							else {
+								NhlPError(NhlFATAL,NhlEUNKNOWN,"NetCdf: An error occurred while attempting to write the attribute (%s) to variable (%s) in file (%s)",NrmQuarkToString(theatt),NrmQuarkToString(thevar),NrmQuarkToString(rec->file_path_q));
+								return(NhlFATAL);
+							}
 						}
 						return(NhlNOERROR);
 					} else {	

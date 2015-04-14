@@ -1,5 +1,5 @@
 C
-C      $Id: xy06f.f,v 1.12 2003/03/03 21:31:21 grubin Exp $
+C      $Id: xy06f.f,v 1.14 2010/03/15 22:49:25 haley Exp $
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C                                                                      C
@@ -39,6 +39,8 @@ C
       external NhlFNcgmWorkstationClass
       external NhlFPSWorkstationClass
       external NhlFPDFWorkstationClass
+      external NhlFCairoPSPDFWorkstationClass
+      external NhlFCairoImageWorkstationClass
       external NhlFXWorkstationClass
       external NhlFXyPlotClass
       external NhlFCoordArraysClass
@@ -102,14 +104,12 @@ C
      +          0.75,0.00,0.75,
      +          1.00,1.00,0.00/
 
-      integer NCGM, X11, PS, PDF
+      CHARACTER*7  wks_type
 C
-C Default is to an X workstation.
+C Define the workstation type
 C
-      NCGM=0
-      X11=1
-      PS=0
-      PDF=0
+      wks_type = "x11"
+C
 C
 C Initialize the HLU library and set up resource template.
 C
@@ -128,7 +128,7 @@ C
       length(1) = 3
       length(2) = NCOLORS
 
-      if (NCGM.eq.1) then
+      if (wks_type.eq."ncgm".or.wks_type.eq."NCGM") then
 C
 C Create an NCGM workstation.
 C
@@ -138,7 +138,7 @@ C
      +        ierr)
          call NhlFCreate(xworkid,'xy06Work',
      +        NhlFNcgmWorkstationClass,0,rlist,ierr)
-      else if (X11.eq.1) then
+      else if (wks_type.eq."x11".or.wks_type.eq."X11") then
 C
 C Create an xworkstation object.
 C
@@ -148,7 +148,7 @@ C
      +        ierr)
          call NhlFCreate(xworkid,'xy06Work',NhlFXWorkstationClass,
      +        0,rlist,ierr)
-      else if (PS.eq.1) then
+      else if (wks_type.eq."ps".or.wks_type.eq."PS") then
 C
 C Create a PostScript workstation.
 C
@@ -158,7 +158,7 @@ C
      +        ierr)
          call NhlFCreate(xworkid,'xy06Work',
      +        NhlFPSWorkstationClass,0,rlist,ierr)
-      else if (PDF.eq.1) then
+      else if (wks_type.eq."pdf".or.wks_type.eq."PDF") then
 C
 C Create a PDF workstation.
 C
@@ -168,6 +168,30 @@ C
      +        ierr)
          call NhlFCreate(xworkid,'xy06Work',
      +        NhlFPDfWorkstationClass,0,rlist,ierr)
+      else if (wks_type.eq."newpdf".or.wks_type.eq."NEWPDF".or.
+     +         wks_type.eq."newps".or.wks_type.eq."NEWPS") then
+C
+C Create a cairo PS/PDF workstation.
+C
+         call NhlFRLClear(rlist)
+         call NhlFRLSetString(rlist,'wkFileName','./xy06f',ierr)
+         call NhlFRLSetString(rlist,'wkFormat',wks_type,ierr)
+         call NhlFRLSetMDFloatArray(rlist,'wkColorMap',cmap,2,length,
+     +        ierr)
+         call NhlFCreate(xworkid,'xy06Work',
+     +        NhlFcairoPSPDFWorkstationClass,0,rlist,ierr)
+      else if (wks_type.eq."newpng".or.wks_type.eq."NEWPNG".or.
+     +         wks_type.eq."png".or.wks_type.eq."PNG") then
+C
+C Create a cairo PNG workstation.
+C
+         call NhlFRLClear(rlist)
+         call NhlFRLSetString(rlist,'wkFileName','./xy06f',ierr)
+         call NhlFRLSetString(rlist,'wkFormat',wks_type,ierr)
+         call NhlFRLSetMDFloatArray(rlist,'wkColorMap',cmap,2,length,
+     +        ierr)
+         call NhlFCreate(xworkid,'xy06Work',
+     +        NhlFcairoImageWorkstationClass,0,rlist,ierr)
       endif
 C
 C We need to initialize a non-constant dummy array for our Data

@@ -1,5 +1,5 @@
 /*
- *      $Id: userAddFuncs.c,v 1.24 2009/06/09 20:36:32 dbrown Exp $
+ *      $Id: userAddFuncs.c,v 1.30 2010/02/07 01:34:26 haley Exp $
  */
 /************************************************************************
 *                                                                       *
@@ -65,6 +65,7 @@ extern "C" {
 #include "NclFileInterfaces.h"
 #include <signal.h>
 #include <netcdf.h>
+#include <regex.h>
 
 #define NCL_INITIAL_STRING_LENGTH 2048
 
@@ -382,6 +383,128 @@ NhlErrorTypes _Nclstr_get_field
     return NclReturnValue(arraySubString, ndim_strs, dimsz_strs, (has_missing_ret ? &ret_missing : NULL), NCL_string, 0);
 
 }
+
+
+NhlErrorTypes _Nclstr_split
+#if     NhlNeedProto
+(void)
+#else
+()
+#endif
+{
+    string *strs;
+    string *delim;
+
+    int ndim_strs, dimsz_strs[NCL_MAX_DIMENSIONS];
+    int has_missing_strs;
+    int has_missing_delim;
+    int has_missing_ret = 0;
+    NclScalar   missing_strs;
+    NclScalar   missing_delim;
+    NclScalar   ret_missing;
+  
+    int n;
+
+    char *tmp_str;
+    char *tmp_delim;
+    char *result = NULL;
+    string *arraySubString;
+
+    int max_length = 1;
+    
+    strs = (string *) NclGetArgValue(
+                        0,
+                        2,
+                        &ndim_strs,
+                        dimsz_strs,
+                        &missing_strs,
+                        &has_missing_strs,
+                        NULL,
+                        DONT_CARE);
+
+    if (strs == NULL)
+    {
+        NhlPError(NhlFATAL, NhlEUNKNOWN, "str_get_field: input string is null.");
+        return NhlFATAL;
+    }
+
+    delim = (string *) NclGetArgValue(
+                        1,
+                        2,
+                        NULL,
+                        NULL,
+                        &missing_delim,
+                        &has_missing_delim,
+                        NULL,
+                        DONT_CARE);
+
+    if(has_missing_strs)
+        ret_missing.stringval = missing_strs.stringval;
+    else
+        ret_missing.stringval = (string) ((NclTypeClass) nclTypestringClass)->type_class.default_mis.stringval;
+
+    tmp_str = (char *) NrmQuarkToString(delim[0]);
+    tmp_delim = (char *) NclMalloc(strlen(tmp_str)+2);
+    if (! tmp_delim)
+    {
+        NHLPERROR((NhlFATAL,ENOMEM,NULL));
+        return NhlFATAL;
+    }
+    strcpy(tmp_delim, (char *) NrmQuarkToString(delim[0]));
+
+    arraySubString = (string *) NclMalloc(sizeof(string));
+    if (! arraySubString)
+    {
+        NHLPERROR((NhlFATAL,ENOMEM,NULL));
+        return NhlFATAL;
+    }
+
+    if ((has_missing_delim && delim[0] == missing_delim.stringval) ||
+        (has_missing_strs && strs[0] == missing_strs.stringval))
+    {
+        has_missing_ret = 1;
+        arraySubString[0] = ret_missing.stringval;
+    }
+    else
+    {
+        n = strlen((char *) NrmQuarkToString(strs[0])) + 2;
+        tmp_str = (char *) NclMalloc(n);
+        if (! tmp_str)
+        {
+            NHLPERROR((NhlFATAL,ENOMEM,NULL));
+            return NhlFATAL;
+        }
+
+        strcpy(tmp_str, (char *) NrmQuarkToString(strs[0]));
+        result = strtok(tmp_str, tmp_delim);
+        n = 0;
+        while(result != NULL)
+        {
+            arraySubString[n] = NrmStringToQuark(result);
+            n++;
+            if(n >= max_length)
+            {
+                max_length *= 2;
+                arraySubString = (string *) NclRealloc(arraySubString, max_length*sizeof(string));
+                if (! arraySubString)
+                {
+                    NHLPERROR((NhlFATAL,ENOMEM,NULL));
+                    return NhlFATAL;
+                }
+            }
+            result = strtok(NULL, tmp_delim);
+        }
+        arraySubString = (string *) NclRealloc(arraySubString, n*sizeof(string));
+        ndim_strs = 1;
+        dimsz_strs[0] = n;
+    }
+
+    NclFree(tmp_str);
+    NclFree(tmp_delim);
+    
+    return NclReturnValue(arraySubString, ndim_strs, dimsz_strs, (has_missing_ret ? &ret_missing : NULL), NCL_string, 0);
+}
+
 
 
 NhlErrorTypes _Nclstr_get_cols
@@ -2709,6 +2832,166 @@ NhlErrorTypes _Nclstr_get_nl
 
     NclFree(new_string);
 }
+
+NhlErrorTypes _Nclstr_match
+#if     NhlNeedProto
+(void)
+#else
+()
+#endif
+{
+    string *input_strs;
+    string *input_expr;
+
+    int ndim_input_strs, dimsz_input_strs[NCL_MAX_DIMENSIONS];
+    int has_missing_input_strs;
+    int has_missing_input_expr;
+    int has_missing = 0;
+    NclScalar missing_input_strs;
+    NclScalar missing_input_expr;
+    NclScalar ret_missing;
+
+    NclBasicDataTypes type;
+
+    char *tmp_str;
+    string *output_strs;
+    int i;
+    int str_size;
+    int output_str_size = 0;
+
+    regex_t expr;
+    regmatch_t rm;
+
+  /*
+   *fprintf(stderr, "in file: %s, line: %d\n", __FILE__, __LINE__);
+   */
+
+    input_strs = (string *) NclGetArgValue(
+                        0,
+                        2,
+                        &ndim_input_strs,
+                        dimsz_input_strs,
+                        &missing_input_strs,
+                        &has_missing_input_strs,
+                        &type,
+                        0);
+
+    if (input_strs == NULL)
+    {
+        NHLPERROR((NhlFATAL, NhlEUNKNOWN, "str_match: input string is null."));
+        return NhlFATAL;
+    }
+
+    if(type != NCL_string)
+    {
+        NHLPERROR((NhlFATAL, NhlEUNKNOWN, "str_match: Invalid input string."));
+        return NhlFATAL;
+    }
+
+    if(has_missing_input_strs)
+    {
+        ret_missing.stringval = missing_input_strs.stringval;
+        has_missing = 1;
+    }
+    else
+    {
+        ret_missing.stringval = (string) ((NclTypeClass) nclTypestringClass)->type_class.default_mis.stringval;
+    }
+
+    input_expr = (string *) NclGetArgValue(
+                        1,
+                        2,
+                        NULL,
+                        NULL,
+                        &missing_input_expr,
+                        &has_missing_input_expr,
+                        &type,
+                        0);
+
+    if (input_expr == NULL)
+    {
+        NHLPERROR((NhlFATAL, NhlEUNKNOWN, "str_match: input expression is null."));
+        return NhlFATAL;
+    }
+
+    if(type == NCL_string)
+    {
+        char *reg_exp = NrmQuarkToString(input_expr[0]);
+      /*
+       *fprintf(stderr, "\tfile: %s, line: %d\n", __FILE__, __LINE__);
+       *fprintf(stderr, "\treg_exp: <%s>\n", reg_exp);
+       */
+        if(strlen(reg_exp) > 0)
+        {
+            if(regcomp(&expr,reg_exp,REG_ICASE|REG_EXTENDED) != 0)
+            {
+                NHLPERROR((NhlWARNING,NhlEUNKNOWN,"str_match: Invalid expression"));
+                return NhlFATAL;
+            }
+        }
+    }
+    else
+    {
+        NHLPERROR((NhlFATAL, NhlEUNKNOWN, "str_match: input expression is not a string."));
+        return NhlFATAL;
+    }
+
+    str_size = 1;
+    for(i=0; i<ndim_input_strs; i++)
+        str_size *= dimsz_input_strs[i];
+
+    output_strs = (string *) NclMalloc(str_size*sizeof(string));
+    if (! output_strs)
+    {
+        NHLPERROR((NhlFATAL,ENOMEM,NULL));
+        return NhlFATAL;
+    }
+
+    for(i=0; i<str_size; i++)
+    {
+        if(has_missing_input_strs && input_strs[i] == missing_input_strs.stringval)
+        {
+            has_missing = 1;
+            continue;
+        }
+
+        if(has_missing_input_expr && (input_expr[i] == missing_input_expr.stringval))
+        {
+            continue;
+        }
+
+        tmp_str = (char *) NrmQuarkToString(input_strs[i]);
+      /*
+       *fprintf(stderr, "\tinput_strs[%d]: <%s>\n", i, tmp_str);
+       */
+
+        if(regexec(&expr,tmp_str,1,&rm,0) == 0)
+        {
+            output_strs[output_str_size] = input_strs[i];
+          /*
+           *fprintf(stderr, "\toutput_strs[%d]: <%s>\n",
+           *        output_str_size, NrmQuarkToString(output_strs[output_str_size]));
+           */
+            output_str_size ++;
+        }
+    }
+
+    if(output_str_size)
+        output_strs = (string *) NclRealloc(output_strs, output_str_size*sizeof(string));
+    else
+    {
+        has_missing = 1;
+        output_strs = (string *) NclRealloc(output_strs, sizeof(string));
+        output_strs[output_str_size] = ret_missing.stringval;
+      /*
+       *output_strs[output_str_size] = NrmStringToQuark("NO MATCH");
+       */
+        output_str_size = 1;
+    }
+
+    return NclReturnValue(output_strs, 1, &output_str_size, ( has_missing ? &ret_missing : NULL ), NCL_string, 0);
+}
+
 
 #ifdef __cplusplus
 }

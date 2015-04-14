@@ -1,5 +1,5 @@
 ;
-;   $Id: ti01n.ncl,v 1.8 2003/03/03 17:46:23 grubin Exp $
+;   $Id: ti01n.ncl,v 1.10 2010/03/15 22:49:25 haley Exp $
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                      ;
@@ -39,45 +39,57 @@ end create
 ;
 ; Default is to display output to an X workstation
 ;
-NCGM=0
-X11=1
-PS=0
-PDF=0
+wks_type = "x11"
 
-if (NCGM .eq. 1) then
+if (str_lower(wks_type).eq."ncgm") then
 ;
 ; Create an ncgmWorkstation object.
 ;
   wid = create "ti01Work" ncgmWorkstationClass defaultapp
       "wkMetaName"         : "ti01n.ncgm"
   end create
-else
-  if (X11 .eq. 1) then
+end if
+if (str_lower(wks_type).eq."x11") then
 ;
 ; Create an XWorkstation object.
 ;
-    wid = create "ti01Work" xWorkstationClass defaultapp
-      "wkPause" : "True"
-    end create
-  else
-    if (PS .eq. 1) then
+  wid = create "ti01Work" xWorkstationClass defaultapp
+    "wkPause" : "True"
+  end create
+end if
+if (str_lower(wks_type).eq."ps") then
 ;
 ; Create a PSWorkstation object.
 ;
-      wid = create "ti01Work" psWorkstationClass defaultapp
-        "wkPSFileName"         : "ti01n.ps"
-      end create
-    else
-      if (PDF .eq. 1) then
+  wid = create "ti01Work" psWorkstationClass defaultapp
+    "wkPSFileName"         : "ti01n.ps"
+  end create
+end if
+if (str_lower(wks_type).eq."pdf") then
 ;
 ; Create a PDFWorkstation object.
 ;
-        wid = create "ti01Work" pdfWorkstationClass defaultapp
-          "wkPDFFileName"         : "ti01n.pdf"
-        end create
-      end if
-    end if
-  end if
+  wid = create "ti01Work" pdfWorkstationClass defaultapp
+    "wkPDFFileName"         : "ti01n.pdf"
+  end create
+end if
+if (str_lower(wks_type).eq."newpdf".or.str_lower(wks_type).eq."newps") then
+;
+; Create a cairo PS/PDF Workstation object.
+;
+  wid = create "ti01Work" documentWorkstationClass defaultapp
+    "wkFileName"         : "ti01n"
+    "wkFormat"         : wks_type
+  end create
+end if
+if (str_lower(wks_type).eq."newpng".or.str_lower(wks_type).eq."png") then
+;
+; Create a cairo PNG Workstation object.
+;
+  wid = create "ti01Work" imageWorkstationClass defaultapp
+    "wkFileName"         : "ti01n"
+    "wkFormat"         : wks_type
+  end create
 end if
 
 ;

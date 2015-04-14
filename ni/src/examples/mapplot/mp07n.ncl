@@ -47,44 +47,56 @@ begin
 ;
 ; Default is to display output to an X workstation
 ;
-  NCGM=0
-  X11=1
-  PS=0
-  PDF=0
+  wks_type = "x11"
 
-  if (NCGM .eq. 1) then
+  if (str_lower(wks_type).eq."ncgm") then
 ;
 ; Create an ncgmWorkstation object.
 ;
       wks = create "mp07Work" ncgmWorkstationClass defaultapp
         "wkMetaName"          : "./mp07n.ncgm"
       end create
-  else
-    if (X11 .eq. 1) then 
+  end if
+  if (str_lower(wks_type).eq."x11") then 
 ;
 ; Create an XWorkstation object.
 ;
-      wks = create "mp07Work" xWorkstationClass defaultapp
-      end create
-    else
-      if (PS .eq. 1) then
+    wks = create "mp07Work" xWorkstationClass defaultapp
+    end create
+  end if
+  if (str_lower(wks_type).eq."ps") then
 ;
 ; Create a PSWorkstation object.
 ;
-        wks = create "mp07Work" psWorkstationClass defaultapp
-          "wkPSFileName"      : "./mp07n.ps"
-        end create
-      else
-        if (PDF .eq. 1) then
+    wks = create "mp07Work" psWorkstationClass defaultapp
+      "wkPSFileName"      : "./mp07n.ps"
+    end create
+  end if
+  if (str_lower(wks_type).eq."pdf") then
 ;
 ; Create a PDFWorkstation object.
 ;
-          wks = create "mp07Work" pdfWorkstationClass defaultapp
-            "wkPDFFileName" : "./mp07n.pdf"
-          end create
-        end if
-      end if
-    end if
+    wks = create "mp07Work" pdfWorkstationClass defaultapp
+      "wkPDFFileName" : "./mp07n.pdf"
+    end create
+  end if
+  if (str_lower(wks_type).eq."newpdf".or.str_lower(wks_type).eq."newps") then
+;
+; Create a cairo PS/PDF Workstation object.
+;
+    wks = create "mp07Work" documentWorkstationClass defaultapp
+      "wkFileName" : "./mp07n"
+      "wkFormat" : wks_type
+    end create
+  end if
+  if (str_lower(wks_type).eq."newpng".or.str_lower(wks_type).eq."png") then
+;
+; Create a cairo PNG Workstation object.
+;
+    wks = create "mp07Work" imageWorkstationClass defaultapp
+      "wkFileName" : "./mp07n"
+      "wkFormat" : wks_type
+    end create
   end if
 
   mapid = create "map"  mapPlotClass wks

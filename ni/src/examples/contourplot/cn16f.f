@@ -1,5 +1,5 @@
 C
-C      $Id: cn16f.f,v 1.3 2005/05/09 03:02:04 haley Exp $
+C      $Id: cn16f.f,v 1.5 2010/03/15 22:49:23 haley Exp $
 C
 C***********************************************************************
 C                                                                      *
@@ -24,6 +24,8 @@ C
       external NhlFNcgmWorkstationClass
       external NhlFPSWorkstationClass
       external NhlFPDFWorkstationClass
+      external NhlFCairoPSPDFWorkstationClass
+      external NhlFCairoImageWorkstationClass
       external NhlFXWorkstationClass
       external NhlFScalarFieldClass
       external NhlFContourPlotClass
@@ -61,14 +63,12 @@ C
       integer start(3), count(3), lonlen, latlen
       character*256 filename
       character*50 recname
+      character*7  wks_type
 C
 C Default is to create an X11 window.
 C
-      integer NCGM, X11, PS, PDF
-      NCGM=0
-      X11=1
-      PS=0
-      PDF=0
+      wks_type = "x11"
+
 C
 C Initialize the HLU library and set up resource template.
 C A resource file is not used in this example, but if you did
@@ -81,7 +81,7 @@ C
       call NhlFRLSetString(srlist,'appUsrDir','./',ierr)
       call NhlFCreate(appid,'cn16',NhlFAppClass,0,srlist,ierr)
 
-      if (NCGM.eq.1) then
+      if (wks_type.eq."ncgm".or.wks_type.eq."NCGM") then
 C
 C Create an NCGM workstation.
 C
@@ -89,7 +89,7 @@ C
          call NhlFRLSetString(srlist,'wkMetaName','./cn16f.ncgm',ierr)
          call NhlFCreate(wid,'cn16Work',
      +        NhlFNcgmWorkstationClass,0,srlist,ierr)
-      else if (X11.eq.1) then
+      else if (wks_type.eq."x11".or.wks_type.eq."X11") then
 C
 C Create an XWorkstation object.
 C
@@ -97,7 +97,7 @@ C
          call NhlFRLSetString(srlist,'wkPause','True',ierr)
          call NhlFCreate(wid,'cn16Work',NhlFXWorkstationClass,
      +        0,srlist,ierr)
-      else if (PS.eq.1) then
+      else if (wks_type.eq."ps".or.wks_type.eq."PS") then
 C
 C Create a PostScript workstation.
 C
@@ -105,7 +105,7 @@ C
          call NhlFRLSetString(srlist,'wkPSFileName','./cn16f.ps',ierr)
          call NhlFCreate(wid,'cn16Work',
      +        NhlFPSWorkstationClass,0,srlist,ierr)
-      else if (PDF.eq.1) then
+      else if (wks_type.eq."pdf".or.wks_type.eq."PDF") then
 C
 C Create a PDF workstation.
 C
@@ -113,6 +113,26 @@ C
          call NhlFRLSetString(srlist,'wkPDFFileName','./cn16f.pdf',ierr)
          call NhlFCreate(wid,'cn16Work',
      +        NhlFPDFWorkstationClass,0,srlist,ierr)
+      else if (wks_type.eq."newpdf".or.wks_type.eq."NEWPDF".or.
+     +         wks_type.eq."newps".or.wks_type.eq."NEWPS") then
+C
+C Create a cairo PS/PDF workstation.
+C
+         call NhlFRLClear(srlist)
+         call NhlFRLSetString(srlist,'wkFileName','./cn16f',ierr)
+         call NhlFRLSetString(srlist,'wkFormat',wks_type,ierr)
+         call NhlFCreate(wid,'cn16Work',
+     +        NhlFCairoPSPDFWorkstationClass,0,srlist,ierr)
+      else if (wks_type.eq."newpng".or.wks_type.eq."NEWPNG".or.
+     +         wks_type.eq."png".or.wks_type.eq."PNG") then
+C
+C Create a cairo PNG workstation.
+C
+         call NhlFRLClear(srlist)
+         call NhlFRLSetString(srlist,'wkFileName','./cn16f',ierr)
+         call NhlFRLSetString(srlist,'wkFormat',wks_type,ierr)
+         call NhlFCreate(wid,'cn16Work',
+     +        NhlFCairoImageWorkstationClass,0,srlist,ierr)
       endif
 C
 C Read NCL created NetCDF file containing U and V wind components.

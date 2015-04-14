@@ -1,5 +1,5 @@
 ;
-;      $Id: gsn_csm.ncl,v 1.238 2009/04/21 16:07:44 haley Exp $
+;      $Id: gsn_csm.ncl,v 1.241 2010/03/05 15:28:07 haley Exp $
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                      ;
@@ -1769,9 +1769,15 @@ begin
       txres@txFont = left_string@gsnStringFont
     end if
     strings(0) = left_string@sub_string
-    fhghts(0)  = get_res_value_keep(left_string,"gsnLeftStringFontHeightF",\
-                 get_res_value_keep(left_string,"gsnStringFontHeightF",\
-                 get_res_value_keep(txres,"txFontHeightF",0.0)))
+    if(isatt(left_string,"gsnLeftStringFontHeightF")) then
+      fhghts(0) = get_res_value_keep(left_string,"gsnLeftStringFontHeightF",0.)
+    else
+      if(isatt(left_string,"gsnStringFontHeightF")) then
+        fhghts(0) = get_res_value_keep(left_string,"gsnStringFontHeightF",0.)
+      else
+        fhghts(0) = get_res_value_keep(txres,"txFontHeightF",0.0)
+      end if
+    end if
     colors@s0  = get_res_value_keep(left_string,"gsnLeftStringFontColor",\
                  get_res_value_keep(left_string,"gsnStringFontColor",1))
   end if
@@ -1780,9 +1786,15 @@ begin
       txres@txFont = center_string@gsnStringFont
     end if
     strings(1) = center_string@sub_string
-    fhghts(1)  = get_res_value_keep(center_string,"gsnCenterStringFontHeightF",\
-                 get_res_value_keep(center_string,"gsnStringFontHeightF",\
-                 get_res_value_keep(txres,"txFontHeightF",0.0)))
+    if(isatt(center_string,"gsnCenterStringFontHeightF")) then
+      fhghts(1) = get_res_value_keep(center_string,"gsnCenterStringFontHeightF",0.)
+    else
+      if(isatt(center_string,"gsnStringFontHeightF")) then
+        fhghts(1) = get_res_value_keep(center_string,"gsnStringFontHeightF",0.)
+      else
+        fhghts(1) = get_res_value_keep(txres,"txFontHeightF",0.0)
+      end if
+    end if
     colors@s1  = get_res_value_keep(center_string,"gsnCenterStringFontColor",\
                  get_res_value_keep(center_string,"gsnStringFontColor",1))
   end if
@@ -1791,9 +1803,15 @@ begin
       txres@txFont = right_string@gsnStringFont
     end if
     strings(2) = right_string@sub_string
-    fhghts(2)  = get_res_value_keep(right_string,"gsnRightStringFontHeightF",\
-                 get_res_value_keep(right_string,"gsnStringFontHeightF",\
-                 get_res_value_keep(txres,"txFontHeightF",0.0)))
+    if(isatt(right_string,"gsnRightStringFontHeightF")) then
+      fhghts(2) = get_res_value_keep(right_string,"gsnRightStringFontHeightF",0.)
+    else
+      if(isatt(right_string,"gsnStringFontHeightF")) then
+        fhghts(2) = get_res_value_keep(right_string,"gsnStringFontHeightF",0.)
+      else
+        fhghts(2) = get_res_value_keep(txres,"txFontHeightF",0.0)
+      end if
+    end if
     colors@s2  = get_res_value_keep(right_string,"gsnRightStringFontColor",\
                  get_res_value_keep(right_string,"gsnStringFontColor",1))
   end if
@@ -2429,19 +2447,42 @@ end
 ;***********************************************************************;
 ; Function : fill_bw_xy                                                 ;
 ;                                                                       ;
-; This function takes "n" Y curves, defined on the same set of X        ;
-; points, and fills the area between each adjacent curves with some     ;
-; given color. Depending on options set by the user, the areas between  ;
-; curves can be filled differently if one is greater than another.      ;
+; This function takes "n" Y or X curves, defined on the same set of X   ;
+; or Y points, and fills the area between each adjacent curves with     ;
+; some given color. Depending on options set by the user, the areas     ;
+; between curves can be filled differently if one is greater than       ;
+; another.                                                              ;
 ;                                                                       ;
 ;***********************************************************************;
 undef("fill_bw_xy")
-function fill_bw_xy(wks,plot,xi[*]:numeric,yi[*][*]:numeric,res:logical)
+function fill_bw_xy(wks,plot,xx:numeric,yy:numeric,res:logical)
 local y1_gt_y2, y1, y2, i, ab, bpt, ept, x, y, color, first, last, \
 dsizes_y, rank_y, ncurves, npts, ppts, ppts2, res2, above_fill_colors, \
-below_fill_colors, gsres, dum
+below_fill_colors, gsres, dum, fill_x, xi, yi
 begin
 ;
+; Determine whether we're filling between Y curves or X curves.
+;
+  ndimsx = dimsizes(xx)
+  ndimsy = dimsizes(yy)
+  rankx  = dimsizes(ndimsx)
+  ranky  = dimsizes(ndimsy)
+
+  if(rankx.eq.1.and.ranky.eq.2) then
+    fill_x = False
+    xi = xx
+    yi = yy
+  else
+    if(rankx.eq.2.and.ranky.eq.1) then
+      fill_x = True
+      xi = yy
+      yi = xx
+    else
+      print("fill_bw_xy: Error: If filling between two curves, one set must be 2D, and the other 1D.")
+      return(plot)
+    end if
+  end if
+
 ; Check length of arrays.
 ;
   dsizes_y = dimsizes(yi)
@@ -2449,17 +2490,17 @@ begin
   ncurves  = dsizes_y(0)
 
   if(dsizes_y(1).ne.npts) then
-    print("fill_bw_xy: Error: The rightmost dimension of Y must be the same size as the dimension of X.")
+    print("fill_bw_xy: Error: The rightmost dimension of both arrays must be the same.")
     return(plot)
   end if
 
   if(ncurves.le.1) then
-    print("fill_bw_xy: Error: The leftmost dimension of Y must be at least 2.")
+    print("fill_bw_xy: Error: The leftmost dimension of input array must be at least 2.")
     return(plot)
   end if
 
   if(any(ismissing(xi)))
-    print("fill_bw_xy: Error: The X array cannot contain any missing values")
+    print("fill_bw_xy: Error: The input array cannot contain any missing values")
     return(plot)
   end if
 
@@ -2469,17 +2510,23 @@ begin
 
   if(.not.isatt(res,"gsnXYFillColors").and. \
      .not.isatt(res,"gsnXYAboveFillColors").and. \
-     .not.isatt(res,"gsnXYBelowFillColors")) then
+     .not.isatt(res,"gsnXYBelowFillColors").and. \
+     .not.isatt(res,"gsnXYRightFillColors").and. \
+     .not.isatt(res,"gsnXYLeftFillColors")) then
     return(plot)     ; No resources set, so just return.
   end if
 ;
-; Check resources. There are three possible resources:
+; Check resources. There are five possible resources:
 ;    gsnXYFillColors
 ;    gsnXYAboveFillColors
 ;    gsnXYBelowFillColors
+;    gsnXYRightFillColors
+;    gsnXYLeftFillColors
 ;
-; If the first one is set, it overwrites the second two. If
+; If the first one is set, it overwrites the others. If
 ; none of them are set, then no fill color will be used.
+;
+; To make things a little easier, above==right and below==left
 ;
   res2 = res       ; Make a copy
   if(res2) then
@@ -2488,9 +2535,16 @@ begin
       below_fill_colors = above_fill_colors
       dum               = get_res_value(res2,"gsnXYAboveFillColors",-1)
       dum               = get_res_value(res2,"gsnXYBelowFillColors",-1)
+      dum               = get_res_value(res2,"gsnXYRightFillColors",-1)
+      dum               = get_res_value(res2,"gsnXYLeftFillColors",-1)
     else
-      above_fill_colors = get_res_value(res2,"gsnXYAboveFillColors",-1)
-      below_fill_colors = get_res_value(res2,"gsnXYBelowFillColors",-1)
+      if(fill_x) then
+        above_fill_colors = get_res_value(res2,"gsnXYRightFillColors",-1)
+        below_fill_colors = get_res_value(res2,"gsnXYLeftFillColors",-1)
+      else
+        above_fill_colors = get_res_value(res2,"gsnXYAboveFillColors",-1)
+        below_fill_colors = get_res_value(res2,"gsnXYBelowFillColors",-1)
+      end if
     end if
   end if
 
@@ -2652,9 +2706,15 @@ begin
 ;
             var_string = unique_string("fill_polygon"+npoly)
 
-            plot@$var_string$ = gsn_add_polygon(wks,plot, \
-                                                polygon_x(0:ppts2+2), \
-                                                polygon_y(0:ppts2+2),gsres)
+            if(fill_x) then
+              plot@$var_string$ = gsn_add_polygon(wks,plot, \
+                                                  polygon_y(0:ppts2+2), \
+                                                  polygon_x(0:ppts2+2),gsres)
+            else
+              plot@$var_string$ = gsn_add_polygon(wks,plot, \
+                                                  polygon_x(0:ppts2+2), \
+                                                  polygon_y(0:ppts2+2),gsres)
+            end if
 ;
 ; Advance polygon counter.
 ;
@@ -2673,7 +2733,8 @@ end
 ; Function : fill_xy2                                                   ;
 ;                                                                       ;
 ; This function is obsolete. Use resources gsnXYFillColors,             ;
-;    gsnXYAboveFillColors, or gsnXYBelowFillColors.                     ;
+;    gsnXYAboveFillColors, gsnXYBelowFillColors, gsnXYLeftFillColors,   ;
+;    gsnXYRightFillColors.                                              ;
 ;                                                                       ;
 ; This function takes as input two Y curves, defined on the same set    ;
 ; of X points, and fills the area between the two curves with two       ;
@@ -4002,32 +4063,29 @@ begin
       end if
 
 ; Check if filling between curves is desired. This can be
-; specified via gsnXYFillColors, gsnXYAboveFillColors, or 
-; gsnXYBelowFillColors.
+; specified via gsnXYFillColors, gsnXYAboveFillColors,  
+; gsnXYBelowFillColors, gsnXYLeftFillColors, gsnXYRightFillColors.
 
       fill_atts = (/"gsnXYFillColors", "gsnXYAboveFillColors", \
-                    "gsnXYBelowFillColors"/)
+                    "gsnXYBelowFillColors","gsnXYLeftFillColors", \
+                    "gsnXYRightFillColors"/)
       if(any(isatt(res2,fill_atts))) then
 ;
 ; Make sure you collect the appropriate resources to pass
 ; to fill_bw_xy later.
 ;
         fill_xy_res = True
-        if(isatt(res2,"gsnXYFillColors")) then
-          fill_xy_res@gsnXYFillColors = get_res_value(res2,"gsnXYFillColors",1)
-        end if
-        if(isatt(res2,"gsnXYAboveFillColors")) then
-          fill_xy_res@gsnXYAboveFillColors = get_res_value(res2,"gsnXYAboveFillColors",1)
-        end if
-        if(isatt(res2,"gsnXYBelowFillColors")) then
-          fill_xy_res@gsnXYBelowFillColors = get_res_value(res2,"gsnXYBelowFillColors",1)
-        end if
+        do na = 0,dimsizes(fill_atts)-1
+          if(isatt(res2,fill_atts(na))) then
+            fill_xy_res@$fill_atts(na)$ = get_res_value(res2,fill_atts(na),1)
+          end if
+        end do
 ;
-; This requirement is mostly out of laziness. It wouldn't be that 
-; hard to let X be multi-dimensional.
+; This next requirement is mostly out of laziness. It wouldn't be that 
+; hard to let both X and Y be multi-dimensional. Or would it?
 ;
-        if(ndimsx.ne.1) then
-          print("gsn_csm_xy: Warning: to fill between curves, you need a single set of X points")
+        if(ndimsx.ne.1.and.ndimsy.ne.1) then
+          print("gsn_csm_xy: Warning: to fill between curves, either X or Y must be 1D.")
           fill_xy_res = False
         end if
       end if
@@ -9921,8 +9979,8 @@ end
 ;***********************************************************************;
 ; Function : gsn_csm_contour_map_overlay                                ;
 ;                   wks: workstation object                             ;
-;                 data1: 2-dimensional data                             ;
-;                 data2: 2-dimensional data                             ;
+;                 data1: first data to contour                          ;
+;                 data2: second data to contour                         ;
 ;                  res1: optional resources                             ;
 ;                  res2: optional resources                             ;
 ;                                                                       ;
@@ -9931,11 +9989,18 @@ end
 ;                                                                       ;
 ;***********************************************************************;
 undef("gsn_csm_contour_map_overlay")
-function gsn_csm_contour_map_overlay(wks:graphic,data1[*][*]:numeric,\
-                                     data2[*][*]:numeric,res1:logical, \
-                                     res2:logical)
+function gsn_csm_contour_map_overlay(wks:graphic,data1:numeric,data2:numeric, \
+                                     res1:logical,res2:logical)
 local calldraw, callframe, res1_tmp, res2_tmp
 begin
+;
+; Make sure input data is 1D or 2D
+;
+  if(.not.is_data_1d_or_2d(data1).or..not.is_data_1d_or_2d(data2)) then
+    print("gsn_csm_contour_map_overlay: Fatal: the input data arrays must be 1D or 2D")
+    return
+  end if
+
   res1_tmp  = get_resources(res1)   ; Transfer attributes
   res2_tmp  = get_resources(res2)   ; Transfer attributes
   res1_tmp  = True 

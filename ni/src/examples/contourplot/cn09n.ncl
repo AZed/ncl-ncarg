@@ -57,49 +57,63 @@ cmap = (/ (/0.0, 0.0, 0.0/), \
 	 (/0.5, 0.5, 1.0/), \
 	 (/1.0, 0.0, 0.5/) /)
 
-NCGM=1
-X11=0
-PS=0
-PDF=0
+wks_type = "ncgm"
 
-if (NCGM.eq.1) then
+if (str_lower(wks_type).eq."ncgm")
 ;
 ; Open NCGM workstation.
 ;
-    wks = create "cn09Work" ncgmWorkstationClass defaultapp
-      "wkMetaName" : "cn09n.ncgm"
-      "wkColorMap" : cmap
-    end create
-else
-  if (X11.eq.1) then
+  wks = create "cn09Work" ncgmWorkstationClass defaultapp
+    "wkMetaName" : "cn09n.ncgm"
+    "wkColorMap" : cmap
+  end create
+end if
+if (str_lower(wks_type).eq."x11") then
 ;
 ; Create an X workstation.
 ;
-    wks = create "cn09Work" xWorkstationClass defaultapp
-        "wkColorMap" : cmap
-        "wkPause" : True
-    end create
-  else
-    if (PS.eq.1) then
+  wks = create "cn09Work" xWorkstationClass defaultapp
+      "wkColorMap" : cmap
+      "wkPause" : True
+  end create
+end if
+if (str_lower(wks_type).eq."ps") then
 ;
 ; Open PS workstation.
 ;
-      wks = create "cn09Work" psWorkstationClass defaultapp
-        "wkColorMap" : cmap
-        "wkPSFileName" : "cn09n.ps"
-      end create
-    else
-      if (PDF.eq.1) then
+  wks = create "cn09Work" psWorkstationClass defaultapp
+    "wkColorMap" : cmap
+    "wkPSFileName" : "cn09n.ps"
+  end create
+end if
+if (str_lower(wks_type).eq."pdf") then
 ;
 ; Open PDF workstation.
 ;
-        wks = create "cn09Work" pdfWorkstationClass defaultapp
-          "wkColorMap" : cmap
-          "wkPDFFileName" : "cn09n.pdf"
-        end create
-      end if
-    end if
-  end if
+  wks = create "cn09Work" pdfWorkstationClass defaultapp
+    "wkColorMap" : cmap
+    "wkPDFFileName" : "cn09n.pdf"
+  end create
+end if
+if (str_lower(wks_type).eq."newpdf".or.str_lower(wks_type).eq."newps") then
+;
+; Open cairo PS/PDF workstation.
+;
+  wks = create "cn09Work" documentWorkstationClass defaultapp
+    "wkColorMap" : cmap
+    "wkFileName" : "cn09n"
+    "wkFormat" : wks_type
+  end create
+end if
+if (str_lower(wks_type).eq."newpng".or.str_lower(wks_type).eq."png") then
+;
+; Open cairo PNG workstation.
+;
+  wks = create "cn09Work" imageWorkstationClass defaultapp
+    "wkColorMap" : cmap
+    "wkFileName" : "cn09n"
+    "wkFormat" : wks_type
+  end create
 end if
 
 ;

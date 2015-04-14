@@ -1,6 +1,6 @@
 
 /*
- *      $Id: NclVar.c,v 1.77 2009/05/09 00:22:10 dbrown Exp $
+ *      $Id: NclVar.c,v 1.80 2010/01/27 00:20:21 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -1227,11 +1227,17 @@ char *dim_name;
 		}
 		if (self->var.ref_var != NULL) {
 			NclVar rvar = (NclVar) self->var.ref_var;
-			while (rvar->var.ref_var) {
+			while (rvar) {
 				rvar->var.dim_info[dim_num].dim_quark = dim_quark;
+				if (rvar->var.coord_vars[dim_num] != -1) {
+					tmp_var = (NclVar)_NclGetObj(rvar->var.coord_vars[dim_num]);
+					if(tmp_var != NULL) {
+						tmp_var->var.var_quark = dim_quark;
+						tmp_var->var.dim_info[0].dim_quark = dim_quark;
+					}
+				}
 				rvar = (NclVar) rvar->var.ref_var;
 			}
-			rvar->var.dim_info[dim_num].dim_quark = dim_quark;
 		}
 		return(NhlNOERROR);
 	}  else if(dim_num >= self->var.n_dims){
@@ -2960,9 +2966,18 @@ if(rhs_md->multidval.totalelements !=1) {
 		att_list = tmp_att->att.att_list;
 		for(i = 0; i < tmp_att->att.n_atts; i++) {
 			if(_NclIsAtt(lhs->var.att_id,att_list->attname)) {
-				if(NrmStringToQuark(att_list->attname) != NrmStringToQuark(NCL_MISSING_VALUE_ATT))
+				if(NrmStringToQuark(att_list->attname) != NrmStringToQuark(NCL_MISSING_VALUE_ATT)) {
 					_NclDeleteAtt(lhs->var.att_id,att_list->attname);
-				_NclAddAtt(lhs->var.att_id,att_list->attname,att_list->attvalue,NULL);
+					_NclAddAtt(lhs->var.att_id,att_list->attname,att_list->attvalue,NULL);
+				}
+				else {
+					/*
+					 * Don't allow the _FillValue of other types to be converted to the logical type.
+					 */
+					if (lhs_type != Ncl_Typelogical) {
+						_NclAddAtt(lhs->var.att_id,att_list->attname,att_list->attvalue,NULL);
+					}
+				}
 				att_list = att_list->next;
 			} else {
 				_NclAddAtt(lhs->var.att_id,att_list->attname,att_list->attvalue,NULL);

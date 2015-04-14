@@ -1,5 +1,5 @@
 C
-C      $Id: pr03f.f,v 1.5 2003/03/04 22:12:52 haley Exp $
+C      $Id: pr03f.f,v 1.7 2010/03/15 22:49:24 haley Exp $
 C
 C***********************************************************************
 C                                                                      *
@@ -25,6 +25,8 @@ C
       external NhlFNcgmWorkstationClass
       external NhlFPSWorkstationClass
       external NhlFPDFWorkstationClass
+      external NhlFCairoPSPDFWorkstationClass
+      external NhlFCairoImageWorkstationClass
       external NhlFXWorkstationClass
       external NhlFLogLinPlotClass
       external NhlFGraphicStyleClass
@@ -42,12 +44,11 @@ C
       data pgy/0.25,0.25,0.85,0.25/
       data dpgx/10.0,110.0,110.0,5.0,110.0,10.0,10.0/
       data dpgy/1.,1.,20.0,20.,110.,110,1.0/
-      integer NCGM, X11, PS, PDF
-
-      NCGM=0
-      X11=1
-      PS=0
-      PDF=0
+      character*7  wks_type
+C
+C Define the workstation type
+C
+      wks_type = "x11"
 C
 C Initialize the high level utility library
 C
@@ -66,7 +67,7 @@ C
      1     0,rlist,ierr)
 
 
-      if (NCGM.eq.1) then
+      if (wks_type.eq."ncgm".or.wks_type.eq."NCGM") then
 C
 C  Create a meta file workstation.
 C   
@@ -75,7 +76,7 @@ C
       call NhlFCreate(wid,'pr03Work',NhlFncgmWorkstationClass,
      1    0,rlist,ierr)
     
-      else if (X11.eq.1) then
+      else if (wks_type.eq."x11".or.wks_type.eq."X11") then
 C
 C  Create an X workstation.
 C   
@@ -84,7 +85,7 @@ C
       call NhlFCreate(wid,'pr03Work',NhlFxWorkstationClass,
      1            appid,rlist,ierr)
     
-      else if (PS.eq.1) then
+      else if (wks_type.eq."ps".or.wks_type.eq."PS") then
 C
 C  Create a PS workstation.
 C   
@@ -93,7 +94,7 @@ C
       call NhlFCreate(wid,'pr03Work',NhlFpsWorkstationClass,
      1    appid,rlist,ierr)
 
-      else if (PDF.eq.1) then
+      else if (wks_type.eq."pdf".or.wks_type.eq."PDF") then
 C
 C  Create a PDF workstation.
 C   
@@ -101,6 +102,28 @@ C
       call NhlFRLSetString(rlist,'wkPDFFileName','./pr03f.pdf',ierr)
       call NhlFCreate(wid,'pr03Work',NhlFpdfWorkstationClass,
      1    appid,rlist,ierr)
+
+      else if (wks_type.eq."newpdf".or.wks_type.eq."NEWPDF".or.
+     +         wks_type.eq."newps".or.wks_type.eq."NEWPS") then
+C
+C  Create a cairo PS/PDF workstation.
+C   
+      call NhlFRLClear(rlist)
+      call NhlFRLSetString(rlist,'wkFormat',wks_type,ierr)
+      call NhlFRLSetString(rlist,'wkFileName','./pr03f',ierr)
+      call NhlFCreate(wid,'pr03Work',
+     1    NhlFCairoPSpdfWorkstationClass,appid,rlist,ierr)
+
+      else if (wks_type.eq."newpng".or.wks_type.eq."NEWPNG".or.
+     +         wks_type.eq."png".or.wks_type.eq."PNG") then
+C
+C  Create a cairo PNG workstation.
+C   
+      call NhlFRLClear(rlist)
+      call NhlFRLSetString(rlist,'wkFormat',wks_type,ierr)
+      call NhlFRLSetString(rlist,'wkFileName','./pr03f',ierr)
+      call NhlFCreate(wid,'pr03Work',
+     1    NhlFCairoImageWorkstationClass,appid,rlist,ierr)
 
       endif    
 C

@@ -1,5 +1,5 @@
 /*
- *      $Id: NclHDF.c,v 1.31 2009/05/04 19:23:30 dbrown Exp $
+ *      $Id: NclHDF.c,v 1.37 2010/03/26 20:05:05 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -86,6 +86,7 @@ struct _HDFVarInqRec {
 	NclQuark class_name;
 	NclQuark var_path;
 	nc_type	data_type;
+	int     hdf_type;
 	int	n_dims;
 	int	dim[MAX_VAR_DIMS];
 	int	natts;
@@ -106,6 +107,7 @@ struct _HDFAttInqRec {
 	NclQuark hdf_name;
 	int	varid;
 	nc_type data_type;
+	int     hdf_type;
 	int	len;
 	void *value;
 	int attr_ix;
@@ -281,7 +283,6 @@ static void *HDFMapFromNcl
 		}
 		first = 0;
 	}
-
 	switch(the_type) {
 	case NCL_byte:
 		*(nc_type*)out_type = NC_BYTE;
@@ -545,6 +546,7 @@ static void ProcessDuplicateNames
 	ProcessVgroups(tmp,NrmQuarkToString(tmp->file_path_q));
 	for (varp = tmp->vars; varp != NULL; varp = varp->next) {
 		char vgid_string[12];
+		char *cp;
 		int dup_count = 0;
 		if (varp->var_inq->name != NrmNULLQUARK)
 			continue;
@@ -596,13 +598,19 @@ static void ProcessDuplicateNames
 			}
 
 		}
+		cp = &vgid_string[0];
 		if (varp->var_inq->vg_ref > 0) {
 			sprintf(vgid_string,"%d",varp->var_inq->vg_ref);
 		}
-		else {
-			sprintf(vgid_string,"%d",dup_count);
+		else if (dup_count > 0) {
+			/* this is the first instance so call it 0 */ 
+			sprintf(vgid_string,"%d",0);
 		}
-		varp->var_inq->name = HDFToNCLName(NrmQuarkToString(varp->var_inq->hdf_name),vgid_string,True);
+		else { /* no dups for this variable and no group name either */
+			sprintf(vgid_string,"");
+			cp = NULL;
+		}
+		varp->var_inq->name = HDFToNCLName(NrmQuarkToString(varp->var_inq->hdf_name),cp,True);
 		if (varp->var_inq->var_path != NrmNULLQUARK) {
 			int i;
 			HDFAttInqRecList **atlp;
@@ -751,6 +759,8 @@ int wr_status;
 		int32 sds_id;
 		for(i = 0 ; i < nvars; i++) {
 			int dim_sizes[32];
+			int n_dims;
+			int n_atts;
 			*stepvlptr = (HDFVarInqRecList*)NclMalloc(
 					(unsigned) sizeof(HDFVarInqRecList));
 			(*stepvlptr)->var_inq = (HDFVarInqRec*)NclMalloc(
@@ -769,13 +779,11 @@ int wr_status;
 			(*stepvlptr)->var_inq->var_path = NrmNULLQUARK;
 			(*stepvlptr)->var_inq->name = NrmNULLQUARK;
 			(*stepvlptr)->var_inq->hdf_name = NrmStringToQuark(buffer);
-			/*
 			status = SDgetinfo(sds_id,buffer,
-					   &((*stepvlptr)->var_inq->n_dims),
+					   &n_dims,
 					   dim_sizes,
-					   &((*stepvlptr)->var_inq->data_type),
-					   &((*stepvlptr)->var_inq->natts));
-			*/
+					   &((*stepvlptr)->var_inq->hdf_type),
+					   &n_atts);
 
 			for(j = 0; j < ((*stepvlptr)->var_inq->n_dims); j++) {
 				tmp_size = 0;
@@ -813,6 +821,9 @@ int wr_status;
 							sd_ncattname(cdfid,i,j,buffer);
 							(*stepalptr)->att_inq->hdf_name = NrmStringToQuark(buffer);
 							(*stepalptr)->att_inq->name = HDFToNCLName(buffer,NULL,False);
+							SDattrinfo(sds_id,j,buffer,
+									 &((*stepalptr)->att_inq->hdf_type),
+									 &((*stepalptr)->att_inq->len));
 							sd_ncattinq(cdfid,i,buffer,
 								    &((*stepalptr)->att_inq->data_type),
 								    &((*stepalptr)->att_inq->len));
@@ -894,6 +905,9 @@ int wr_status;
 			(*stepalptr)->att_inq->name = HDFToNCLName(buffer,NULL,False);
 			(*stepalptr)->att_inq->varid = NC_GLOBAL;
 			(*stepalptr)->att_inq->attr_ix = SDfindattr(sd_id,buffer);
+			SDattrinfo(sd_id,i,buffer,
+				   &((*stepalptr)->att_inq->hdf_type),
+				   &((*stepalptr)->att_inq->len));
 			sd_ncattinq(cdfid,NC_GLOBAL,buffer,
 					&((*stepalptr)->att_inq->data_type),
                                 	&((*stepalptr)->att_inq->len));
@@ -1599,6 +1613,13 @@ void *data;
 				}
 				if(stepal->att_inq->data_type == NC_CHAR) {
 					buffer = NrmQuarkToString(*(NclQuark*)data);
+					if (strlen(buffer) == 0) {
+						NhlPError(NhlWARNING,NhlEUNKNOWN,
+                                      "HDF: The HDF library does not currently allow empty strings as attribute values; attribute (%s) in file (%s) not modified",
+							  NrmQuarkToString(theatt),NrmQuarkToString(rec->file_path_q));
+						sd_ncclose(cdfid);
+						return (NhlWARNING);
+					}
 					redef = 0;
 					if(strlen(buffer)+1 > stepal->att_inq->len) {
 						sd_ncredef(cdfid);
@@ -1831,22 +1852,33 @@ void* data;
 						if(stepal->att_inq->data_type == NC_CHAR) {	
 							int redef = 0;
 							buffer = NrmQuarkToString(*(NclQuark*)data);
+							if (strlen(buffer) == 0) {
+								NhlPError(NhlWARNING,NhlEUNKNOWN,
+                                      "HDF: The HDF library does not currently allow empty strings as attribute values; attribute (%s) of variable (%s) in file (%s) not modified",
+									  NrmQuarkToString(theatt),NrmQuarkToString(thevar),NrmQuarkToString(rec->file_path_q));
+								sd_ncclose(cdfid);
+								return (NhlWARNING);
+							}
+							redef = 0;
+
 							if(strlen(buffer)  > stepal->att_inq->len) {
-								ncredef(cdfid);
+								sd_ncredef(cdfid);
 								redef = 1;
 							}
 							ret = sd_ncattput(cdfid,stepvl->var_inq->varid,NrmQuarkToString(theatt),stepal->att_inq->data_type,strlen(buffer),buffer);
 							if (redef)
-								ncendef(cdfid);
+								sd_ncendef(cdfid);
 
 							if (stepal->att_inq->value != NULL)
 								memcpy(stepal->att_inq->value,data,sizeof(NclQuark));
 						} else {
+							sd_ncredef(cdfid);
 							ret = sd_ncattput(cdfid,stepvl->var_inq->varid,NrmQuarkToString(theatt),stepal->att_inq->data_type,stepal->att_inq->len,data);
 							if (stepal->att_inq->value != NULL) {
 								memcpy(stepal->att_inq->value,data,
 								       nctypelen(stepal->att_inq->data_type)*stepal->att_inq->len);
 							}
+							sd_ncendef(cdfid);
 						}
 		
 						sd_ncclose(cdfid);
@@ -2224,6 +2256,8 @@ NclQuark to;
 	return(NhlFATAL);
 }
 
+static char *MissingAtt = "missing";
+
 static NhlErrorTypes HDFAddAtt
 #if	NhlNeedProto
 (void *therec,NclQuark theatt, NclBasicDataTypes data_type, int n_items, void * values)
@@ -2241,11 +2275,24 @@ static NhlErrorTypes HDFAddAtt
 	nc_type *the_data_type;
 	int i,ret;
 	int cdfid;
+	void *lvalues = values;
+	NhlErrorTypes eret = NhlNOERROR;
 	
 
 	if(rec->wr_status <= 0) {
 		the_data_type = (nc_type*)HDFMapFromNcl(data_type);
 		if(the_data_type != NULL) {
+			if (*the_data_type == NC_CHAR) {
+				if (! lvalues || (strlen((char *) lvalues) == 0)) {
+					NhlPError(NhlWARNING,NhlEUNKNOWN,
+		  "HDF: The HDF library does not currently allow empty strings as attribute values; not adding attribute (%s) to file (%s)",
+							  NrmQuarkToString(theatt),NrmQuarkToString(rec->file_path_q));
+					eret = NhlWARNING;
+					/* still necessary to add the attribute to avoid an error when it is later deleted */
+					lvalues = (void*) MissingAtt;
+					n_items = strlen (MissingAtt);
+				}
+			}
 			cdfid = sd_ncopen(NrmQuarkToString(rec->file_path_q),NC_WRITE);
 			if(cdfid == -1) {
 				NhlPError(NhlFATAL,NhlEUNKNOWN,"HDF: Could not reopen the file (%s) for writing",NrmQuarkToString(rec->file_path_q));
@@ -2253,7 +2300,7 @@ static NhlErrorTypes HDFAddAtt
 				return(NhlFATAL);
 			}
 			sd_ncredef(cdfid);
-			ret = sd_ncattput(cdfid,NC_GLOBAL,NrmQuarkToString(theatt),*the_data_type,n_items,values);
+			ret = sd_ncattput(cdfid,NC_GLOBAL,NrmQuarkToString(theatt),*the_data_type,n_items,lvalues);
 			sd_ncendef(cdfid);
 			sd_ncclose(cdfid);
 			if(ret != -1 ) {
@@ -2267,7 +2314,7 @@ static NhlErrorTypes HDFAddAtt
 					rec->file_atts->att_inq->name = theatt;
 					rec->file_atts->att_inq->data_type = *the_data_type;
 					rec->file_atts->att_inq->len = n_items;
-					HDFCacheAttValue(rec->file_atts->att_inq,values);
+					HDFCacheAttValue(rec->file_atts->att_inq,lvalues);
 				} else {	
 					i = 0;
 					while(stepal->next != NULL) {
@@ -2281,11 +2328,11 @@ static NhlErrorTypes HDFAddAtt
 					stepal->next->att_inq->data_type = *the_data_type;
 					stepal->next->att_inq->len = n_items;
 					stepal->next->next = NULL;
-					HDFCacheAttValue(stepal->next->att_inq,values);
+					HDFCacheAttValue(stepal->next->att_inq,lvalues);
 				}
 				rec->n_file_atts++;
 				NclFree(the_data_type);
-				return(NhlNOERROR);
+				return(eret);
 			} 
 		} 
 	} else {
@@ -2313,10 +2360,23 @@ static NhlErrorTypes HDFAddVarAtt
 	nc_type *the_data_type;
 	int i;
 	int cdfid,ret;
+	void *lvalues = values;
+	NhlErrorTypes eret = NhlNOERROR;
 	
 	if(rec->wr_status <= 0) {
 		the_data_type = (nc_type*)HDFMapFromNcl(data_type);
 		if(the_data_type != NULL) {
+			if (*the_data_type == NC_CHAR) {
+				if (! lvalues || (strlen((char *) lvalues) == 0)) {
+					NhlPError(NhlWARNING,NhlEUNKNOWN,
+		  "HDF: The HDF library does not currently allow empty strings as attribute values; not adding attribute (%s) to variable (%s) in file (%s)",
+						  NrmQuarkToString(theatt),NrmQuarkToString(thevar), NrmQuarkToString(rec->file_path_q));
+				eret = NhlWARNING;
+				/* still necessary to add the attribute to avoid an error when it is later deleted */
+				lvalues = (void*) MissingAtt;
+				n_items = strlen(MissingAtt);
+				}
+			}
 			cdfid = sd_ncopen(NrmQuarkToString(rec->file_path_q),NC_WRITE);
 			if(cdfid == -1) {
 				NhlPError(NhlFATAL,NhlEUNKNOWN,"HDF: Could not reopen the file (%s) for writing",NrmQuarkToString(rec->file_path_q));
@@ -2332,7 +2392,7 @@ static NhlErrorTypes HDFAddVarAtt
 				}
 			}
 			sd_ncredef(cdfid);
-			ret = sd_ncattput(cdfid,stepvl->var_inq->varid,NrmQuarkToString(theatt),*the_data_type,n_items,values);
+			ret = sd_ncattput(cdfid,stepvl->var_inq->varid,NrmQuarkToString(theatt),*the_data_type,n_items,lvalues);
 			sd_ncendef(cdfid);
 			sd_ncclose(cdfid);
 			if(ret != -1 ) {
@@ -2346,7 +2406,7 @@ static NhlErrorTypes HDFAddVarAtt
 					stepvl->var_inq->att_list->att_inq->name = theatt;
 					stepvl->var_inq->att_list->att_inq->data_type = *the_data_type;
 					stepvl->var_inq->att_list->att_inq->len = n_items;
-					HDFCacheAttValue(stepvl->var_inq->att_list->att_inq,values);
+					HDFCacheAttValue(stepvl->var_inq->att_list->att_inq,lvalues);
 					stepvl->var_inq->natts = 1;
 				} else {	
 					i = 0;
@@ -2361,11 +2421,11 @@ static NhlErrorTypes HDFAddVarAtt
 					stepal->next->att_inq->data_type = *the_data_type;
 					stepal->next->att_inq->len = n_items;
 					stepal->next->next = NULL;
-					HDFCacheAttValue(stepal->next->att_inq,values);
+					HDFCacheAttValue(stepal->next->att_inq,lvalues);
 					stepvl->var_inq->natts++ ;
 				}
 				NclFree(the_data_type);
-				return(NhlNOERROR);
+				return(eret);
 			} 
 		} 
 	} else {

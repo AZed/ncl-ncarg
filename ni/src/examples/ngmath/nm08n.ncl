@@ -1,5 +1,5 @@
 ;
-;      $Id: nm08n.ncl,v 1.5 2003/03/01 00:42:49 grubin Exp $
+;      $Id: nm08n.ncl,v 1.7 2010/03/15 22:49:24 haley Exp $
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                      ;
@@ -90,49 +90,63 @@ cmap(5,:) = (/1.0,1.0,0.0/)
 ;
 ; Default is to display output to an X workstation
 ;
-NCGM=1
-X11=0
-PS=0
-PDF=0
+  wks_type = "ncgm"
 
-if (NCGM .eq. 1) then
+if (str_lower(wks_type).eq."ncgm") then
 ;
 ; Create an ncgmWorkstation object.
 ;
   xworkid = create "nm08Work" ncgmWorkstationClass defaultapp
-      "wkMetaName" : "nm08n.ncgm"
-      "wkColorMap" : cmap
+    "wkMetaName" : "nm08n.ncgm"
+    "wkColorMap" : cmap
   end create
-else
-  if (X11 .eq. 1) then
+end if
+if (str_lower(wks_type).eq."x11") then
 ;
 ; Create an XWorkstation object.
 ;
   xworkid = create "nm08nWork" xWorkstationClass defaultapp
-      "wkPause" : True
-      "wkColorMap" : cmap
+    "wkPause" : True
+    "wkColorMap" : cmap
   end create
-  else
-    if (PS .eq. 1) then
+end if
+if (str_lower(wks_type).eq."ps") then
 ;
 ; Create a PSWorkstation object.
 ;
-      xworkid = create "nm08nWork" psWorkstationClass defaultapp
-        "wkPSFileName" : "nm08n.ps"
-        "wkColorMap" : cmap
-      end create
-    else
-      if (PDF .eq. 1) then
+  xworkid = create "nm08nWork" psWorkstationClass defaultapp
+    "wkPSFileName" : "nm08n.ps"
+    "wkColorMap" : cmap
+  end create
+end if
+if (str_lower(wks_type).eq."pdf") then
 ;
 ; Create a PDFWorkstation object.
 ;
-        xworkid = create "nm08nWork" pdfWorkstationClass defaultapp
-          "wkPDFFileName" : "nm08n.pdf"
-          "wkColorMap" : cmap
-        end create
-      end if
-    end if
-  end if
+  xworkid = create "nm08nWork" pdfWorkstationClass defaultapp
+    "wkPDFFileName" : "nm08n.pdf"
+    "wkColorMap" : cmap
+  end create
+end if
+if (str_lower(wks_type).eq."newpdf".or.str_lower(wks_type).eq."newps") then
+;
+; Create a cairo PS/PDF Workstation object.
+;
+  xworkid = create "nm08nWork" documentWorkstationClass defaultapp
+    "wkFileName" : "nm08n"
+    "wkFormat" : wks_type
+    "wkColorMap" : cmap
+  end create
+end if
+if (str_lower(wks_type).eq."newpng".or.str_lower(wks_type).eq."png") then
+;
+; Create a cairo PNG Workstation object.
+;
+  xworkid = create "nm08nWork" imageWorkstationClass defaultapp
+    "wkFileName" : "nm08n"
+    "wkFormat" : wks_type
+    "wkColorMap" : cmap
+  end create
 end if
 
 ;

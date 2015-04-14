@@ -1,5 +1,5 @@
 /*
- *      $Id: CnTriMeshRenderer.c,v 1.13 2009/05/29 01:10:23 dbrown Exp $
+ *      $Id: CnTriMeshRenderer.c,v 1.17 2010/03/27 18:58:25 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -1126,7 +1126,7 @@ static NhlErrorTypes BuildDelaunayMesh
 		for (i = 0; i < mnop; i++) {
 			float xt,yt;
 			j = pcount * 2;
-			c_maptrn(rlat[i],rlon[i],&xt,&yt);
+			c_maptra(rlat[i],rlon[i],&xt,&yt);
 			if (xt > 1e10 || yt > 1e10)
 				continue;
 			points[j] = (double)xt;
@@ -1455,14 +1455,12 @@ static void SetRegionAttrs
 	c_ctseti("PAI",cpix);
 	if (! reg_attrs->perim_on)
 		c_ctseti("CLU",0);
-	else if (cpix == -2 && cl->contourplot.missing_val_perim_grid_bound_on)
+	else if (cpix == -1 && cl->contourplot.missing_val_perim_grid_bound_on)
 		c_ctseti("CLU",2);
 	else
 		c_ctseti("CLU",1);
 
 	if (cpix == -1)
-		c_ctseti("AIA",0);
-	else if (cpix == -2)
 		c_ctseti("AIA",98);
 	else
 		c_ctseti("AIA",-1);
@@ -1585,9 +1583,9 @@ static NhlErrorTypes UpdateLineAndLabelParams
                         _NhlGetGksCi(cl->base.wkptr,
                                      cnp->low_lbls.perim_lcolor);
 
-	SetRegionAttrs(cl,&cnp->grid_bound,-1);
-	SetRegionAttrs(cl,&cnp->missing_val,-2);
-	SetRegionAttrs(cl,&cnp->out_of_range,-3);
+/*	SetRegionAttrs(cl,&cnp->grid_bound,-1); */
+	SetRegionAttrs(cl,&cnp->missing_val,-1);
+	SetRegionAttrs(cl,&cnp->out_of_range,-2);
 
 	*do_lines = True;
 	*do_labels = False;
@@ -2179,6 +2177,10 @@ static NhlErrorTypes AddDataBoundToAreamap
 
 			NhlNDCToData(cl->base.id,xn,yn,4,xn,yn,NULL,NULL,&st,&oor);
 			if (! st) {
+				_NhlDataToWin(cnp->trans_obj,xn,yn,
+					      4,xn,yn,&st,NULL,NULL);
+			}
+			if (! st) {
 				gwlx = xn[0];
 				gwrx = xn[1];
 				gwby = yn[0];
@@ -2666,20 +2668,20 @@ static NhlErrorTypes CnTriMeshRender
 			       NhlNtrOutOfRangeF, &cnp->out_of_range_val,
 			       NULL);
 		tmp->ezmap = 1;
+		c_ctsetr("ORV",cnp->out_of_range_val);
 		if (cnp->sfp->d_arr->num_dimensions == 1 &&
 		    ! (cnp->sfp->element_nodes ||
 		       (cnp->sfp->x_cell_bounds && cnp->sfp->y_cell_bounds))) {
-			c_ctseti("MAP",0);
+			c_ctseti("MAP",Nhlcn1DMESHMAPVAL);
 			tmp->update_mode = TRIMESH_NEWMESH;
 		}
 		else {
-			c_ctsetr("ORV",cnp->out_of_range_val);
 			c_ctseti("MAP",NhlcnMAPVAL);
 		}
 	}
 	else {
 		tmp->ezmap = 0;
-		c_ctseti("MAP",0);
+		c_ctseti("MAP",NhlcnTRIMESHMAPVAL);
 	}
 
 	c_ctseti("WSO", 3);		/* error recovery on */
@@ -3065,7 +3067,7 @@ NhlErrorTypes _NhlTriMeshRasterFill
 	char		*e_text;
 
 	float		xmn,xmx,ymn,ymx;
-	int		i,j,k,n,indx,indy,icaf,map,iaid;
+	int		i,j,k,n,indx,indy,icaf,map,imap,iaid;
 	float		xccf,xccd,xcci,yccf,yccd,ycci;
 	float		zval,orv,spv;
         float		*levels;
@@ -3114,13 +3116,45 @@ NhlErrorTypes _NhlTriMeshRasterFill
 	tol2 = 0.5 * MIN(Cnl->view.width,Cnl->view.height);
 	
 /*
- *      initialize cell array.
+ *      initialize cell array with the missing value.
  */      
 	for (j = 0; j < ican; j++) {
 		for (i = 0; i < icam; i++) {
-			*(cell + j * ica1 + i) = NhlBACKGROUND;
+			*(cell + j * ica1 + i) = Cnp->missing_val.gks_fcolor;
 		}
 	}
+
+/*
+ * Now overwrite out-of-range areas with the out-of-range color
+ */
+	if (Tmp->ezmap) {
+		imap = -map;
+		zval = 0;
+		for (j = 0; j < ican; j++) {
+			if (j == 0)
+				yccf = ycpf + ysoff * cystep;
+			else if (j == ican - 1)
+				yccf = ycpf + (ican - yeoff) * cystep;
+			else
+				yccf = ycpf + (j + ysoff) * cystep;
+			yccd = c_cfuy(yccf);
+			for (i = 0; i < icam; i++) {
+				if (i == 0)
+					xccf = xcpf + xsoff * cxstep;
+				else if (i == icam - 1)
+					xccf = xcpf + (icam - xeoff) * cxstep; 
+				else
+					xccf = xcpf + (i+xsoff) * cxstep;
+				xccd = c_cfux(xccf);
+				(_NHLCALLF(hluctmxyz,HLUCTMXYZ))
+					(&imap,&xccd,&yccd,&zval,&xcci,&ycci);
+				if (xcci == orv) {
+					*(cell + j * ica1 + i) = Cnp->out_of_range.gks_fcolor;
+				}
+			}
+		}
+	}
+
 /*
  * examine each triangle in turn
  */
@@ -3764,6 +3798,9 @@ int (_NHLCALLF(hluctfill,HLUCTFILL))
 			}
 			else {
 				NhlcnRegionAttrs *reg_attrs;
+#if 0
+		                printf("i %d iai %d iag %d\n",i,iai[i],iag[i]);
+#endif
 
 				switch (iai[i]) {
 				case 98:
@@ -3858,10 +3895,16 @@ void  (_NHLCALLF(hluctscae,HLUCTSCAE))
 		if (col_ix < 0) col_ix = NhlBACKGROUND;
 	}
 	else if (*iaid == 98) {
+#if 0
+		printf("hluctscae iaid = %d\n",*iaid);
+#endif
 		col_ix = Cnp->missing_val.gks_fcolor;
 		if (col_ix < 0) col_ix = NhlBACKGROUND;
 	}
 	else {
+#if 0
+		printf("hluctscae iaid = %d\n",*iaid);
+#endif
 		col_ix = NhlBACKGROUND;
 	}
 	*(icra + ((*ind2 - 1) * *ica1 + (*ind1 - 1))) = col_ix;
@@ -3927,15 +3970,14 @@ void   (_NHLCALLF(hluctchcl,HLUCTCHCL))
 	}
 	else {
 		NhlcnRegionAttrs *reg_attrs;
-
+#if 0
+		printf("hluctchcl pai: %d\n", pai);
+#endif
 		switch (pai) {
 		case -1:
-			reg_attrs = &Cnp->grid_bound;
-			break;
-		case -2:
 			reg_attrs = &Cnp->missing_val;
 			break;
-		case -3:
+		case -2:
 			reg_attrs = &Cnp->out_of_range;
 			break;
 		default:
@@ -4538,7 +4580,10 @@ void   (_NHLCALLF(hluctmxyz,HLUCTMXYZ))
 		return;
 	}
 
-        if (abs(*imap) != NhlcnMAPVAL) {
+        if (*imap == - Nhlcn1DMESHMAPVAL && Tmp->ezmap) {
+		OverlayInvMapXY(&Cnl->trans,xinp,yinp,xotp,yotp);
+	}
+        else if (abs(*imap) != NhlcnMAPVAL) {
                 *xotp = *xinp;
                 *yotp = *yinp;
         }
@@ -4566,6 +4611,7 @@ void   (_NHLCALLF(hluctmxyz,HLUCTMXYZ))
 			OverlayInvMapXY(&Cnl->trans,xinp,yinp,xotp,yotp);
 	}
 	else {
+		/* I don't know if this branch is ever taken any more */
 		if (*imap > 0) {
 			ytmp = rtod*asin(*zinp/
 					 sqrt(*xinp * *xinp + *yinp * *yinp +

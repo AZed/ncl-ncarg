@@ -1,5 +1,5 @@
 C
-C      $Id: vc02f.f,v 1.3 2003/03/03 20:20:54 grubin Exp $
+C      $Id: vc02f.f,v 1.5 2010/03/15 22:49:25 haley Exp $
 C
 C***********************************************************************
 C                                                                      *
@@ -26,13 +26,15 @@ C
       external NhlFNcgmWorkstationClass
       external NhlFPSWorkstationClass
       external NhlFPDFWorkstationClass
+      external NhlFCairoPSPDFWorkstationClass
+      external NhlFCairoImageWorkstationClass
       external NhlFXWorkstationClass
       external NhlFVectorPlotClass
       external NhlFVectorFieldClass
       parameter(M=30,N=25)
       parameter(PI=3.14159)
 
-      integer NCGM, X11, PS, PDF
+      character*7  wks_type
       integer appid,wid,vcid,vfid
       integer rlist,grlist
       integer len_dims(2)
@@ -40,10 +42,8 @@ C
       real U(M,N),V(M,N)
       real igrid, jgrid
       integer i,j
-      NCGM=0
-      X11=1
-      PS=0
-      PDF=0
+
+      wks_type = "x11"
 C
 C Generate vector data arrays
 C
@@ -70,7 +70,7 @@ C
       call NhlFRLSetString(rlist,'appUsrDir','./',ierr)
       call NhlFCreate(appid,'vc02',NhlFappClass,0,rlist,ierr)
 
-      if (NCGM.eq.1) then
+      if (wks_type.eq."ncgm".or.wks_type.eq."NCGM") then
 C
 C Create an NCGM workstation.
 C
@@ -78,7 +78,7 @@ C
          call NhlFRLSetstring(rlist,'wkMetaName','./vc02f.ncgm',ierr)
          call NhlFCreate(wid,'vc02Work',NhlFNcgmWorkstationClass,
      1     0,rlist,ierr)
-      else if (X11.eq.1) then
+      else if (wks_type.eq."x11".or.wks_type.eq."X11") then
 C
 C Create an X workstation.
 C
@@ -86,7 +86,7 @@ C
          call NhlFRLSetstring(rlist,'wkPause','True',ierr)
          call NhlFCreate(wid,'vc02Work',NhlFXWorkstationClass,
      1        0,rlist,ierr) 
-      else if (PS.eq.1) then
+      else if (wks_type.eq."ps".or.wks_type.eq."PS") then
 C
 C Create a PS object.
 C
@@ -94,7 +94,7 @@ C
          call NhlFRLSetstring(rlist,'wkPSFileName','./vc02f.ps',ierr)
          call NhlFCreate(wid,'vc02Work',NhlFPSWorkstationClass,
      1        0,rlist,ierr)
-      else if (PDF.eq.1) then
+      else if (wks_type.eq."pdf".or.wks_type.eq."PDF") then
 C
 C Create a PDF object.
 C
@@ -102,6 +102,26 @@ C
          call NhlFRLSetstring(rlist,'wkPDFFileName','./vc02f.pdf',ierr)
          call NhlFCreate(wid,'vc02Work',NhlFPDFWorkstationClass,
      1        0,rlist,ierr)
+      else if (wks_type.eq."newpdf".or.wks_type.eq."NEWPDF".or.
+     +         wks_type.eq."newps".or.wks_type.eq."NEWPS") then
+C
+C Create a cairo PS/PDF object.
+C
+         call NhlFRLClear(rlist)
+         call NhlFRLSetString(rlist,'wkFormat',wks_type,ierr)
+         call NhlFRLSetstring(rlist,'wkFileName','./vc02f',ierr)
+         call NhlFCreate(wid,'vc02Work',
+     1        NhlFCairoPSPDFWorkstationClass,0,rlist,ierr)
+      else if (wks_type.eq."newpng".or.wks_type.eq."NEWPNG".or.
+     +         wks_type.eq."png".or.wks_type.eq."PNG") then
+C
+C Create a cairo PNG object.
+C
+         call NhlFRLClear(rlist)
+         call NhlFRLSetString(rlist,'wkFormat',wks_type,ierr)
+         call NhlFRLSetstring(rlist,'wkFileName','./vc02f',ierr)
+         call NhlFCreate(wid,'vc02Work',
+     1        NhlFCairoImageWorkstationClass,0,rlist,ierr)
       endif
 C
 C Create a VectorField data object using the data set defined above.

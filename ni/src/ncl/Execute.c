@@ -1,7 +1,7 @@
 
 
 /*
- *      $Id: Execute.c,v 1.138 2009/06/09 20:36:32 dbrown Exp $
+ *      $Id: Execute.c,v 1.142 2010/03/24 23:00:04 dbrown Exp $
  */
 /************************************************************************
 *									*
@@ -336,6 +336,7 @@ void CallLIST_READ_OP(void) {
 				break;
 		}
 		sel_ptr = &sel;
+		_NclFreeSubRec(&data.u.sub_rec);
 	} else {
 		sel_ptr = NULL;
 	}
@@ -538,12 +539,17 @@ void CallLIST_READ_FILEVAR_OP(void) {
 				break;
 		}
 		sel_ptr = &sel;
+		_NclFreeSubRec(&data.u.sub_rec);
 	} else {
 		sel_ptr = NULL;
 	}
 
 	/* get the selected files from the file list */
 	newlist =_NclListSelect(list,sel_ptr);
+	if (! newlist) {
+		estatus = NhlFATAL;
+                return;
+	}
 
 	if (sel.sel_type == Ncl_VECSUBSCR) {
 		NclFree(sel.u.vec.ind);
@@ -771,6 +777,7 @@ void CallLIST_READ_FILEVAR_OP(void) {
 				dim_info.dim_size = total_agg_dim_size;
 				agg_coord_md->obj.status = PERMANENT;
 				tvar = _NclCoordVarCreate(NULL,NULL,Ncl_CoordVar,0,NULL,agg_coord_md,&dim_info,-1,NULL,COORD,NrmQuarkToString(agg_dim_name),TEMPORARY);
+				agg_coord_md->obj.status = TEMPORARY;
 				agg_coord_var = _NclVarCreate(NULL,NULL,Ncl_Var,0,NULL,agg_coord_md,&dim_info,-1,&tvar->obj.id,VAR,NrmQuarkToString(agg_dim_name),TEMPORARY);
 			}
 		}	
@@ -1130,8 +1137,22 @@ void CallLIST_READ_FILEVAR_OP(void) {
 							vcount++;
 						}
 					}
-					if (vcount == 0)
+					if (vcount == 0) {
 						break;
+					}
+					else if (vcount == 1 && sel.u.vec.n_ind > 1) {
+						/* 
+						 * In this case we have to switch to normal indexed subscripting because it is not possible to
+						 *  preserve single element dimensions using vector subscripting.
+						 */
+						fsel->u.sub.start = sel.u.vec.ind[vstart] - agg_start_index;
+						fsel->u.sub.finish = fsel->u.sub.start;
+						fsel->u.sub.stride = 1;
+						fsel->u.sub.is_single = agg_sel_count > 1 ? 0 : 1;
+						fsel->sel_type = Ncl_SUBSCR;
+						do_file = 1;
+						break;
+					}
 
 					vec = NclMalloc(sizeof(long) * vcount);
 					if (! vec) {
@@ -1170,8 +1191,23 @@ void CallLIST_READ_FILEVAR_OP(void) {
 							vcount++;
 						}
 					}
-					if (vcount == 0)
+					if (vcount == 0) {
 						break;
+					}
+					else if (vcount == 1 && sel.u.vec.n_ind > 1) {
+						/* 
+						 * In this case we have to switch to normal indexed subscripting because it is not possible to
+						 *  preserve single element dimensions using vector subscripting.
+						 */
+						fsel->u.sub.start = sel.u.vec.ind[vstart] - agg_end_index;
+						fsel->u.sub.finish = fsel->u.sub.start;
+						fsel->u.sub.stride = 1;
+						fsel->u.sub.is_single = agg_sel_count > 1 ? 0 : 1;
+						fsel->sel_type = Ncl_SUBSCR;
+						do_file = 1;
+						break;
+					}
+
 					vec = NclMalloc(sizeof(long) * vcount);
 					if (! vec) {
 						NhlPError(NhlFATAL,ENOMEM,"Memory allocation failure");
@@ -1319,6 +1355,7 @@ void CallLIST_READ_FILEVAR_OP(void) {
 					memcpy(agg_coord_var_md->multidval.val,sub_agg_md->multidval.val,sub_agg_md->multidval.totalsize);
 					agg_coord_var->var.dim_info[0].dim_size = agg_sel_count;
 				}
+				_NclDestroyObj((NclObj)sub_agg_md);
 			}
 		}
 		else {
@@ -1360,6 +1397,9 @@ void CallLIST_READ_FILEVAR_OP(void) {
 			estatus = NhlFATAL;
 		}
 	}
+	else {
+               estatus = NhlFATAL;
+        }
 
  fatal_err:  /* could also be totally benign */
 
@@ -2521,7 +2561,7 @@ void CallLOOP_VALIDATE_OP(void) {
 						if(tmp_md->multidval.kind != SCALAR) {
 							NhlPError(NhlFATAL,NhlEUNKNOWN,"Loop strides must be scalar, can't execute loop");
 							estatus = NhlFATAL;
-						} else if(tmp_md->multidval.type->type_class.type & NCL_VAL_NUMERIC_MASK) {
+						} else if(tmp_md->multidval.type->type_class.type & NCL_SNUMERIC_TYPE_MASK) {
 							tmp2_md = _NclCoerceData(tmp_md,Ncl_Typedouble,NULL);
 							_Nclle(tmp2_md->multidval.type,&result,tmp2_md->multidval.val,&zero,NULL,NULL,1,1);
 							if(result) {
@@ -2538,14 +2578,14 @@ void CallLOOP_VALIDATE_OP(void) {
 						if(end_md->multidval.kind != SCALAR) {
 							NhlPError(NhlFATAL,NhlEUNKNOWN,"Loop end must be scalar, can't execute loop");
 							estatus = NhlFATAL;
-						} else if(!(end_md->multidval.type->type_class.type & NCL_VAL_NUMERIC_MASK)) {
+						} else if(!(end_md->multidval.type->type_class.type & NCL_SNUMERIC_TYPE_MASK)) {
 							NhlPError(NhlFATAL,NhlEUNKNOWN,"Loop end must be numeric value, can't execute loop");
 							estatus = NhlFATAL;
 						}
 						if(inc_md->multidval.kind != SCALAR) {
 							NhlPError(NhlFATAL,NhlEUNKNOWN,"Loop variable must be scalar, can't execute loop");
 							estatus = NhlFATAL;
-						} else if(!(inc_md->multidval.type->type_class.type & NCL_VAL_NUMERIC_MASK)) {
+						} else if(!(inc_md->multidval.type->type_class.type & NCL_SNUMERIC_TYPE_MASK)) {
 							NhlPError(NhlFATAL,NhlEUNKNOWN,"Loop variable must be numeric value, can't execute loop");
 							estatus = NhlFATAL;
 						} 

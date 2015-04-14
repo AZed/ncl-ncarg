@@ -1,5 +1,5 @@
 ;
-;   $Id: tx08n.ncl,v 1.2 2003/03/03 17:27:02 grubin Exp $
+;   $Id: tx08n.ncl,v 1.4 2010/03/15 22:49:24 haley Exp $
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                      ;
@@ -25,44 +25,56 @@
 ;
 begin
 
-NCGM=0
-X11=1
-PS=0
-PDF=0
+wks_type = "x11"
 
 ;
 ; Create application.
 ;
 
-if (NCGM .eq. 1) then
+if (str_lower(wks_type).eq."ncgm") then
   ixwk = create "tx08Work"  ncgmWorkstationClass defaultapp
     "wkMetaName"         : "tx08n.ncgm"
   end create
-else
-  if (X11 .eq. 1) then
+end if
+if (str_lower(wks_type).eq."x11") then
 ;
 ; Create an XWorkstation object.
 ;
-    ixwk = create "tx08Work" xWorkstationClass defaultapp end create
-  else
-    if (PS .eq. 1) then
+  ixwk = create "tx08Work" xWorkstationClass defaultapp end create
+end if
+if (str_lower(wks_type).eq."ps") then
 ;
 ; Create a PSWorkstation object.
 ;
-      ixwk = create "tx08Work"  psWorkstationClass defaultapp
-        "wkPSFileName"       : "tx08n.ps"
-      end create
-    else
-      if (PDF .eq. 1) then
+  ixwk = create "tx08Work"  psWorkstationClass defaultapp
+    "wkPSFileName"       : "tx08n.ps"
+  end create
+end if
+if (str_lower(wks_type).eq."pdf") then
 ;
 ; Create a PDFWorkstation object.
 ;
-        ixwk = create "tx08Work"  pdfWorkstationClass defaultapp
-          "wkPDFFileName"       : "tx08n.pdf"
-        end create
-      end if
-    end if
-  end if
+  ixwk = create "tx08Work"  pdfWorkstationClass defaultapp
+    "wkPDFFileName"       : "tx08n.pdf"
+  end create
+end if
+if (str_lower(wks_type).eq."newpdf".or.str_lower(wks_type).eq."newps") then
+;
+; Create a cairo PS/PDF Workstation object.
+;
+  ixwk = create "tx08Work"  documentWorkstationClass defaultapp
+    "wkFileName"       : "tx08n"
+    "wkFormat"       : wks_type
+  end create
+end if
+if (str_lower(wks_type).eq."newpng".or.str_lower(wks_type).eq."png") then
+;
+; Create a cairo PNG Workstation object.
+;
+  ixwk = create "tx08Work"  imageWorkstationClass defaultapp
+    "wkFileName"       : "tx08n"
+    "wkFormat"       : wks_type
+  end create
 end if
 
 ;

@@ -1,6 +1,6 @@
 #!/bin/csh -f
 #
-#   $Id: ncargex.csh,v 1.170 2009/05/05 20:50:16 haley Exp $
+#   $Id: ncargex.csh,v 1.174 2010/04/02 17:13:35 haley Exp $
 #                                                                      
 #                Copyright (C)  2000
 #        University Corporation for Atmospheric Research
@@ -73,7 +73,7 @@ endif
 # value.                                          #
 #                                                 #
 #*************************************************#
-set file_types     = (ncgm x11 text ps eps epsi pdf cps cpng)
+set file_types     = (ncgm x11 text ps eps epsi pdf newps png newpdf)
 set orient_types = (port land)
 set color_types  = (color mono)
 set ws_types = (                                                   \
@@ -87,7 +87,7 @@ set ws_types = (                                                   \
                 "ps.land.color" "eps.land.color" "epsi.land.color" \
                 "ps.land.mono"  "eps.land.mono"  "epsi.land.mono"  \
                 "" "" "" "" "" "" "" ""                            \
-                "cps.port.color" "cpng.port.color"                 \
+                "newps.port.color" "png.port.color" "newpdf.port.color" \
                )
 set suffix_names = (                                               \
                 "ncgm"                                             \
@@ -100,7 +100,7 @@ set suffix_names = (                                               \
                 "ps" "eps" "epsi"                                  \
                 "ps" "eps" "epsi"                                  \
                 "" "" "" "" "" "" "" ""                            \
-                "ps" "png"                                         \
+                "ps" "png" "pdf"                                   \
                     )
 set default_msgs = (                                                       \
   "Metafile file is named"                                                 \
@@ -124,6 +124,7 @@ set default_msgs = (                                                       \
   "" "" "" "" "" "" "" ""                                                  \
   "cairo Postscript file is named"                                         \
   ""                                                                       \
+  "cairo PDF file is named"                                                \
 )
 
 set f_list
@@ -777,6 +778,7 @@ set list_cps = (c_pgkex21)
 set X11_option
 set ncarbd_flag
 set ngmathbd_flag
+set cairo_flag
 
 #*******************************#
 #                               #
@@ -1230,6 +1232,11 @@ invalid:
       shift
       breaksw
 
+    case "-cairo":
+      shift
+      set cairo_flag = "-cairo"
+      breaksw
+
     case "-ncarbd":
       shift
       set ncarbd_flag = "-ncarbd"
@@ -1287,23 +1294,6 @@ unset tmp_msg
 set input
 set output
 
-#******************************************#
-#                                          #
-# Determine if it's a C or Fortran example #
-#                                          #
-#******************************************#
-unset fprog
-unset cprog
-if ( `expr "$name" : "c_.*"`) then 
-  set cprog
-  set prog_type = "C"
-  set comp_script = "ncargcc"
-else
-  set fprog
-  set prog_type = "Fortran"
-  set comp_script = "ncargf77"
-endif
-
 #*************************************#
 #                                     #
 # Find out what type of example it is #
@@ -1357,23 +1347,6 @@ if ( "$ex_type" == "Unknown" ) then
       break
     endif
   end
-endif
-
-#***************#
-#               #
-# Echo the type #
-#               #
-#***************#
-
-if ( "$ex_type" == "Unknown" ) then
-  echo ""
-  echo "ncargex: <$name> is not a known example"
-  echo ""
-  goto theend
-else
-  echo ""
-  echo "NCAR Graphics $prog_type $ex_type Example <$name>"
-  echo ""
 endif
 
 # 
@@ -1531,6 +1504,43 @@ else
   set ws_type = $orig_ws_type
 endif
 
+# Is this a cairo workstation?
+if ("$ws_type" >= 40 && "$ws_type" <= "42" ) set cairo_flag = "-cairo"
+
+#******************************************#
+#                                          #
+# Determine if it's a C or Fortran example #
+#                                          #
+#******************************************#
+unset fprog
+unset cprog
+if ( `expr "$name" : "c_.*"`) then 
+  set cprog
+  set prog_type = "C"
+  set comp_script = "ncargcc"
+else
+  set fprog
+  set prog_type = "Fortran"
+  set comp_script = "ncargf77"
+endif
+
+#***************#
+#               #
+# Echo the type #
+#               #
+#***************#
+
+if ( "$ex_type" == "Unknown" ) then
+  echo ""
+  echo "ncargex: <$name> is not a known example"
+  echo ""
+  goto theend
+else
+  echo ""
+  echo "NCAR Graphics $prog_type $ex_type Example <$name>"
+  echo ""
+endif
+
 #********************************************#
 #                                            #
 # "-noX11" only works if going to an NCGM    #
@@ -1567,6 +1577,7 @@ if ("$ws_type" == "8" || "$ws_type" == "10" ) unset std_file
 #**************************************#
 set suffix = "$suffix_names[$ws_type]"
 set graphic_file = "$name.$suffix"
+
 if ($ws_type == 41) then
   set msg = "cairo PNG files are named $name.xxxxxx.png (xxxxxx is the frame #)"
 else
@@ -1616,7 +1627,7 @@ if ($?Unique && -f $graphic_file) goto theend
 # Set initial compiler flags #
 #                            #
 #****************************#
-set comp_flags = ($ncarbd_flag $ngmathbd_flag $xoption)
+set comp_flags = ($cairo_flag $ncarbd_flag $ngmathbd_flag $xoption)
 
 #**********************************#
 #                                  #

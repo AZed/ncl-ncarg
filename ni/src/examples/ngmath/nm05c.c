@@ -1,5 +1,5 @@
 /*
- *      $Id: nm05c.c,v 1.5 2003/03/01 00:42:49 grubin Exp $
+ *      $Id: nm05c.c,v 1.7 2010/03/15 22:49:24 haley Exp $
  */
 /************************************************************************
 *                                                                       *
@@ -31,6 +31,8 @@
 #include <ncarg/hlu/NcgmWorkstation.h>
 #include <ncarg/hlu/PSWorkstation.h>
 #include <ncarg/hlu/PDFWorkstation.h>
+#include <ncarg/hlu/CairoWorkstation.h>
+#include <ncarg/hlu/ImageWorkstation.h>
 
 
 #define NUM     6
@@ -41,7 +43,7 @@ main()
 {
   int  appid,wid,gkswid;
   int  srlist, grlist;
-  int  NCGM=1, X11=0, PS=0, PDF=0;
+  const char *wks_type = "ncgm";
   int  i, j, k, ier;
   float xi[] = {0.00, 1.00, 0.00, 1.00, 0.40, 0.75};
   float yi[] = {0.00, 0.00, 1.00, 1.00, 0.20, 0.65};
@@ -86,7 +88,7 @@ main()
     NhlRLSetString(srlist,NhlNappUsrDir,"./");
     NhlCreate(&appid,"nm05",NhlappClass,NhlDEFAULT_APP,srlist);
 
-    if (NCGM) {
+    if (!strcmp(wks_type,"ncgm") || !strcmp(wks_type,"NCGM")) {
 /*
  * Create a meta file workstation.
  */
@@ -95,7 +97,7 @@ main()
         NhlCreate(&wid,"nm05Work",
                   NhlncgmWorkstationClass,NhlDEFAULT_APP,srlist);
     }
-    else if (X11) {
+    else if (!strcmp(wks_type,"x11") || !strcmp(wks_type,"X11")) {
 /*
  * Create an X workstation.
  */
@@ -103,7 +105,7 @@ main()
         NhlRLSetInteger(srlist,NhlNwkPause,True);
         NhlCreate(&wid,"nm05Work",NhlxWorkstationClass,NhlDEFAULT_APP,srlist);
     }
-    else if (PS) {
+    else if (!strcmp(wks_type,"ps") || !strcmp(wks_type,"PS")) {
 /*
  * Create a PS workstation.
  */
@@ -111,13 +113,33 @@ main()
         NhlRLSetString(srlist,NhlNwkPSFileName,"./nm05c.ps");
         NhlCreate(&wid,"nm05Work",NhlpsWorkstationClass,NhlDEFAULT_APP,srlist);
     }
-    else if (PDF) {
+    else if (!strcmp(wks_type,"pdf") || !strcmp(wks_type,"PDF")) {
 /*
  * Create a PDF workstation.
  */
         NhlRLClear(srlist);
         NhlRLSetString(srlist,NhlNwkPDFFileName,"./nm05c.pdf");
         NhlCreate(&wid,"nm05Work",NhlpdfWorkstationClass,NhlDEFAULT_APP,srlist);
+    }
+    else if (!strcmp(wks_type,"newpdf") || !strcmp(wks_type,"NEWPDF") ||
+             !strcmp(wks_type,"newps") || !strcmp(wks_type,"NEWPS")) {
+/*
+ * Create a cairo PS/PDF workstation.
+ */
+        NhlRLClear(srlist);
+        NhlRLSetString(srlist,NhlNwkFileName,"./nm05c");
+        NhlRLSetString(srlist,NhlNwkFormat,(char*)wks_type);
+        NhlCreate(&wid,"nm05Work",NhlcairoPSPDFWorkstationClass,NhlDEFAULT_APP,srlist);
+    }
+    else if (!strcmp(wks_type,"newpng") || !strcmp(wks_type,"NEWPNG") ||
+             !strcmp(wks_type,"png") || !strcmp(wks_type,"PNG")) {
+/*
+ * Create a cairo PNG workstation.
+ */
+        NhlRLClear(srlist);
+        NhlRLSetString(srlist,NhlNwkFileName,"./nm05c");
+        NhlRLSetString(srlist,NhlNwkFormat,(char*)wks_type);
+        NhlCreate(&wid,"nm05Work",NhlcairoImageWorkstationClass,NhlDEFAULT_APP,srlist);
     }
 /*
  * Get Workstation ID.

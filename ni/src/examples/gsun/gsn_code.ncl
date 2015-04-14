@@ -1,5 +1,5 @@
 ;
-;      $Id: gsn_code.ncl,v 1.219 2009/05/01 20:59:09 haley Exp $
+;      $Id: gsn_code.ncl,v 1.238 2010/03/22 01:59:53 haley Exp $
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                      ;
@@ -220,35 +220,12 @@ end
 
 
 ;***********************************************************************;
-; function : tofloat                                                    ;
-;                x:numeric                                              ;
-;                                                                       ;
-; Convert input to float.                                               ;
-;                                                                       ;
-;***********************************************************************;
-undef("tofloat")
-function tofloat(x:numeric)
-local xf
-begin
-  if(typeof(x).eq."double")
-    xf = doubletofloat(x)
-  else
-    if(isatt(x,"_FillValue"))
-      xf = new(dimsizes(x),float,x@_FillValue)
-    else
-      xf = new(dimsizes(x),float)
-      delete(xf@_FillValue)
-    end if
-    xf = x
-  end if
-  return(xf)
-end
-
-;***********************************************************************;
 ; function : tofloat_wunits                                             ;
 ;                x:numeric                                              ;
 ;                                                                       ;
 ; Convert input to float and retain units attribute.                    ;
+;                                                                       ;
+; Note that after V5.1.1, a built-in version of "tofloat" was added.    ;
 ;                                                                       ;
 ;***********************************************************************;
 undef("tofloat_wunits")
@@ -260,35 +237,6 @@ begin
     xf@units = x@units
   end if
   return(xf)
-end
-
-;***********************************************************************;
-; function : tointeger                                                  ;
-;                x:numeric                                              ;
-;                                                                       ;
-; Convert input to integer.                                             ;
-;                                                                       ;
-;***********************************************************************;
-undef("tointeger")
-function tointeger(x:numeric)
-local xi
-begin
-  if(typeof(x).eq."double")
-    xi = doubletointeger(x)
-  else
-    if(typeof(x).eq."float")
-      xi = floattointeger(x)
-    else
-      if(isatt(x,"_FillValue"))
-        xi = new(dimsizes(x),integer,x@_FillValue)
-      else
-        xi = new(dimsizes(x),integer)
-        delete(xi@_FillValue)
-      end if
-      xi = x
-    end if
-  end if
-  return(xi)
 end
 
 ;***********************************************************************;
@@ -810,7 +758,8 @@ levelcountres
 begin
   class = NhlClassName(plot)
   if(.not.any(class.eq.(/"contourPlotClass","logLinPlotClass",\
-                         "irregularPlotClass","vectorPlotClass"/)))
+                         "irregularPlotClass","vectorPlotClass", \
+                         "streamlinePlotClass"/)))
     print("spread_colors: invalid plot: defaulting")
     return(ispan(2,255,1))
   end if
@@ -825,12 +774,22 @@ begin
     end if
     levelcountres = "cnLevelCount"
   else
-    levelcountres = "vcLevelCount"
-    if(isatt(res,"vcLevelolors")) then
-       print("spread_colors: warning: you are setting both vcLevelColors and")
-       print("               gsnSpreadColors. Your vcLevelColors resource will")
-       print("               be ignored. If this is not desired, delete the")
-       print("               setting of gsnSpreadColors or set it to False.")
+    if (class.eq."vectorPlotClass") then
+      levelcountres = "vcLevelCount"
+      if(isatt(res,"vcLevelolors")) then
+         print("spread_colors: warning: you are setting both vcLevelColors and")
+         print("               gsnSpreadColors. Your vcLevelColors resource will")
+         print("               be ignored. If this is not desired, delete the")
+         print("               setting of gsnSpreadColors or set it to False.")
+      end if
+    else
+      levelcountres = "stLevelCount"
+      if(isatt(res,"stLevelColors")) then
+         print("spread_colors: warning: you are setting both stLevelColors and")
+         print("               gsnSpreadColors. Your stLevelColors resource will")
+         print("               be ignored. If this is not desired, delete the")
+         print("               setting of gsnSpreadColors or set it to False.")
+      end if
     end if
   end if
 
@@ -838,7 +797,8 @@ begin
     "wkColorMapLen" : ncols
   end getvalues
 
-  if (class.eq."contourPlotClass".or.class.eq."vectorPlotClass")
+  if (class.eq."contourPlotClass".or.class.eq."vectorPlotClass".or. \
+      class.eq."streamlinePlotClass")
     getvalues plot
       levelcountres : lcount
     end getvalues
@@ -1550,15 +1510,82 @@ end
 ;***********************************************************************;
 undef("get_plot_labelbar")
 function get_plot_labelbar(plot:graphic)
+local found, id_class, i, ids, nids
 begin
   new_plot = new(1,graphic)
 
   if(isatt(plot,"labelbar").and.isatt(plot,"labelbar_type")) then
     new_plot           = plot@labelbar
     new_plot@plot_type = plot@labelbar_type
-  else
-    new_plot = get_plot_not_loglin(plot)
+    return(new_plot)
   end if
+;
+; This code was added after V5.1.1. It is better to use the
+; overlay ids to detect what overlay plots there are, and
+; then figure out from resources set which ones might 
+; potentially require a labelbar.
+;
+; Note that this test will favor contour plots over
+; vector over streamline plots, and it will use the
+; first plot that it finds.
+;
+  getvalues plot
+    "pmOverlaySequenceIds" : ids
+  end getvalues
+  nids = dimsizes(ids)
+  found = False
+  i = 0
+  do while(.not.found.and.i.lt.nids) 
+    id_class = NhlClassName(ids(i))
+    if(id_class.eq."contourPlotClass") then
+      getvalues ids(i)
+        "cnFillOn" : cn_fillon
+      end getvalues 
+      if(cn_fillon) then
+        found = True
+        new_plot = ids(i)
+        new_plot@plot_type = "contour"
+      end if
+    end if
+    if(id_class.eq."vectorPlotClass") then
+;
+;  Glyph styles:
+     ; 0 = linearrow, 1 = fillarrow, 2 = windbarb, 3 = curlyvector
+;
+      getvalues ids(i)
+        "vcGlyphStyle"             : vc_glyphstyle
+        "vcMonoFillArrowFillColor" : vc_monofillarrowfillcolor
+        "vcMonoLineArrowColor"     : vc_monolinearrowcolor
+        "vcMonoWindBarbColor"      : vc_monowindbarbcolor
+      end getvalues
+      if( (vc_glyphstyle.eq.0.and.vc_monolinearrowcolor) .or.\
+          (vc_glyphstyle.eq.1.and.vc_monofillarrowcolor) .or. \
+          (vc_glyphstyle.eq.2.and.vc_monowindbarbcolor)  .or. \
+          (vc_glyphstyle.eq.3.and.vc_monolinearrowcolor)) then
+        found = True
+        new_plot = ids(i)
+        new_plot@plot_type = "vector"
+      end if
+    end if
+    if(id_class.eq."streamlinePlotClass") then
+      getvalues ids(i)
+        "stMonoLineColor"     : st_monolinecolor
+      end getvalues
+      if(st_monolinecolor) then
+        found = True
+        new_plot = ids(i)
+        new_plot@plot_type = "streamline"
+      end if
+    end if
+    i = i + 1
+  end do
+  if(found) then
+    return(new_plot)
+  end if
+;
+; If all else fails, do it the "old" way before V5.2.0.
+;
+  new_plot = get_plot_not_loglin(plot)
   return(new_plot)
 end
 
@@ -1807,8 +1834,9 @@ begin
                 "gsn_streamline", "gsn_streamline_contour", \
                 "gsn_streamline_map", "gsn_vector", \
                 "gsn_vector_contour", "gsn_vector_contour_map", \
-                "gsn_vector_map", "gsn_vector_scalar", \
-                "gsn_vector_scalar_map", "gsn_xy", "gsn_y"/)
+                "gsn_vector_map", "gsn_vector_scalar", "gsn_streamline_scalar", \
+                "gsn_vector_scalar_map", "gsn_streamline_scalar_map", \
+                "gsn_xy", "gsn_y"/)
 
   if(.not.any(gsn_name.eq.gsn_names)) then
     print("gsnp_write_debug_info: error: do not recognize " + gsn_name + " as a")
@@ -2353,17 +2381,14 @@ end
 
 ;**********************************************************************;
 ; Function : compute_device_coords                                     ;
-;                bb(:,4) : float                                       ;
-;                  res : logical                                       ;
+;                  plot : graphic                                      ;
+;                  res  : logical                                      ;
 ;                                                                      ;
-; This function computes the PostScript device coordinates needed to   ;
+; This function computes the PDF/PS device coordinates needed to       ;
 ; make a plot fill up the full page.                                   ;
 ;                                                                      ;
-; bb     : bounding box that contains all graphical objects. It should ;
-;          be a n x 4 float array with values between 0 and 1.         ;
-;            (top,bottom,left,right)                                   ;
-;                                                                      ;
-; res : list of optional resources. Ones accepted include:             ;
+; plot : the plot or the workstation                                   ;
+; res  : list of optional resources. Ones accepted include:            ;
 ;                                                                      ;
 ; "gsnPaperOrientation" - orientation of paper. Can be "landscape",    ;
 ;                         "portrait", or "auto". Default is "auto".    ;
@@ -2373,20 +2398,43 @@ end
 ;       "gsnPaperMargin" - margin to leave around plots (in inches,    ;
 ;                        default is 0.5)                               ;
 ;                                                                      ;
+; In V5.2.0, new paper size resources were added, and this function    ;
+; was updated to recognize them (wkPaperSize, wkPaperWidthF,           ;
+;    and wkPaperHeightF).                                              ;
+;                                                                      ;
+; gsnPaperWidth and gsnPaperHeight are considered deprecated, but      ;
+; still recognized.                                                    ;
+;                                                                      ;
+;                                                                      ;
 ;**********************************************************************;
 undef("compute_device_coords")
-function compute_device_coords(bb,res)
+function compute_device_coords(plot,res)
 local coords, top, bot, lft, rgt, dpi, dpi_pw, dpi_ph, dpi_margin, \
-      paper_width, paper_height, paper_margin
+      paper_width, paper_height, paper_margin, bb, tmp_wks, wks_ph, wks_pw, def_margin
 begin
+  def_margin =  0.5    ; Default margin, in inches.
+  def_orient =  "auto" ; Best possible orientation will be used, by default.
+
+; Get workstation parent of plot, and retrieve paper size and width.
+  tmp_wks = NhlGetParentWorkstation(plot(0))
+  getvalues tmp_wks
+    "wkPaperWidthF"  : wks_pw
+    "wkPaperHeightF" : wks_ph
+  end getvalues
+
 ;
 ; Get resources.
 ;
-  paper_height = get_res_value_keep(res,"gsnPaperHeight",11.0)
-  paper_width  = get_res_value_keep(res,"gsnPaperWidth",8.5)
-  paper_margin = get_res_value_keep(res,"gsnPaperMargin",0.5)
-  paper_orient = get_res_value_keep(res,"gsnPaperOrientation","auto")
+  paper_height = get_res_value_keep(res,"gsnPaperHeight",wks_ph)
+  paper_width  = get_res_value_keep(res,"gsnPaperWidth",wks_pw)
+  paper_margin = get_res_value_keep(res,"gsnPaperMargin",def_margin)
+  paper_orient = get_res_value_keep(res,"gsnPaperOrientation",def_orient)
   is_debug     = get_res_value_keep(res,"gsnDebug",False)
+
+  if(is_debug)
+    print("    Paper width/height = " + paper_width + "/" + paper_height)
+  end if
+
 ;
 ; Check to see if any panel resources have been set.  No defaults
 ; will be assumed for these. They are only used if they have been
@@ -2419,6 +2467,7 @@ begin
 ; negative, and we need to keep these negative values in our calculations
 ; later to preserve the aspect ratio.
 ;
+  bb    = NhlGetBB(plot)
   dimbb = dimsizes(bb)
   if(dimsizes(dimbb).eq.1) then
 ;
@@ -2481,7 +2530,7 @@ begin
 ; Debug prints
 ;
   if(is_debug)
-    print("-------Bounding box values for PostScript-------")
+    print("-------Bounding box values for PS/PDF-------")
     print("    top = " + top + " bot = " + bot + \
           "    lft = " + lft + " rgt = " + rgt)
   end if
@@ -2599,6 +2648,40 @@ end
 
 
 ;***********************************************************************;
+; Procedure : maximize_plot                                             ;
+;               plot:graphic                                            ;
+;              psres:logical                                            ;
+;                                                                       ;
+; This procedure takes a plot that probably has had some additional     ;
+; objects attached to it, like a labelbar, and maximizes it in the      ;
+; given PS or PDF workstation.                                          ;
+;***********************************************************************;
+undef("maximize_plot")
+procedure maximize_plot(plot,psres)
+local bb, coords, res2, tmp_wks
+begin
+  res2 = psres
+
+  tmp_wks = NhlGetParentWorkstation(plot)
+;
+; Calculate device coords to maximize this plot on the PDF or PS 
+; workstation.
+;
+  coords = compute_device_coords(plot,res2)
+;
+; Using the coordinate values just calculated, set them in the
+; workstation (also set the orientation).
+;
+  setvalues tmp_wks
+    "wkDeviceLowerX" : coords(0)
+    "wkDeviceLowerY" : coords(1)
+    "wkDeviceUpperX" : coords(2)
+    "wkDeviceUpperY" : coords(3)
+    "wkOrientation"  : coords@gsnPaperOrientation
+  end setvalues
+end
+
+;***********************************************************************;
 ; Procedure : maximize_output                                           ;
 ;                wks:graphic                                            ;
 ;              psres:logical                                            ;
@@ -2611,7 +2694,7 @@ end
 ;***********************************************************************;
 undef("maximize_output")
 procedure maximize_output(wks:graphic,psres:logical)
-local bb, calldraw, callframe, class, res2
+local calldraw, callframe, class, res2
 begin
   res2 = psres
 ;
@@ -2629,15 +2712,10 @@ begin
      (class.eq."pdfWorkstationClass")) then
     max_device = True
 ;
-; Get bounding box of everything on the frame.
-;
-    bb = NhlGetBB(wks)
-
-;
 ; Calculate device coords to maximize these plots on the PDF or PS 
 ; workstation.
 ;
-    coords = compute_device_coords(bb,res2)
+    coords = compute_device_coords(wks,res2)
 
 ;
 ; Using the coordinate values just calculated, set them in the
@@ -2720,7 +2798,8 @@ begin
 
     class = NhlClassName(wks)
     if((class(0).eq."psWorkstationClass").or. \
-       (class(0).eq."pdfWorkstationClass")) then
+       (class(0).eq."pdfWorkstationClass").or. \
+       (class(0).eq."documentWorkstationClass")) then
 ;
 ; Keep track of whether device coordinates were recalculated.
 ;
@@ -2728,9 +2807,7 @@ begin
 ;
 ; Compute device coordinates that will make plot fill the whole page.
 ;
-; NhlGetBB(plot) will work on an array of plots as well.
-;
-      coords = compute_device_coords(NhlGetBB(plot),maxbb)
+      coords = compute_device_coords(plot,maxbb)
 ;
 ; Set device coordinates to new ones.
 ;
@@ -2779,8 +2856,11 @@ function get_bb_res(res:logical)
 begin
   maxbb                = get_res_value(res,"gsnMaximize", False) 
   maxbb@gsnPaperMargin = get_res_value(res,"gsnPaperMargin",0.5)
-  maxbb@gsnPaperHeight = get_res_value(res,"gsnPaperHeight",11.0)
-  maxbb@gsnPaperWidth  = get_res_value(res,"gsnPaperWidth",8.5)
+;
+; No longer set these two, because they will be retrieved later.
+;
+;  maxbb@gsnPaperHeight = get_res_value(res,"gsnPaperHeight",11.0)
+;  maxbb@gsnPaperWidth  = get_res_value(res,"gsnPaperWidth",8.5)
   maxbb@gsnBoxMargin   = get_res_value(res,"gsnBoxMargin",0.02)
   maxbb@gsnDebug       = get_res_value(res,"gsnDebug",False)
 ;
@@ -3031,6 +3111,51 @@ begin
   return(labelbar_object)
 end
 
+
+;***********************************************************************;
+; Function to determine if a cairo PS is being requested.               ;
+;***********************************************************************;
+function is_cairo_ps(wtype)
+local lwtype, cpsenv
+begin
+  lwtype = lower_case(wtype)
+  cpsenv = getenv("NCARG_CAIRO_PS")
+  if(lwtype.eq."newps".or.(lwtype.eq."ps".and..not.ismissing(cpsenv))) then
+    return(True)
+  else
+    return(False)
+  end if
+end
+
+;***********************************************************************;
+; Function to determine if a cairo PDF is being requested.              ;
+;***********************************************************************;
+function is_cairo_pdf(wtype)
+local lwtype, cpdfenv
+begin
+  lwtype  = lower_case(wtype)
+  cpdfenv = getenv("NCARG_CAIRO_PDF")
+  if(lwtype.eq."newpdf".or.(lwtype.eq."pdf".and..not.ismissing(cpdfenv))) then
+    return(True)
+  else
+    return(False)
+  end if
+end
+
+;***********************************************************************;
+; Function to determine if a cairo PNG is being requested.              ;
+;***********************************************************************;
+function is_cairo_png(wtype)
+local lwtype
+begin
+  lwtype = lower_case(wtype)
+  if(lwtype.eq."newpng".or.lwtype.eq."png") then
+    return(True)
+  else
+    return(False)
+  end if
+end
+
 ;***********************************************************************;
 ; Function : gsn_open_ps                                                ;
 ;               name : name of PostScript file                          ;
@@ -3075,6 +3200,9 @@ begin
     cmodel   = get_res_value(wkresnew,"wkColorModel","rgb")
     resltn   = get_res_value(wkresnew,"wkPSResolution",1800)
     visualt  = get_res_value(wkresnew,"wkVisualType","color")
+    paperSize = get_res_value(wkresnew,"wkPaperSize","")
+    paperW = get_res_value(wkresnew,"wkPaperWidthF", -1.)
+    paperH = get_res_value(wkresnew,"wkPaperHeightF", -1.)
 
 ; Be sure to add any resources set here to "res_list" in gsn_open_wks
 ; so they don't get set again.
@@ -3085,6 +3213,9 @@ begin
       "wkPSFileName"   : name
       "wkPSFormat"     : type
       "wkVisualType"   : visualt
+      "wkPaperSize"     : paperSize
+      "wkPaperWidthF"   : paperW
+      "wkPaperHeightF"  : paperH
     end create
 
 ;
@@ -3103,6 +3234,8 @@ begin
       "wkDeviceLowerY" : ps@wkDeviceLowerY
       "wkDeviceUpperX" : ps@wkDeviceUpperX
       "wkDeviceUpperY" : ps@wkDeviceUpperY
+      "wkPaperWidthF"  : ps@wkPaperWidthF
+      "wkPaperHeightF" : ps@wkPaperHeightF
     end getvalues
 
     return(ps)
@@ -3152,6 +3285,9 @@ begin
     cmodel   = get_res_value(wkresnew,"wkColorModel","rgb")
     resltn   = get_res_value(wkresnew,"wkPDFResolution",1800)
     visualt  = get_res_value(wkresnew,"wkVisualType","color")
+    paperSize = get_res_value(wkresnew,"wkPaperSize","")
+    paperW = get_res_value(wkresnew,"wkPaperWidthF", -1.)
+    paperH = get_res_value(wkresnew,"wkPaperHeightF", -1.)
 
 ; Be sure to add any resources set here to "res_list" in gsn_open_wks
 ; so they don't get set again.
@@ -3162,6 +3298,9 @@ begin
       "wkPDFFileName"   : name
       "wkPDFFormat"     : type
       "wkVisualType"    : visualt
+      "wkPaperSize"     : paperSize
+      "wkPaperWidthF"   : paperW
+      "wkPaperHeightF"  : paperH
     end create
 
 ;
@@ -3180,10 +3319,105 @@ begin
       "wkDeviceLowerY" : pdf@wkDeviceLowerY
       "wkDeviceUpperX" : pdf@wkDeviceUpperX
       "wkDeviceUpperY" : pdf@wkDeviceUpperY
+      "wkPaperWidthF"  : pdf@wkPaperWidthF
+      "wkPaperHeightF" : pdf@wkPaperHeightF
     end getvalues
 
     return(pdf)
 end
+
+;***********************************************************************;
+; Function : gsn_open_cairo                                             ;
+;               name : name of cairo file/device                        ;
+;                                                                       ;
+; This function opens a cairo file or device and returns                ;
+; the workstation id.                                                   ; 
+;***********************************************************************;
+undef("gsn_open_cairo")
+function gsn_open_cairo(type:string, name[1]:string)
+local cairo, res_file, wkres, wkresnew, names, i
+begin
+;
+; If there are resources, copy them over to a logical variable,
+; and only grab the ones that start with "wk".
+;
+    if(.not.any(ismissing(getvaratts(type))))
+      wkres = True
+      names = getvaratts(type)
+      do i=0,dimsizes(names)-1
+        if(names(i).ne."_FillValue") then
+          wkres@$names(i)$ = type@$names(i)$    
+        end if
+      end do
+;
+; Grab only the ones that start with "wk".
+;
+      wkresnew = get_res_eq(wkres,"wk")
+      delete(wkres)
+      delete(names)
+    else
+      wkresnew = False
+    end if
+
+    res_file = get_res_value_keep(name,"res_file","gsnapp")
+
+;
+; We need to distinguish between PS/PDF versus image-based output formats
+;
+    if (is_cairo_ps(type).or.is_cairo_pdf(type)) then
+        resltn   = get_res_value(wkresnew,"wkPDFResolution",1800)
+        paperSize   = get_res_value(wkresnew,"wkPaperSize","")
+        paperW = get_res_value(wkresnew,"wkPaperWidthF", -1.)
+        paperH = get_res_value(wkresnew,"wkPaperHeightF", -1.)
+        if(is_cairo_ps(type)) then
+          newtype = "newps"    ; Can't use "ps" for cairo PS yet
+        else
+          newtype = "newpdf"   ; Can't use "pdf" for cairo PDF yet
+        end if
+
+        cairo = create res_file documentWorkstationClass defaultapp
+          "wkFileName"        : name
+          "wkFormat"          : newtype
+          "wkPDFResolution"   : resltn
+          "wkPaperSize"       : paperSize
+          "wkPaperWidthF"      : paperW
+          "wkPaperHeightF"     : paperH
+        end create
+
+       ; Retrieve the device coordinates and the orientation so we can
+       ; reset them later if necessary.
+
+        getvalues cairo
+          "wkOrientation"  : cairo@wkOrientation
+          "wkDeviceLowerX" : cairo@wkDeviceLowerX
+          "wkDeviceLowerY" : cairo@wkDeviceLowerY
+          "wkDeviceUpperX" : cairo@wkDeviceUpperX
+          "wkDeviceUpperY" : cairo@wkDeviceUpperY
+          "wkPaperWidthF"  : cairo@wkPaperWidthF
+          "wkPaperHeightF" : cairo@wkPaperHeightF
+        end getvalues
+    else
+        ; image-based formats
+        imageWidth = get_res_value(wkresnew,"wkWidth",1000)
+        imageHeight = get_res_value(wkresnew,"wkHeight",800)
+
+        cairo = create res_file imageWorkstationClass defaultapp
+          "wkFileName"        : name
+          "wkFormat"          : type
+          "wkWidth"           : imageWidth
+          "wkHeight"          : imageHeight
+        end create
+    end if
+
+;
+; Set resources, if any.
+;
+    attsetvalues_check(cairo,wkresnew)
+    delete(wkresnew)
+
+    return(cairo)
+end
+
 
 ;***********************************************************************;
 ; Function : gsn_open_image                                             ;
@@ -3203,7 +3437,7 @@ begin
     wkheight = get_res_value_keep(type,"wkHeight",512)
 
     if(isatt(name,"wkColorMap"))
-      image = create res_file imageWorkstationClass defaultapp 
+      image = create res_file xwdimageWorkstationClass defaultapp 
         "wkImageFileName" : name
         "wkImageFormat"   : type
         "wkColorMap"      : name@wkColorMap
@@ -3211,7 +3445,7 @@ begin
         "wkHeight"        : wkheight
       end create
     else
-      image = create res_file imageWorkstationClass defaultapp 
+      image = create res_file xwdimageWorkstationClass defaultapp 
         "wkImageFileName" : name
         "wkImageFormat"   : type
         "wkWidth"         : wkwidth
@@ -3241,8 +3475,11 @@ function gsn_open_wks(type[1]:string,name[1]:string)
 local i, wks, appusrdir, name_char, not_found, res_file, res_dir
 begin
     type2   = type          ; Make copy of type and its resources
+    type2  = lower_case(type)
     res_dir = "./"          ; Default resource directory.
     res_file = "gsnapp"     ; Default resource file name.
+    valid_type = False      ; Is type valid?
+
 ;
 ; Parse "name" to get the directory and the file prefix.
 ;
@@ -3277,22 +3514,24 @@ begin
 ;
     wks = new(1,graphic,"No_FillValue")
 
-    if (lower_case(type2).eq."x11") then
+    if (type2.eq."x11") then
       x_file = res_file
       if (isatt(type2,"wkColorMap"))
         x_file@wkColorMap = type2@wkColorMap
       end if
       wks = gsn_open_x11(x_file)
+      valid_type = True
     end if
 
-    if (lower_case(type2).eq."ps".or.lower_case(type2).eq."eps".or. \
-        lower_case(type2).eq."epsi") then
+    if (type2.eq."ps".or.type2.eq."eps".or. \
+        type2.eq."epsi") then
       ps_file = get_res_value(type2,"wkPSFileName",res_file + "." + type2)
       ps_file@res_file = res_file
       wks = gsn_open_ps(type2,res_dir+ps_file)
+      valid_type = True
     end if
 
-    if (lower_case(type2).eq."ncgm") then
+    if (type2.eq."ncgm") then
       ncgm_file = get_res_value(type2,"wkMetaName",res_file + ".ncgm")
       ncgm_file = res_dir + ncgm_file
       ncgm_file@res_file = res_file
@@ -3300,23 +3539,36 @@ begin
         ncgm_file@wkColorMap = type2@wkColorMap
       end if
       wks = gsn_open_ncgm(ncgm_file)
+      valid_type = True
     end if
 
-    if (lower_case(type2).eq."pdf") then
+    if (type2.eq."pdf") then
       pdf_file = get_res_value(type2,"wkPDFFileName", \
                                res_file + "." + type2)
       pdf_file@res_file = res_file
       wks = gsn_open_pdf(type2, res_dir+pdf_file)
+      valid_type = True
     end if
 
-    if (lower_case(type2).eq."xwd".or.lower_case(type2).eq."png") then
-      image_file = get_res_value(type2,"wkImageFileName", res_file)
+    if (is_cairo_ps(type2).or.is_cairo_pdf(type2).or.is_cairo_png(type2)) then
+      cairo_file = get_res_value(type2,"wkFileName", res_file)
+      if (is_cairo_png(type2)) then
+        cairo_file = get_res_value(type2,"wkImageFileName", cairo_file)
+      end if
+      cairo_file@res_file = res_file
+      wks = gsn_open_cairo(type2, res_dir+cairo_file)
+      valid_type = True
+    end if
+
+    if (type2.eq."xwd") then
+      image_file = get_res_value(type2,"wkFileName", res_file)
       image_file@res_file = res_file
       wks = gsn_open_image(type2, res_dir+image_file)
+      valid_type = True
     end if
 
-    if (ismissing(wks)) then
-      print("Error: gsn_open_wks: "+ type2 + " is an illegal workstation type.")
+    if (.not.valid_type.or.ismissing(wks)) then
+      print("Error: gsn_open_wks: '"+ type2 + "' is an invalid workstation type.")
       exit
     end if
 
@@ -3465,14 +3717,25 @@ undef("gsn_add_primitive")
 function gsn_add_primitive(wks:graphic,plotid:graphic,x[*]:numeric,\
                            y[*]:numeric,isndc:logical,polytype:string, \
                            resources:logical)
-local res2, gsid, gsres, prim_object, dummy
+local res2, gsid, gsres, prim_object, dummy, tfres, vpx, vpy, vpw, vph
 begin
-  res2 = get_resources(resources)
-
   if(.not.any(polytype.eq.(/"polymarker","polygon","polyline"/)))
     print("Warning: gsn_add_primitive: Do not recognize primitive type '"+ polytype + "'.")
    return(0)
   end if
+
+  res2 = get_resources(resources)  ; Make a copy of resource list.
+
+;
+; After V5.1.1, this function was updated to recognize 
+; "tf*" resources, and have them applied to the plot
+; in question. This is especially important for the 
+; "tfPolyDrawOrder" resource, which allows you to control
+; the order which primitives are drawn.
+;
+  tfres = get_res_eq(res2,"tf")
+  attsetvalues_check(plotid,tfres)
+
 ;
 ; If in NDC space, make sure X and Y values are in the range 0 to 1 AND
 ; within the viewport of the polot.
@@ -4981,10 +5244,6 @@ begin
       if(new_plot@plot_type.eq."vector") then
         getvalues new_plot
           "vcRefAnnoFontHeightF"     : font_height
-          "vcGlyphStyle"             : gstyle
-          "vcFillArrowsOn"           : fill_arrows_on
-          "vcMonoLineArrowColor"     : mono_line_color
-          "vcMonoFillArrowFillColor" : mono_fill_arrow
         end getvalues
       else
         if(new_plot@plot_type.eq."xy") then
@@ -5011,9 +5270,8 @@ begin
     pfont_height = get_res_value(res,"gsnPanelFigureStringsFontHeightF",\
                                  font_height)
   end if
-
 ;
-; Get labelbar information.
+; Get labelbar info.
 ;
   if(panel_labelbar) then
 ;
@@ -5043,12 +5301,20 @@ begin
       end if
     else
       if(new_plot_lab@plot_type.eq."vector") then
+        getvalues new_plot_lab
+          "vcGlyphStyle"             : gstyle
+          "vcFillArrowsOn"           : fill_arrows_on
+          "vcMonoLineArrowColor"     : mono_line_color
+          "vcMonoFillArrowFillColor" : mono_fill_arrow
+          "vcMonoWindBarbColor"      : mono_wind_barb
+        end getvalues
 ;
 ; 0 = linearrow, 1 = fillarrow, 2 = windbarb, 3 = curlyvector
 ;
         if(    (fill_arrows_on .and. .not.mono_fill_arrow)     .or. \
             (.not.fill_arrows_on .and. .not.mono_line_color)   .or. \
             (gstyle.eq.1 .and. .not.mono_fill_arrow)  .or. \
+            (gstyle.eq.2 .and. .not.mono_wind_barb)  .or. \
             (gstyle.eq.0 .or. gstyle.eq.3) .and. .not.mono_line_color) then
 ;
 ; There are no fill patterns in VectorPlot, only solids.
@@ -5235,6 +5501,8 @@ begin
   num_plots_left = nplots
   nplot          = 0
   nr             = 0
+  added_anno     = False             ; For figure strings
+
   do while(num_plots_left.gt.0)
     vpy_new = ypos(nr)
     new_ncols = min((/num_plots_left,row_spec(nr)/))
@@ -5293,7 +5561,6 @@ begin
           "vpHeightF" : scale*old_vp(nplot,3)
         end setvalues
 
-        added_anno = False
         if(is_figure_strings) then
           if(nplot .lt. dimsizes(panel_strings).and. \
             panel_strings(nplot).ne."")
@@ -6745,15 +7012,15 @@ end
 ;                    xy: graphic                                        ;
 ;             binvalues: numeric                                        ;
 ;               barlocs: numeric                                        ;
-;              bar2locs: numeric                                        ;
 ;              barwidth: numeric                                        ;
 ;                colors                                                 ;
+;               compare: logical                                        ;
 ;                 gsres: logical                                        ;
 ;                                                                       ;
 ;  xy        - xy plot id to draw columns on                            ;
 ;  bins      - the center of each bin range.                            ;
 ;  binvalues - the number of values in the corresponding bin            ;
-;  start     - the start of the bar in each bin (only for irreg axes)   ;
+;  barlocs   - the start of the first bar in each bin                   ;
 ;  width     - the width of the bar                                     ;
 ;  colors    - array of colors to use (ints or color names)             ; 
 ;  gsres     - optional primitive resources                             ;
@@ -6764,35 +7031,40 @@ end
 ;***********************************************************************;
 undef("hist_columns")
 function hist_columns(wks[1]:graphic,xy[1]:graphic,binvalues:numeric, \
-                      barlocs[*]:numeric, bar2locs[*]:numeric, \
-                      barwidth[*]:numeric, colors[*], gsres:logical)
-local i, nbins, dims, nbinvalues, gsres, xpoints, ypoints, compare
+                      barlocs[*][*]:numeric, barwidth[*]:numeric, \
+                      colors[*], compare:logical, gsres:logical)
+local i, nbins, dims, nbinvalues, gsres, xpoints, ypoints, multibars
 begin
-  nbars = dimsizes(barlocs)
-; 
-; If binvalues is 2-dimensional, then comparing two fields.
-;
-  dims  = dimsizes(binvalues)
-  if(dimsizes(dims).eq.2.and.dims(0).eq.2)
-    nbinvalues  = dims(1)
-    compare     = True
-  else
-    nbinvalues  = dims(0)
-    compare     = False
-  end if
+  dims       = dimsizes(barlocs)
+  nbarsinbin = dims(0)
+  nbars      = dims(1)
+  delete(dims)
 
+  dims = dimsizes(binvalues)
+  if(dimsizes(dims).eq.1) then
+    nbinvalues = dims(0)
+  else
+    nbinvalues = dims(1)
+  end if
+  delete(dims)
   if(nbars.ne.nbinvalues) then
     print("Error: hist_columns: Dimension sizes of bins (" + nbars+ ") and binvalues (" + nbinvalues + ") must be the same")
     return
   end if
+
+  if(nbarsinbin.ge.2)
+    multibars   = True
+  else
+    multibars   = False
+  end if
+
 ;
 ; Set up arrays to hold polygon points.
 ;
-  if(compare)
-    xpoints   = new((/2,nbars,5/),float)
-    ypoints   = new((/2,nbars,5/),float)
-    polygons0 = new(nbars,graphic)
-    polygons1 = new(nbars,graphic)
+  if(multibars) then
+    xpoints   = new((/nbarsinbin,nbars,5/),float)
+    ypoints   = new((/nbarsinbin,nbars,5/),float)
+    polygons  = new((/nbarsinbin,nbars/),graphic)
   else
     xpoints  = new((/nbars,5/),float)
     ypoints  = new((/nbars,5/),float)
@@ -6806,29 +7078,20 @@ begin
 ;
 ; Begin assigning polygon points.
 ;
-  if(compare)
-    ypoints(0,:,0) = (/0/)
-    ypoints(1,:,0) = (/0/)
-    ypoints(0,:,1) = (/binvalues(0,:)/)
-    ypoints(1,:,1) = (/binvalues(1,:)/)
-    ypoints(0,:,2) = (/ypoints(0,:,1)/)
-    ypoints(1,:,2) = (/ypoints(1,:,1)/)
-    ypoints(0,:,3) = (/0/)
-    ypoints(1,:,3) = (/0/)
-    ypoints(0,:,4) = (/0/)
-    ypoints(1,:,4) = (/0/)
+  if(multibars)
+    do i=0,nbarsinbin-1
+      ypoints(i,:,0) = (/0/)
+      ypoints(i,:,1) = (/binvalues(i,:)/)
+      ypoints(i,:,2) = (/ypoints(i,:,1)/)
+      ypoints(i,:,3) = (/0/)
+      ypoints(i,:,4) = (/0/)
 
-    xpoints(0,:,0) = (/barlocs/)
-    xpoints(0,:,1) = (/xpoints(0,:,0)/)
-    xpoints(0,:,2) = (/barlocs + barwidth/)
-    xpoints(0,:,3) = (/xpoints(0,:,2)/)
-    xpoints(0,:,4) = (/xpoints(0,:,0)/)
-;
-    xpoints(1,:,0) = (/bar2locs/)
-    xpoints(1,:,1) = (/xpoints(1,:,0)/)
-    xpoints(1,:,2) = (/bar2locs + barwidth/)
-    xpoints(1,:,3) = (/xpoints(1,:,2)/)
-    xpoints(1,:,4) = (/xpoints(1,:,0)/)
+      xpoints(i,:,0) = (/barlocs(i,:)/)
+      xpoints(i,:,1) = (/xpoints(i,:,0)/)
+      xpoints(i,:,2) = (/barlocs(i,:) + barwidth/)
+      xpoints(i,:,3) = (/xpoints(i,:,2)/)
+      xpoints(i,:,4) = (/xpoints(i,:,0)/)
+    end do
   else
     ypoints(:,0) = (/0/)
     ypoints(:,1) = (/binvalues/)
@@ -6836,51 +7099,57 @@ begin
     ypoints(:,3) = (/0/)
     ypoints(:,4) = (/0/)
 
-    xpoints(:,0) = (/barlocs/)
+    xpoints(:,0) = (/barlocs(0,:)/)
     xpoints(:,1) = (/xpoints(:,0)/)
-    xpoints(:,2) = (/barlocs + barwidth/)
+    xpoints(:,2) = (/barlocs(0,:) + barwidth/)
     xpoints(:,3) = (/xpoints(:,2)/)
     xpoints(:,4) = (/xpoints(:,0)/)
   end if
 
-  fillindex = get_res_value(gsres,"gsFillIndex",(/0,6/))
+  if(compare)
+    fillindex = get_res_value(gsres,"gsFillIndex",(/0,6/))
+  else
+    if(multibars) then
+      fillindex = get_res_value(gsres,"gsFillIndex",0)
+      if(dimsizes(dimsizes(fillindex)).eq.1) then
+         ftmp = new(nbarsinbin,typeof(fillindex))
+         ftmp = fillindex
+         delete(fillindex)
+         fillindex = ftmp
+         delete(ftmp)
+      end if
+    else
+      fillindex = get_res_value(gsres,"gsFillIndex",0)
+    end if
+  end if
 ;
 ; Make sure fill indices are between 0 and 17.
+; No more, because you have have added your own fill index.
 ;
-  fillindex1 = min((/max((/fillindex(0),0/)),17/))
-  if(dimsizes(fillindex).ge.2)
-    fillindex2 = min((/max((/fillindex(1),0/)),17/))
-  else
-    fillindex2 = fillindex1
-  end if
+;  fillindex = min((/max((/max(fillindex),0/)),17/))
 
   ncolors = dimsizes(colors)
   do i = 0, nbars - 1
     gsres@gsFillColor = colors(i % ncolors)
 
-    if(compare) 
+    if(multibars) 
 ;
-; Add the second histogram bars first, so that they will be drawn
-; first. The first histogram bars will thus be drawn on top.
+; Add the remaining histogram bars first, so that they will be drawn
+; second. The first histogram bars will thus be drawn on top, if
+; they are being stacked.
 ;
-      gsres@gsFillIndex = fillindex2
-      if(binvalues@horizontal) then
-        polygons1(i) = gsn_add_polygon(wks,xy,ypoints(1,i,:), \
-                                       xpoints(1,i,:), gsres)
-      else
-        polygons1(i) = gsn_add_polygon(wks,xy,xpoints(1,i,:), \
-                                       ypoints(1,i,:), gsres)
-      end if
-      gsres@gsFillIndex = fillindex1
-      if(binvalues@horizontal) then
-        polygons0(i) = gsn_add_polygon(wks,xy,ypoints(0,i,:), \
-                                       xpoints(0,i,:), gsres)
-      else
-        polygons0(i) = gsn_add_polygon(wks,xy,xpoints(0,i,:), \
-                                       ypoints(0,i,:), gsres)
-      end if
+      do j=nbarsinbin-1,0,1
+        gsres@gsFillIndex = fillindex(j)
+        if(binvalues@horizontal) then
+          polygons(j,i) = gsn_add_polygon(wks,xy,ypoints(j,i,:), \
+                                         xpoints(j,i,:), gsres)
+        else
+          polygons(j,i) = gsn_add_polygon(wks,xy,xpoints(j,i,:), \
+                                          ypoints(j,i,:), gsres)
+        end if
+      end do
     else
-      gsres@gsFillIndex = fillindex1
+      gsres@gsFillIndex = fillindex
       if(binvalues@horizontal) then
         polygons(i) = gsn_add_polygon(wks,xy,ypoints(i,:),xpoints(i,:),gsres)
       else
@@ -6893,15 +7162,8 @@ begin
 ; necessary, b/c otherwise the polygons will go away when you exit the
 ; function.
 ;
-  if(compare)
-    var_string0 = unique_string("hpolygons0")
-    var_string1 = unique_string("hpolygons1")
-    xy@$var_string0$ = polygons0
-    xy@$var_string1$ = polygons1
-  else
-    var_string = unique_string("hpolygons")
-    xy@$var_string$ = polygons
-  end if
+  var_string      = unique_string("hpolygons")
+  xy@$var_string$ = polygons
   return(xy)
 end
 
@@ -6917,6 +7179,7 @@ end
 ;             count_msg: logical                                        ;
 ;                isnice: integer                                        ;
 ;               compare: integer                                        ;
+;            sidebyside: integer                                        ;
 ;                                                                       ;
 ; By default, this routine calculates a nice set of ranges for "binning";
 ; the given data. The following cases are possible:                     ;
@@ -6954,13 +7217,15 @@ undef("compute_hist_vals")
 function compute_hist_vals(xx,binlocs,nbinlocs[1]:integer, \
                            bin_width:numeric,setinterval:logical, \
                            setdiscrete:logical, minmaxbins:logical, \
-                           count_msg:logical,isnice:logical,compare:logical)
+                           count_msg:logical,isnice:logical, \
+                           compare:logical,sidebyside:logical)
 local xmin, xmax, new_binlocs, nbars, buckets, x, i
 begin
   if(isnumeric(xx)) then
     xmin = tofloat(min(xx))
     xmax = tofloat(max(xx))
   end if
+
 ;
 ; If the bins are set, need to determine if you want to have the bins
 ; represent ranges of values or discrete values.
@@ -6968,6 +7233,7 @@ begin
   if(setdiscrete) then
     new_binlocs = binlocs
     nbars       = dimsizes(new_binlocs)   ; # of bars equals # of binlocs
+    nsets       = dimsizes(new_binlocs)   ; # of bars equals # of binlocs
   else
 ;
 ; Check if range values have been set by user, or if we need to
@@ -6989,7 +7255,6 @@ begin
       end if
       if(.not.setdiscrete) then
         if(isnice) then
-
 ;
 ; Based on min and max of data, compute a new min/max/step that will
 ; give us "nice" bin values.
@@ -7011,9 +7276,9 @@ begin
 ; Count number of values in a particular bin range, or exactly
 ; equal to a bin value if discrete.
 ;
-  if(compare) then
-    nsets = 2
+  if(compare.or.sidebyside) then
     dims  = dimsizes(xx)
+    nsets = dims(0)
     npts  = dims(1)
     x     = xx
   else
@@ -7022,6 +7287,7 @@ begin
     x      = new((/1,npts/),typeof(xx))
     x(0,:) = xx
   end if
+
 ;
 ; Set up variable to hold binned values. Binned values can have
 ; unequal spacing.
@@ -7039,7 +7305,7 @@ begin
   else
 ;
 ; Count the values in each bin interval. Bin intervals can be
-; oaf length 0, meaning an exact count is done.
+; of length 0, meaning an exact count is done.
 ;
     do j = 0,nsets-1
       do i = 0, nbars-1
@@ -7121,11 +7387,12 @@ begin
 ;
   npts_nomiss = npts - num_missing
 
-  if(compare) then
+  if(compare.or.sidebyside) then
     percs          = (100.*num_in_bins)/tofloat(npts)
-    percs_nomiss   = new((/2,nbars/),float)
-    percs_nomiss(0,:) = (100.*num_in_bins(0,:))/tofloat(npts_nomiss(0))
-    percs_nomiss(1,:) = (100.*num_in_bins(1,:))/tofloat(npts_nomiss(1))
+    percs_nomiss   = new((/nsets,nbars/),float)
+    do i=0,nsets-1
+      percs_nomiss(i,:) = (100.*num_in_bins(i,:))/tofloat(npts_nomiss(i))
+    end do
   else
     percs        = (100.*num_in_bins(0,:))/tofloat(npts)
     percs_nomiss = (100.*num_in_bins(0,:))/tofloat(npts_nomiss)
@@ -7139,7 +7406,7 @@ begin
   num_in_bins@percentages_nm = percs_nomiss
 
   delete(x)
-  if(compare) then
+  if(compare.or.sidebyside) then
     return(num_in_bins)
   else
     return(num_in_bins(0,:))
@@ -7154,7 +7421,7 @@ end
 ;                                                                       ;
 ; This function draws a histogram plot. The user can enter the bin      ;
 ;      ranges, discrete bin values, or let this function calculate ones ;
-;      automatically.  This function will also compare two sets of      ;
+;      automatically.  This function will also compare multiple sets of ;
 ;      histograms. If xdata is a string, then you must be using         ;
 ;      discrete values, and not ranges.                                 ;
 ;                                                                       ;
@@ -7238,7 +7505,7 @@ end
 undef("gsn_histogram")
 function gsn_histogram(wks[1]:graphic,xdata, resources:logical)
 local res2, calldraw, callframe, maxbb, ispercent, bins, nbars, \
-      setdiscrete, setinterval,top, botton, left, right, lenc, tmp, \
+      setdiscrete, setinterval,top, bottom, left, right, lenc, tmp, \
       colors, locs, lbs, compare
 begin
   dummy = new(1,graphic)      ; Dummy graphic to return if things go wrong.
@@ -7269,42 +7536,60 @@ begin
   percentsign= get_res_value(res2,"gsnHistogramPercentSign",False)
   isnice     = get_res_value(res2,"gsnHistogramSelectNiceIntervals",True)
   compare    = get_res_value(res2,"gsnHistogramCompare",False)
+  sidebyside = get_res_value(res2,"gsnHistogramSideBySide",False)
   horizontal = get_res_value(res2,"gsnHistogramHorizontal",False)
+  bar_spc_perc = get_res_value(res2,"gsnHistogramBarSpacingPercent",0.)
 
   setdiscrete= False
   setinterval= False
 ;
-; xdata can only be 1D or 2D. If it is 2D, then the first dimension
-; must be 2, and this routine kicks into "compare" mode. 
+; xdata can be nD. The left most dimension indicates the number of bars
+; per bin, and the rightmost dimension the data values.
+
+; In the case where the leftmost dimension is 2, there's
+; the special case of "comparing" histograms - that is, the bars
+; will be stacked (gsnHistogramCompare = True)
 ;
-; Also, if gsnHistogramCompare is already set to True, then 
+; If the leftmost dimension is > 2, then the bars will be 
+; side by side (sidebyside = True).
+;
+
+;
+; Also, if gsnHistogramCompare is set to True, then 
 ; double-check that data is correct size.
 ;
   dims = dimsizes(xdata)
   rank = dimsizes(dims)
-  if(rank.gt.2.or.(rank.eq.2.and.dims(0).ne.2)) then
-    print("gsn_histogram: the input data must be 1-dimensional or 2-dimensional. If it is 2-dimensional, then the first dimension size must be 2.")
-    print("No plot will be drawn.")
-    return(dummy)
+  if(rank.eq.1) then
+    nbars_per_bin = 1
+  else
+    nbars_per_bin = dims(0)
   end if
 
 ;
 ; If comparing two fields, then first dimension must be two.
 ;
   if(compare) then
-    if(dims(0).ne.2.or.rank.eq.1) then
+    if(nbars_per_bin.ne.2.or.rank.eq.1) then
       print("Error: gsn_histogram: If comparing two fields, then you must input a 2D array dimensioned 2 x npts.")
       print("No plot will be drawn.")
       return(dummy)
     end if
   else 
-    if(rank.eq.2) then
-      print("gsn_histogram: You input a 2D array dimensioned 2 x npts, so will go into compare mode.")
-      compare = True
+    if(rank.eq.2.and.dims(0).eq.2) then
+      if(.not.sidebyside) then
+        print("gsn_histogram: You input a 2D array dimensioned 2 x npts, so will go into compare mode.")
+        compare = True
+      end if
     end if
   end if    
-  delete(dims)
 
+;
+; If you have > 2 leftmost dimensions, then we are in "side-by-side" mode.
+;
+  if(rank.gt.1.and..not.compare) then
+    sidebyside = True
+  end if    
 ;
 ; Calculate the percentage of the bin width that the bar width should
 ; be.
@@ -7312,8 +7597,13 @@ begin
   if(compare) then
     bar_wdt_perc = 0.5
   else
-    bar_wdt_perc = 0.66667
+    if(sidebyside) then
+      bar_wdt_perc = 1./(nbars_per_bin+1)
+    else
+      bar_wdt_perc = 0.66667
+    end if
   end if
+  bar_wdt_perc_was_set = False
   if(isatt(res2,"gsnHistogramBarWidthPercent")) then
     if(res2@gsnHistogramBarWidthPercent.le.0.or. \
        res2@gsnHistogramBarWidthPercent.gt.100.) then
@@ -7321,6 +7611,7 @@ begin
       print("               Defaulting to " + bar_wdt_perc)
     else
       bar_wdt_perc = 0.01*res2@gsnHistogramBarWidthPercent
+      bar_wdt_perc_was_set = True
     end if
     delete(res2@gsnHistogramBarWidthPercent)
   end if
@@ -7410,7 +7701,7 @@ begin
 ;
   num_in_bins = compute_hist_vals(xdata,bins,nbins,xbin_width,setinterval, \
                                   setdiscrete,minmaxbins,count_msg, \
-                                  isnice,compare)
+                                  isnice,compare,sidebyside)
 
   if(all(ismissing(num_in_bins)))
     print("Error: gsn_histogram: Unable to calculate bin values. No plot will be drawn.")
@@ -7427,7 +7718,7 @@ begin
 ;    True, then this adds one extra bar.
 ;
   nbinlocs = dimsizes(num_in_bins@binlocs)
-  if(compare)
+  if(compare.or.sidebyside)
     dims  = dimsizes(num_in_bins)
     nbars = dims(1)
     delete(dims)
@@ -7437,7 +7728,8 @@ begin
 ;
 ; 4. Calculate width of histogram bins and bars in each bin. If 
 ;    comparing two fields, then the histogram bars must be slightly
-;    smaller in width to accomodate two bars.
+;    smaller in width to accomodate two bars. If doing side-by-side
+;    bars, then the bars need to be even smaller.
 ;    
 ;    A note about how the bin widths are calculated: the bin locations
 ;    (that is, the bin "tickmarks") will be placed along the X axis such
@@ -7472,7 +7764,38 @@ begin
 ; Calculate the width of the histogram bar. It needs to be smaller
 ; if we are comparing two histograms.
 ;
-  bar_width = bar_wdt_perc * bin_width 
+  if(sidebyside) then
+    if(bar_spc_perc.gt.0.and.bar_spc_perc.le.100) then
+      bar_spcng  = 0.01 * bar_spc_perc * bin_width
+      if(.not.bar_wdt_perc_was_set) then
+        bar_width  = (bin_width - (bar_spcng*nbars))/nbars
+      else
+        bar_width  = bar_wdt_perc * bin_width 
+      end if
+      if( ((bar_spcng*nbars) + (bar_width*nbars)).gt.bin_width)
+        print("Warning: gsn_histogram: The bar spacing and bar width combined is wider than the bin width.")
+        print("Will default to no spacing.")
+        bar_spc_perc = 0
+        bar_width  = (bin_width - (bar_spcng*nbars))/nbars
+      end if
+      lft_margin = 0.5*bar_spcng
+      if(bar_width.le.0) then
+        print("Warning: gsn_histogram: The bar spacing percentage selected is too large for the bin width.")
+        print("Will default to no spacing.")
+        bar_spc_perc = 0
+      end if
+    end if
+    if(bar_spc_perc.eq.0) then
+      bar_spcng  = 0.0
+      bar_width  = bar_wdt_perc * bin_width 
+      lft_margin = 0.5*(bin_width - (nbars*bar_width))
+    end if
+    if(setdiscrete) then
+      lft_margin = -lft_margin
+    end if
+  else
+    bar_width = bar_wdt_perc * bin_width 
+  end if
   if(compare.and.1.3333*bar_width.gt.bin_width) then
     print("Warning: gsn_histogram: The bar width percentage selected is too large for this comparison histogram.")
     print("       Resetting to " + 1/1.3333 + " for better results")
@@ -7486,25 +7809,29 @@ begin
   getvalues wks
     "wkColorMapLen" : lenc
   end getvalues
-  if(isatt(res2,"gsFillColor")) then
-    colors = get_res_value(res2,"gsFillColor",1)
-  else
-    tmp = (lenc-2)/nbars
-    if(tmp .eq. 0 )
-      print("Warning: gsn_histogram: not enough colors, using single color")
-      colors = new(nbars,integer)
-      colors = 2
-    else 
-      colors = new(nbars,integer)
-      tmpc   = ispan(2,lenc,tmp)
-      if(dimsizes(tmpc).ne.dimsizes(colors))
-        colors = tmpc(0:dimsizes(colors)-1)
-      else
-        colors = tmpc
+  if(isatt(res2,"gsnHistogramBarColors")) then
+    colors = get_res_value(res2,"gsnHistogramBarColors",1)
+  else 
+    if(isatt(res2,"gsFillColor")) then
+      colors = get_res_value(res2,"gsFillColor",1)
+    else
+      tmp = (lenc-2)/nbars
+      if(tmp .eq. 0 )
+        print("Warning: gsn_histogram: not enough colors, using single color")
+        colors = new(nbars,integer)
+        colors = 2
+      else 
+        colors = new(nbars,integer)
+        tmpc   = ispan(2,lenc,tmp)
+        if(dimsizes(tmpc).ne.dimsizes(colors))
+         colors = tmpc(0:dimsizes(colors)-1)
+        else
+          colors = tmpc
+        end if
+        delete(tmpc)
       end if
-      delete(tmpc)
-    end if
-    delete(tmp)
+      delete(tmp)
+    end if  
   end if  
 ;
 ; 6. Calculate axis limits for plot, and create plot.
@@ -7600,7 +7927,7 @@ begin
 ; Compute min, max, and step necessary to later get "nice" values for
 ; the percentages.
 ;
-    xnpts = npts*1.
+    xnpts = get_res_value(res2,"gsnHistogramNptsForPercent",npts)*1.
     if(horizontal) then
       nicevals = nice_mnmxintvl(res2@trXMinF,min((/100., \
                                 100.*(res2@trXMaxF/xnpts)/)),7,False)
@@ -7620,8 +7947,8 @@ begin
 ; Calculate the bin values that correspond to these percentages.
 ; These are the values we'll use for the tick marks.
 ;
-    bins_at_pnice  = 0.01 * (npts * pnice)
-    bins_at_pmnice = 0.01 * (npts * pmnice)
+    bins_at_pnice  = 0.01 * (xnpts * pnice)
+    bins_at_pmnice = 0.01 * (xnpts * pmnice)
 ;
 ; Set some resources to control tickmarks.
 ;
@@ -7734,21 +8061,36 @@ begin
 ;     slightly to the right (or above for horizontal bars) of the
 ;     first set of bars.
 ;
-  if(setdiscrete) then
-    bar_locs = -.5*bar_width + bin_width * ispan(0,nbars-1,1)
-    if(compare) then
-      bar2_locs =  -.166667*bar_width + bin_width * ispan(0,nbars-1,1)
-    else
-      bar2_locs = 0
-    end if
+;     If doing side-by-side bars, then each new set of bars
+;     will start to the right of the previous bar. (This may
+;     change in future to allow some white space.)
+;
+  if(sidebyside) then 
+    bar_locs      = new((/nbars_per_bin,nbars/),float)
+    bar_locs(0,:) = lft_margin + ispan(0,nbars-1,1)*bin_width
+    do i=1,nbars_per_bin-1
+      bar_locs(i,:) = bar_locs(0,:) + i*(bar_width+bar_spcng)
+    end do
   else
-    if(compare) then
-       bar_locs = .5*(bin_width-(bar_width+0.3333*bar_width)) + \
-                      bin_width*ispan(0,nbars-1,1)
-       bar2_locs = bar_locs + 0.3333*bar_width
+    if(setdiscrete) then
+      if(compare) then
+        bar_locs      = new((/2,nbars/),float)
+        bar_locs(0,:) = -.5*bar_width + bin_width * ispan(0,nbars-1,1)
+        bar_locs(1,:) = -.166667*bar_width + bin_width * ispan(0,nbars-1,1)
+      else
+        bar_locs = new((/1,nbars/),float)
+        bar_locs = -.5*bar_width + bin_width * ispan(0,nbars-1,1)
+      end if
     else
-      bar_locs = .5*(bin_width-bar_width) + bin_width*ispan(0,nbars-1,1)
-      bar2_locs = 0
+      if(compare) then
+        bar_locs      = new((/2,nbars/),float)
+        bar_locs(0,:) = .5*(bin_width-(bar_width+0.3333*bar_width)) + \
+                         bin_width*ispan(0,nbars-1,1)
+        bar_locs(1,:) = bar_locs(0,:) + 0.3333*bar_width
+      else
+        bar_locs = new((/1,nbars/),float)
+        bar_locs = .5*(bin_width-bar_width) + bin_width*ispan(0,nbars-1,1)
+      end if
     end if
   end if
 ;
@@ -7808,8 +8150,8 @@ begin
   gsres = get_res_eq(res2,"gs")          ; Get GraphicStyle resources.
   num_in_bins@horizontal = horizontal    ; horizontal or vertical bars
 
-  histogram = hist_columns(wks,xy,num_in_bins,bar_locs,bar2_locs,bar_width, \
-              colors,gsres)
+  histogram = hist_columns(wks,xy,num_in_bins,bar_locs,bar_width, \
+              colors,compare,gsres)
 ;
 ; 15. Draw and advance frame.
 ;
@@ -7819,17 +8161,14 @@ begin
 ;
 ; Return begin, mid, and end point location of each bar.
 ;
-  if(compare) then
-      both_locs = new((/2,dimsizes(bar_locs)/),typeof(bar_locs))
-      both_locs(0,:) = bar_locs
-      both_locs(1,:) = bar2_locs
-      histogram@BeginBarLocs = both_locs
-      histogram@MidBarLocs   = both_locs + 0.5*bar_width
-      histogram@EndBarLocs   = both_locs + bar_width
+  if(compare.or.sidebyside) then
+    histogram@BeginBarLocs  = bar_locs
+    histogram@MidBarLocs    = bar_locs + 0.5*bar_width
+    histogram@EndBarLocs    = bar_locs + bar_width
   else
-    histogram@BeginBarLocs = bar_locs
-    histogram@MidBarLocs   = bar_locs + 0.5*bar_width
-    histogram@EndBarLocs   = bar_locs + bar_width
+    histogram@BeginBarLocs  = bar_locs(0,:)
+    histogram@MidBarLocs    = bar_locs(0,:) + 0.5*bar_width
+    histogram@EndBarLocs    = bar_locs(0,:) + bar_width
   end if
   histogram@BinLocs       = num_in_bins@binlocs
   histogram@NumInBins     = num_in_bins
@@ -9614,6 +9953,147 @@ begin
 end
 
 ;***********************************************************************;
+; Function : gsn_streamline_scalar                                      ;
+;                   wks: workstation object                             ;
+;                     u: 2-dimensional U array                          ;
+;                     v: 2-dimensional V array                          ;
+;                  data: 2-dimensional scalar field                     ;
+;               resources: optional resources                           ;
+;                                                                       ;
+; This function creates and draws a streamline plot to the workstation  ;
+; "wks"; (the variable returned from a previous call to "gsn_open_wks").;
+; "u" and "v" are the 2-dimensional vector arrays, and "data" is the    ;
+; scalar field that the streamlines are colored by. "resources" is an   ;
+; optional list of resources. The id of the streamline plot is returned.;
+;                                                                       ;
+; Special resources ("gsn" prefix) allowed:                             ;
+;                                                                       ;
+;   gsnDraw                                                             ;
+;   gsnFrame                                                            ;
+;   gsnShape                                                            ;
+;   gsnScale                                                            ;
+;   gsnSpreadColors                                                     ;
+;   gsnSpreadColorStart                                                 ;
+;   gsnSpreadColorEnd                                                   ;
+;                                                                       ;
+;***********************************************************************;
+undef("gsn_streamline_scalar")
+function gsn_streamline_scalar(wks:graphic,u[*][*]:numeric,v[*][*]:numeric,\
+                           data:numeric, resources:logical )
+local i, vfdata_object, sfdata_object, plot_object, res, \
+force_x_linear, force_y_linear, force_x_log, force_y_log, \
+trxmin, trxmax, trymin, trymax, ll_res_index, llres, vf_res_index, \
+st_res_index, sf_res_index, res2, sprdcols
+begin
+;
+; Make sure input data is 1D or 2D
+;
+    if(.not.is_data_1d_or_2d(data)) then
+      print("gsn_streamline_scalar: Fatal: the input data array must be 1D or 2D")
+      return
+    end if
+
+    llres = False
+    res2  = get_resources(resources)
+;
+; Write data and plot resource information to a file so we can 
+; reconstruct plot if desired, without all the computational
+; code beforehand.
+;
+    if(isatt(res2,"gsnDebugWriteFileName")) then
+      gsnp_write_debug_info(u,v,data,"gsn_streamline_scalar",res2,3)
+    end if
+
+    force_x_linear = False
+    force_y_linear = False
+    force_x_log    = False
+    force_y_log    = False
+
+; Create the scalar and vector field data object.
+
+    wksname = get_res_value_keep(wks,"name","gsnapp")
+
+    vfdata_object = vector_field(wksname+"_vfdata",u,v,res2)
+    sfdata_object = scalar_field(wksname+"_sfdata",data,res2);
+
+; Create plot object.
+
+    plot_object = create wksname + "_streamline" streamlinePlotClass wks
+        "stVectorFieldData"     : vfdata_object
+        "stScalarFieldData"     : sfdata_object
+        "stUseScalarArray"      : True
+        "stMonoLineColor"       : False
+    end create
+
+    calldraw  = get_res_value(res2,"gsnDraw", True)
+    callframe = get_res_value(res2,"gsnFrame",True)
+    maxbb     = get_bb_res(res2)
+    shape     = get_res_value(res2,"gsnShape",False)
+    scale     = get_res_value(res2,"gsnScale",shape)
+    sprdcols  = get_res_value(res2,"gsnSpreadColors",False)
+    min_index = get_res_value(res2,"gsnSpreadColorStart",2)
+    max_index = get_res_value(res2,"gsnSpreadColorEnd",-1)
+
+    check_for_irreg2loglin(res2,force_x_linear,force_y_linear,\
+                                force_x_log,force_y_log)
+    check_for_tickmarks_off(res2)
+
+    vfres = get_res_eq(res2,"vf")
+    sfres = get_res_eq(res2,"sf")
+    stres = get_res_ne(res2,(/"sf","vf"/))
+
+    if(force_x_linear.or.force_x_log.or.force_y_linear.or.force_y_log)
+      llres = get_res_eq(res2,(/"tr","vp"/))
+    end if
+
+    attsetvalues_check(vfdata_object,vfres)
+    attsetvalues_check(sfdata_object,sfres)
+    attsetvalues_check(plot_object,stres)
+    if(sprdcols)
+      stres2 = True
+      set_attr(stres2,"stLevelColors",\
+               spread_colors(wks,plot_object,min_index,max_index,res2))
+      attsetvalues(plot_object,stres2)
+    end if
+;
+; If gsnShape was set to True, then resize the X or Y axis so that
+; the scales are proportionally correct.
+; 
+    if(shape)
+      gsnp_shape_plot(plot_object)
+    end if
+
+;
+; If gsnScale was set to True, then make sure the X and Y axis labels
+; and tick marks are the same size.
+; 
+    if(scale)
+      gsnp_scale_plot(plot_object,"vf",resources)
+    end if
+
+; Check if we need to force the X or Y axis to be linear or log.
+; If so, then we have to overlay it on a LogLin Plot.
+
+    if(force_x_linear.or.force_x_log.or.force_y_linear.or.force_y_log)
+      overlay_plot_object = plot_object
+      delete(plot_object)
+
+      plot_object = overlay_irregular(wks,wksname,overlay_plot_object,\
+                                      data_object,force_x_linear,\
+                                      force_y_linear,force_x_log, \
+                                      force_y_log,"vector",llres)
+    end if
+
+    draw_and_frame(wks,plot_object,calldraw,callframe,0,maxbb)
+
+; Return plot object and data object (as attribute of plot object).
+
+    plot_object@vfdata = vfdata_object
+    plot_object@sfdata = sfdata_object
+    return(plot_object)
+end
+
+;***********************************************************************;
 ; Function : gsn_vector_scalar_map                                      ;
 ;                   wks: workstation object                             ;
 ;                     u: 2-dimensional U data                           ;
@@ -9729,6 +10209,125 @@ begin
     map_object@vfdata = vfdata_object
     map_object@sfdata = sfdata_object
     map_object@vector = vector_object
+    return(map_object)
+end
+
+;***********************************************************************;
+; Function : gsn_streamline_scalar_map                                  ;
+;                   wks: workstation object                             ;
+;                     u: 2-dimensional U data                           ;
+;                     v: 2-dimensional V data                           ;
+;                  data: 2-dimensional scalar field                     ;
+;               resources: optional resources                           ;
+;                                                                       ;
+; This function creates and draws a streamline plot over a map plot to  ; 
+; the workstation "wks" (the variable returned from a previous call to  ;
+; "gsn_open_wks").  "u" and "v" are the 2-dimensional streamline arrays,;
+; and "data" is the scalar field that the streamlines are colored by.   ;
+; "resources" is an optional list of resources. The id of the map plot  ; 
+; is returned.                                                          ;
+;                                                                       ;
+; Special resources ("gsn" prefix) allowed:                             ;
+;                                                                       ;
+;   gsnDraw                                                             ;
+;   gsnFrame                                                            ;
+;   gsnShape                                                            ;
+;   gsnScale                                                            ;
+;   gsnSpreadColors                                                     ;
+;   gsnSpreadColorStart                                                 ;
+;   gsnSpreadColorEnd                                                   ;
+;                                                                       ;
+;***********************************************************************;
+undef("gsn_streamline_scalar_map")
+function gsn_streamline_scalar_map(wks:graphic,u[*][*]:numeric,\
+                                   v[*][*]:numeric,data:numeric,\
+                                   resources:logical)
+local i, vfdata_object, sfdata_object, contour_object, res, \
+vf_res_index, st_res_index, sf_res_index, mp_res_index, map_object, res2, \
+sprdcols
+begin
+;
+; Make sure input data is 1D or 2D
+;
+    if(.not.is_data_1d_or_2d(data)) then
+      print("gsn_streamline_scalar_map: Fatal: the input data array must be 1D or 2D")
+      return
+    end if
+
+    res2 = get_resources(resources)
+;
+; Write data and plot resource information to a file so we can 
+; reconstruct plot if desired, without all the computational
+; code beforehand.
+;
+    if(isatt(res2,"gsnDebugWriteFileName")) then
+      gsnp_write_debug_info(u,v,data,"gsn_streamline_scalar_map",res2,3)
+    end if
+
+;
+; Create the streamline and scalar field object.
+;
+    wksname = get_res_value_keep(wks,"name","gsnapp")
+
+    vfdata_object = vector_field(wksname+"_vfdata",u,v,res2)
+    sfdata_object = scalar_field(wksname+"_sfdata",data,res2);
+
+; Create plot object.
+
+    streamline_object = create wksname + "_streamline" streamlinePlotClass wks
+        "stVectorFieldData"     : vfdata_object
+        "stScalarFieldData"     : sfdata_object
+        "stUseScalarArray"      : True
+        "stMonoLineColor"       : False
+    end create
+
+; Create map object.
+
+    map_object = create wksname + "_map" mapPlotClass wks end create
+
+    calldraw  = get_res_value(res2,"gsnDraw", True)
+    callframe = get_res_value(res2,"gsnFrame",True)
+    maxbb     = get_bb_res(res2)
+    shape     = get_res_value(res2,"gsnShape",False)
+    scale     = get_res_value(res2,"gsnScale",shape)
+    sprdcols  = get_res_value(res2,"gsnSpreadColors",False)
+    min_index = get_res_value(res2,"gsnSpreadColorStart",2)
+    max_index = get_res_value(res2,"gsnSpreadColorEnd",-1)
+
+    vfres = get_res_eq(res2,"vf")
+    sfres = get_res_eq(res2,"sf")
+    mpres = get_res_eq(res2,(/"mp","vp","pmA","pmO","pmT","tm"/))
+    stres = get_res_ne(res2,(/"mp","sf","vf","vp"/))
+
+    attsetvalues_check(vfdata_object,vfres)
+    attsetvalues_check(sfdata_object,sfres)
+    attsetvalues_check(map_object,mpres)
+    attsetvalues_check(streamline_object,stres)
+
+    if(sprdcols)
+      stres2 = True
+      set_attr(stres2,"stLevelColors",\
+               spread_colors(wks,streamline_object,min_index,max_index,res2))
+      attsetvalues(streamline_object,stres2)
+    end if
+
+    overlay(map_object,streamline_object)
+
+;
+; If gsnScale was set to True, then make sure the X and Y axis labels
+; and tick marks are the same size.
+; 
+    if(scale)
+      gsnp_scale_plot(streamline_object,"vf",resources)
+    end if
+
+    draw_and_frame(wks,map_object,calldraw,callframe,0,maxbb)
+
+; Return plot object and data object (as attribute of plot object).
+
+    map_object@vfdata = vfdata_object
+    map_object@sfdata = sfdata_object
+    map_object@streamline = streamline_object
     return(map_object)
 end
 

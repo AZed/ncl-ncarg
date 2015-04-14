@@ -1,5 +1,5 @@
 /*
-**      $Id: xy10c.c,v 1.4 2003/03/03 21:31:21 grubin Exp $
+**      $Id: xy10c.c,v 1.6 2010/03/15 22:49:25 haley Exp $
 */
 /***********************************************************************
 *                                                                      *
@@ -30,6 +30,8 @@
 #include <ncarg/hlu/NcgmWorkstation.h>
 #include <ncarg/hlu/PSWorkstation.h>
 #include <ncarg/hlu/PDFWorkstation.h>
+#include <ncarg/hlu/CairoWorkstation.h>
+#include <ncarg/hlu/ImageWorkstation.h>
 #include <ncarg/hlu/XyPlot.h>
 #include <ncarg/hlu/MapPlot.h>
 #include <ncarg/hlu/CoordArrays.h>
@@ -60,7 +62,7 @@ main()
     char    filename[256], recname[50];
     const   char *dir = _NGGetNCARGEnv("data");
 
-    int NCGM=0, X11=1, PS=0, PDF=0;
+    char const *wks_type = "x11";
 /*
  * Initialize the HLU library and set up resource template.
  */
@@ -76,7 +78,7 @@ main()
     NhlRLSetString(rlist,NhlNappUsrDir,"./");
     NhlCreate(&appid,"xy10",NhlappClass,NhlDEFAULT_APP,rlist);
 
-    if (NCGM) {
+    if (!strcmp(wks_type,"ncgm") || !strcmp(wks_type,"NCGM")) {
 /*
  * Create a meta file object.
  */
@@ -85,7 +87,7 @@ main()
         NhlCreate(&xworkid,"xy10Work",NhlncgmWorkstationClass,
                   NhlDEFAULT_APP,rlist);
     }
-    else if (X11) {
+    else if (!strcmp(wks_type,"x11") || !strcmp(wks_type,"X11")) {
 /*
  * Create an XWorkstation object.
  */
@@ -94,7 +96,7 @@ main()
         NhlCreate(&xworkid,"xy10Work",NhlxWorkstationClass,
               NhlDEFAULT_APP,rlist);
     }
-    else if (PS) {
+    else if (!strcmp(wks_type,"ps") || !strcmp(wks_type,"PS")) {
 /*
  * Create a PS workstation.
  */
@@ -103,13 +105,35 @@ main()
         NhlCreate(&xworkid,"xy10Work",NhlpsWorkstationClass,
                   NhlDEFAULT_APP,rlist);
     }
-    else if (PDF) {
+    else if (!strcmp(wks_type,"pdf") || !strcmp(wks_type,"PDF")) {
 /*
  * Create a PDF workstation.
  */
         NhlRLClear(rlist);
         NhlRLSetString(rlist,NhlNwkPDFFileName,"./xy10c.pdf");
         NhlCreate(&xworkid,"xy10Work",NhlpdfWorkstationClass,
+                  NhlDEFAULT_APP,rlist);
+    }
+    else if (!strcmp(wks_type,"newpdf") || !strcmp(wks_type,"NEWPDF") ||
+             !strcmp(wks_type,"newps") || !strcmp(wks_type,"NEWPS")) {
+/*
+ * Create a cairo PS/PDF workstation.
+ */
+        NhlRLClear(rlist);
+        NhlRLSetString(rlist,NhlNwkFileName,"./xy10c");
+        NhlRLSetString(rlist,NhlNwkFormat, (char*)wks_type);
+        NhlCreate(&xworkid,"xy10Work",NhlcairoPSPDFWorkstationClass,
+                  NhlDEFAULT_APP,rlist);
+    }
+    else if (!strcmp(wks_type,"newpng") || !strcmp(wks_type,"NEWPNG") ||
+             !strcmp(wks_type,"png") || !strcmp(wks_type,"PNG")) {
+/*
+ * Create a cairo PNG workstation.
+ */
+        NhlRLClear(rlist);
+        NhlRLSetString(rlist,NhlNwkFileName,"./xy10c");
+        NhlRLSetString(rlist,NhlNwkFormat, (char*)wks_type);
+        NhlCreate(&xworkid,"xy10Work",NhlcairoImageWorkstationClass,
                   NhlDEFAULT_APP,rlist);
     }
 /*

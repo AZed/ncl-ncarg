@@ -388,12 +388,12 @@ NhlErrorTypes _NclBuildArray
 		_NclCleanUpStack(n_items);
 		return(NhlFATAL);
 	}
-	if(obj_type & (NCL_VAL_NUMERIC_MASK | Ncl_Typelogical)) {
+	if(obj_type & (NCL_SNUMERIC_TYPE_MASK | Ncl_Typelogical)) {
 		must_be_numeric =1;
-		result_type = (NclObjTypes)((int)obj_type & (NCL_VAL_NUMERIC_MASK | (int)Ncl_Typelogical));
-	} else if(obj_type & NCL_VAL_CHARSTR_MASK) {
+		result_type = (NclObjTypes)((int)obj_type & (NCL_SNUMERIC_TYPE_MASK | (int)Ncl_Typelogical));
+	} else if(obj_type & NCL_CHARSTR_TYPE_MASK) {
 		must_be_numeric =0;
-		result_type = (NclObjTypes)((int)obj_type & NCL_VAL_CHARSTR_MASK);
+		result_type = (NclObjTypes)((int)obj_type & NCL_CHARSTR_TYPE_MASK);
 	} else if(obj_type & Ncl_Typeobj) {
 		must_be_numeric =-1;
 		result_type = Ncl_Typeobj;
@@ -446,17 +446,17 @@ NhlErrorTypes _NclBuildArray
 			return(NhlFATAL);
 		}
 		if((must_be_numeric==1)&&
-			( obj_type & (NCL_VAL_NUMERIC_MASK | Ncl_Typelogical))) {
+			( obj_type & (NCL_SNUMERIC_TYPE_MASK | Ncl_Typelogical))) {
 			if ((result_type & Ncl_Typelogical) || (obj_type & Ncl_Typelogical)) {
 				result_type = Ncl_Typelogical;
 			}
-			else if (result_type > (NclObjTypes)((int)obj_type & (NCL_VAL_NUMERIC_MASK | Ncl_Typelogical))) {
-				result_type = (NclObjTypes)((int)obj_type & (NCL_VAL_NUMERIC_MASK | (int)Ncl_Typelogical));
+			else if (result_type > (NclObjTypes)((int)obj_type & (NCL_SNUMERIC_TYPE_MASK | Ncl_Typelogical))) {
+				result_type = (NclObjTypes)((int)obj_type & (NCL_SNUMERIC_TYPE_MASK | (int)Ncl_Typelogical));
 			}
 		} else if((must_be_numeric == 0)&&
-			(obj_type & NCL_VAL_CHARSTR_MASK)) {
-			if(result_type > (obj_type & NCL_VAL_CHARSTR_MASK)) {
-				result_type = (NclObjTypes)((int)obj_type & NCL_VAL_CHARSTR_MASK);
+			(obj_type & NCL_CHARSTR_TYPE_MASK)) {
+			if(result_type > (obj_type & NCL_CHARSTR_TYPE_MASK)) {
+				result_type = (NclObjTypes)((int)obj_type & NCL_CHARSTR_TYPE_MASK);
 			}
 		} else if((must_be_numeric == -1)&&
 			(obj_type & Ncl_Typeobj )) {
@@ -865,12 +865,12 @@ NhlErrorTypes _NclBuildConcatArray
 		_NclCleanUpStack(n_items);
 		return(NhlFATAL);
 	}
-	if(obj_type & (NCL_VAL_NUMERIC_MASK | Ncl_Typelogical)) {
+	if(obj_type & (NCL_SNUMERIC_TYPE_MASK | Ncl_Typelogical)) {
 		must_be_numeric =1;
-		result_type = (NclObjTypes)((int)obj_type & (NCL_VAL_NUMERIC_MASK | (int)Ncl_Typelogical));
-	} else if(obj_type & NCL_VAL_CHARSTR_MASK) {
+		result_type = (NclObjTypes)((int)obj_type & (NCL_SNUMERIC_TYPE_MASK | (int)Ncl_Typelogical));
+	} else if(obj_type & NCL_CHARSTR_TYPE_MASK) {
 		must_be_numeric =0;
-		result_type = (NclObjTypes)((int)obj_type & NCL_VAL_CHARSTR_MASK);
+		result_type = (NclObjTypes)((int)obj_type & NCL_CHARSTR_TYPE_MASK);
 	} else if(obj_type & Ncl_Typeobj) {
 		must_be_numeric =-1;
 		result_type = Ncl_Typeobj;
@@ -925,14 +925,14 @@ NhlErrorTypes _NclBuildConcatArray
 			return(NhlFATAL);
 		}
 		if((must_be_numeric==1)&&
-			( obj_type & (NCL_VAL_NUMERIC_MASK | Ncl_Typelogical))) {
-			if(result_type > (NclObjTypes)((int)obj_type & (NCL_VAL_NUMERIC_MASK | Ncl_Typelogical))) {
-				result_type = (NclObjTypes)((int)obj_type & (NCL_VAL_NUMERIC_MASK | (int)Ncl_Typelogical));
+			( obj_type & (NCL_SNUMERIC_TYPE_MASK | Ncl_Typelogical))) {
+			if(result_type > (NclObjTypes)((int)obj_type & (NCL_SNUMERIC_TYPE_MASK | Ncl_Typelogical))) {
+				result_type = (NclObjTypes)((int)obj_type & (NCL_SNUMERIC_TYPE_MASK | (int)Ncl_Typelogical));
 			}
 		} else if((must_be_numeric == 0)&&
-			(obj_type & NCL_VAL_CHARSTR_MASK)) {
-			if(result_type > (obj_type & NCL_VAL_CHARSTR_MASK)) {
-				result_type = (NclObjTypes)((int)obj_type & NCL_VAL_CHARSTR_MASK);
+			(obj_type & NCL_CHARSTR_TYPE_MASK)) {
+			if(result_type > (obj_type & NCL_CHARSTR_TYPE_MASK)) {
+				result_type = (NclObjTypes)((int)obj_type & NCL_CHARSTR_TYPE_MASK);
 			}
 		} else if((must_be_numeric == -1)&&
 			(obj_type & Ncl_Typeobj )) {
@@ -1304,6 +1304,7 @@ NhlErrorTypes _NclProcCallOp
 		previous_fp = _NclLeaveFrame(caller_level);
 		(void)_NclPopScope();
 		_NclRemapParameters(proc->u.procfunc->nargs,proc->u.procfunc->thescope->cur_offset,previous_fp,PROC_CALL_OP);
+		_NclUndefSymbolsInScope(proc->u.procfunc->thescope);
 		_NclPopFrame(PROC_CALL_OP);
 	}  else {
 		_NclClearToStackBase(caller_level);
@@ -1355,6 +1356,7 @@ NhlErrorTypes _NclFuncCallOp
 		previous_fp = _NclLeaveFrame(caller_level);
 		(void)_NclPopScope();
 		_NclRemapParameters(func->u.procfunc->nargs,func->u.procfunc->thescope->cur_offset,previous_fp,FUNC_CALL_OP);
+		_NclUndefSymbolsInScope(func->u.procfunc->thescope);
 		_NclPopFrame(FUNC_CALL_OP);
 	}   else {
 		_NclClearToStackBase(caller_level);
@@ -1945,7 +1947,7 @@ NclStackEntry missing_expr;
 	NclStackEntry data;
 	NclBasicDataTypes the_type;
 /*
-	unsigned int allowed_types = (NCL_VAL_NUMERIC_MASK | NCL_VAL_CHARSTR_MASK | NCL_HLU_MASK);
+	unsigned int allowed_types = (NCL_SNUMERIC_TYPE_MASK | NCL_CHARSTR_TYPE_MASK | NCL_HLU_MASK);
 */
 	NclScalar missing_val;
 	NclMultiDValData missing_md,tmp_md,size_md,tmp1_md;
@@ -1953,6 +1955,7 @@ NclStackEntry missing_expr;
 	int dim_sizes[NCL_MAX_DIMENSIONS];
 	short tmp_missing = NCL_DEFAULT_MISSING_VALUE;
 	long *dim_size_list,total;
+	long long ll_total;
 	int i,j;
 	char *tp;
 	NclTypeClass typec = NULL;
@@ -1964,8 +1967,11 @@ NclStackEntry missing_expr;
 	the_type = _NclKeywordToDataType(data_type);
 	the_obj_type = _NclKeywordToObjType(data_type);
 	typec = (NclTypeClass)_NclTypeEnumToTypeClass(the_obj_type);
-	if(the_obj_type == NCL_VAL_NUMERIC_MASK) {
+	if(the_obj_type == NCL_NUMERIC_TYPE_MASK) {
 		NhlPError(NhlFATAL,NhlEUNKNOWN,"New: Keyword numeric is too general, can't determine the size of data");
+		return(NhlFATAL);
+	} else if(the_obj_type == NCL_SNUMERIC_TYPE_MASK) {
+		NhlPError(NhlFATAL,NhlEUNKNOWN,"New: Keyword snumeric is too general, can't determine the size of data");
 		return(NhlFATAL);
 	} else if(the_obj_type == Ncl_Var) {
 		NhlPError(NhlFATAL,NhlEUNKNOWN,"New: Can not make arrays of vars without values and variable names");
@@ -1981,8 +1987,15 @@ NclStackEntry missing_expr;
 		if(missing_md->multidval.kind != SCALAR) {
 			NhlPError(NhlWARNING,NhlEUNKNOWN,"New: the missing value provided has more than one element, using the first one as the _FillValue");
 		}
-		if (*(NrmQuark*)missing_md->multidval.val == qnofill) {
-			fill = 0;
+		if (missing_md->multidval.data_type == NCL_string && *(NrmQuark*)missing_md->multidval.val == qnofill) {
+			if (the_obj_type != Ncl_MultiDValnclfileData) {
+				fill = 0;
+			}
+			else {
+				NhlPError(NhlWARNING,NhlEUNKNOWN,"New: file variables cannot be created as an undefined value, setting default _FillValue");
+				fill = 1;
+				missing_val.objval = (obj)tmp_missing;
+			}
 		}
 		else if(missing_md->multidval.type->type_class.type != the_obj_type) {
 			tmp_md = _NclCoerceData(missing_md,the_obj_type,NULL);
@@ -2036,10 +2049,10 @@ NclStackEntry missing_expr;
 				}
 			}
 		}
-		total = 1;
+		ll_total = 1;
 		j = 0;
 		if((tmp1_md->multidval.dim_sizes[0] == 1)&&(dim_size_list[0] > 0)) {
-			total *= dim_size_list[0];
+			ll_total *= dim_size_list[0];
 			dim_sizes[0] = (int)dim_size_list[0];
 			j++;
 		} else {
@@ -2047,12 +2060,8 @@ NclStackEntry missing_expr;
 				if(dim_size_list[i] < 1) {	
 					NhlPError(NhlFATAL,NhlEUNKNOWN,"New: a zero or negative value has been passed in in the dimension size parameter");
 					return(NhlFATAL);
-/*
-				} else if(dim_size_list[i] == 1) {
-					NhlPError(NhlWARNING,NhlEUNKNOWN,"New: NCL values can not have dimension sizes of 1 unless they are scalar, ignoring dimension and continuing");
-*/
 				} else {
-					total *= dim_size_list[i];
+					ll_total *= dim_size_list[i];
 					dim_sizes[j] = (int)dim_size_list[i];
 					j++;
 				}
@@ -2062,7 +2071,13 @@ NclStackEntry missing_expr;
 			dim_sizes[0] = 1;
 			j = 1;
 		}
-		tmp_val = (void*)NclMalloc((unsigned int)total*_NclSizeOf(the_type));
+		total = (long) ll_total;
+		ll_total *= _NclSizeOf(the_type);
+		if (ll_total > INT_MAX) {
+			NhlPError(NhlFATAL,NhlEUNKNOWN,"New: requested size of variable (%lld bytes) exceeds the current maximum allowed on this system",ll_total);
+			return(NhlFATAL);
+		}
+		tmp_val = (void*)NclMalloc((unsigned int)ll_total);
 		if (! tmp_val) {
 			NhlPError(NhlFATAL,ENOMEM,"New: could not create new array");
 			return(NhlFATAL);
@@ -2083,6 +2098,27 @@ NclStackEntry missing_expr;
 			tmp_md = _NclCreateVal(NULL,NULL,((the_obj_type & NCL_VAL_TYPE_MASK) ?
 							  Ncl_MultiDValData:the_obj_type),0,tmp_val,
 					       &missing_val,j,dim_sizes,TEMPORARY,NULL,
+					       (NclObjClass)((the_obj_type & NCL_VAL_TYPE_MASK) ?
+							     _NclTypeEnumToTypeClass(the_obj_type):NULL));
+		}
+		else if (the_obj_type == Ncl_MultiDValHLUObjData) {
+			/* this type must have a defined value: if no missing value is supplied then set them to -1, which is out of the range of NCL object ids. */
+			int fill_val = -1;
+			tp = (char *) tmp_val;
+			i = 1;
+			tsize = _NclSizeOf(the_type);
+			memcpy((void*)tp,(void*)&fill_val,tsize);
+			while (i <= total / 2) {
+				memcpy(tp+i*tsize,tp,tsize * i);
+				i *= 2;
+			}
+			if (total - i > 0) {
+				memcpy(tp+i*tsize,tp,tsize * (total - i));
+			}
+
+			tmp_md = _NclCreateVal(NULL,NULL,((the_obj_type & NCL_VAL_TYPE_MASK) ?
+							  Ncl_MultiDValData:the_obj_type),0,tmp_val,
+					       NULL,j,dim_sizes,TEMPORARY,NULL,
 					       (NclObjClass)((the_obj_type & NCL_VAL_TYPE_MASK) ?
 							     _NclTypeEnumToTypeClass(the_obj_type):NULL));
 		}

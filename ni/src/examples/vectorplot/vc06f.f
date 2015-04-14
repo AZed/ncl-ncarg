@@ -1,5 +1,5 @@
 C
-C  $Id: vc06f.f,v 1.6 2003/03/03 20:20:54 grubin Exp $
+C  $Id: vc06f.f,v 1.8 2010/03/15 22:49:25 haley Exp $
 C
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C                                                                      C
@@ -39,13 +39,15 @@ C
       external NhlFNcgmWorkstationClass
       external NhlFPSWorkstationClass
       external NhlFPDFWorkstationClass
+      external NhlFCairoPSPDFWorkstationClass
+      external NhlFCairoImageWorkstationClass
       external NhlFXWorkstationClass
       external NhlFVectorPlotClass
       external NhlFVectorFieldClass
       external NhlFScalarFieldClass
       external NhlFMapPlotClass
       
-      integer NCGM, X11, PS, PDF
+      character*7  wks_type
       integer appid,wid,vcid,vfid, sfid, mpid
       integer rlist
       real U(73,73),V(73,73), PSL(73,73)
@@ -118,12 +120,9 @@ C
 C
 C Default is to create an X11 window.
 C
-      NCGM=0
-      X11=1
-      PS=0
-      PDF=0
+      wks_type = "x11"
 
-      if (NCGM.eq.1) then
+      if (wks_type.eq."ncgm".or.wks_type.eq."NCGM") then
 C
 C Create an NCGM workstation.
 C
@@ -132,7 +131,7 @@ C
       call NhlFCreate(wid,'vc06Work',
 
      +        NhlFNcgmWorkstationClass,0,rlist,ierr)
-      else if (X11.eq.1) then
+      else if (wks_type.eq."x11".or.wks_type.eq."X11") then
 C
 C Create an xworkstation object.
 C
@@ -140,7 +139,7 @@ C
       call NhlFRLSetString(rlist,'wkPause','True',ierr)
       call NhlFCreate(wid,'vc06Work',NhlFXWorkstationClass,
      +        0,rlist,ierr)
-      else if (PS.eq.1) then
+      else if (wks_type.eq."ps".or.wks_type.eq."PS") then
 C
 C Create a PostScript workstation.
 C
@@ -148,7 +147,7 @@ C
       call NhlFRLSetString(rlist,'wkPSFileName','./vc06f.ps',ierr)
       call NhlFCreate(wid,'vc06Work',
      +        NhlFPSWorkstationClass,0,rlist,ierr)
-      else if (PDF.eq.1) then
+      else if (wks_type.eq."pdf".or.wks_type.eq."PDF") then
 C
 C Create a PDF workstation.
 C
@@ -156,6 +155,26 @@ C
       call NhlFRLSetString(rlist,'wkPDFFileName','./vc06f.pdf',ierr)
       call NhlFCreate(wid,'vc06Work',
      +        NhlFPDFWorkstationClass,0,rlist,ierr)
+      else if (wks_type.eq."newpdf".or.wks_type.eq."NEWPDF".or.
+     +         wks_type.eq."newps".or.wks_type.eq."NEWPS") then
+C
+C Create a cairo PS/PDF workstation.
+C
+      call NhlFRLClear(rlist)
+      call NhlFRLSetString(rlist,'wkFileName','./vc06f',ierr)
+      call NhlFRLSetString(rlist,'wkFormat',wks_type,ierr)
+      call NhlFCreate(wid,'vc06Work',
+     +        NhlFCairoPSPDFWorkstationClass,0,rlist,ierr)
+      else if (wks_type.eq."newpng".or.wks_type.eq."NEWPNG".or.
+     +         wks_type.eq."png".or.wks_type.eq."PNG") then
+C
+C Create a cairo PNG workstation.
+C
+      call NhlFRLClear(rlist)
+      call NhlFRLSetString(rlist,'wkFileName','./vc06f',ierr)
+      call NhlFRLSetString(rlist,'wkFormat',wks_type,ierr)
+      call NhlFCreate(wid,'vc06Work',
+     +        NhlFCairoImageWorkstationClass,0,rlist,ierr)
       endif
 C
 C Create a VectorField data object using the data set defined above.

@@ -42,23 +42,8 @@ begin
 
 ;---- Open workstation, define color map ---------------------------
 
-  NCGM=1
-  X11=0
-  PS=0
-  PDF=0
- 
-  if (NCGM .eq. 1) then
-    wks = gsn_open_wks("ncgm","nm15n")
-  end if
-  if (X11 .eq. 1) then
-    wks = gsn_open_wks("x11","nm15n")
-  end if
-  if (PS .eq. 1) then
-    wks = gsn_open_wks("ps","nm15n")
-  end if
-  if (PDF .eq. 1) then
-    wks = gsn_open_wks("pdf","nm15n")
-  end if
+  wks_type = "ncgm"
+  wks = gsn_open_wks(wks_type,"nm15n")
 
   cmap = (/                 \
             (/1.,1.,1./),   \

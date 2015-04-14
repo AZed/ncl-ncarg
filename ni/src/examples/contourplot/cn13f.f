@@ -1,5 +1,5 @@
 C
-C      $Id: cn13f.f,v 1.6 2003/03/04 16:46:36 grubin Exp $
+C      $Id: cn13f.f,v 1.8 2010/03/15 22:49:23 haley Exp $
 C
 C***********************************************************************
 C                                                                      *
@@ -26,6 +26,8 @@ C
       external nhlfncgmworkstationclass
       external nhlfpsworkstationclass
       external nhlfpdfworkstationclass
+      external nhlfcairopspdfworkstationclass
+      external nhlfcairoimageworkstationclass
       external nhlfscalarfieldclass
       external nhlfcontourplotclass
       external nhlfmapplotclass
@@ -43,13 +45,12 @@ C Declare variables for defining color map.
 C
       integer length(2)
       real   cmap(3,NCOLORS)
+      character*7  wks_type
 C
 C Default is to display to an X11 window.
 C
-      NCGM=0
-      X11=0
-      PS=0
-      PDF=1
+      wks_type = "x11"
+
 C     
 C Initialize the HLU library and set up resource template.
 C
@@ -80,7 +81,7 @@ C
       length(1) = 3
       length(2) = NCOLORS
 
-      if (NCGM.eq.1) then
+      if (wks_type.eq."ncgm".or.wks_type.eq."NCGM") then
 C
 C Create an NCGM workstation.
 C
@@ -90,7 +91,7 @@ C
      +        ierr)
          call NhlFCreate(workid,'cn13Work',NhlFNcgmWorkstationClass,
      +        0,srlist,ierr) 
-      else if (X11.eq.1) then
+      else if (wks_type.eq."x11".or.wks_type.eq."X11") then
 C
 C Create an X workstation.
 C
@@ -100,7 +101,7 @@ C
      +        ierr)
          call NhlFCreate(workid,'cn13Work',NhlFXWorkstationClass,
      +        0,srlist,ierr) 
-      else if (PS.eq.1) then
+      else if (wks_type.eq."ps".or.wks_type.eq."PS") then
 C
 C Create a PS object.
 C
@@ -110,7 +111,7 @@ C
      +        ierr)
          call NhlFCreate(workid,'cn13Work',NhlFPSWorkstationClass,
      +        0,srlist,ierr)
-      else if (PDF.eq.1) then
+      else if (wks_type.eq."pdf".or.wks_type.eq."PDF") then
 C
 C Create a PDF object.
 C
@@ -120,6 +121,30 @@ C
      +        ierr)
          call NhlFCreate(workid,'cn13Work',NhlFPDFWorkstationClass,
      +        0,srlist,ierr)
+      else if (wks_type.eq."newpdf".or.wks_type.eq."NEWPDF".or.
+     +         wks_type.eq."newps".or.wks_type.eq."NEWPS") then
+C
+C Create a cairo PS/PDF object.
+C
+         call NhlFRLClear(srlist)
+         call NhlFRLSetstring(srlist,'wkFileName','./cn13f',ierr)
+         call NhlFRLSetstring(srlist,'wkFormat',wks_type,ierr)
+         call NhlFRLSetMDFloatArray(srlist,'wkColorMap',cmap,2,length,
+     +        ierr)
+         call NhlFCreate(workid,'cn13Work',
+     +        NhlFCairoPSPDFWorkstationClass,0,srlist,ierr)
+      else if (wks_type.eq."newpng".or.wks_type.eq."NEWPNG".or.
+     +         wks_type.eq."png".or.wks_type.eq."PNG") then
+C
+C Create a cairo PNG object.
+C
+         call NhlFRLClear(srlist)
+         call NhlFRLSetstring(srlist,'wkFileName','./cn13f',ierr)
+         call NhlFRLSetstring(srlist,'wkFormat',wks_type,ierr)
+         call NhlFRLSetMDFloatArray(srlist,'wkColorMap',cmap,2,length,
+     +        ierr)
+         call NhlFCreate(workid,'cn13Work',
+     +        NhlFCairoImageWorkstationClass,0,srlist,ierr)
       endif
 C
 C Create a MapPlot object.

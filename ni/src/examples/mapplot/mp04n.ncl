@@ -50,45 +50,57 @@ begin
 ;
 ; Default is to display output to an NCGM
 ;
-    NCGM=1
-    X11=0
-    PS=0
-    PDF=0
+    wks_type = "ncgm"
 
-    if (NCGM .eq. 1) then
+    if (str_lower(wks_type).eq."ncgm") then
 ;
 ; Create an ncgmWorkstation object.
 ;
         wid = create "mp04Work" ncgmWorkstationClass defaultapp
            "wkMetaName" : "./mp04n.ncgm"
         end create
-    else
-      if (X11 .eq. 1) then
+    end if
+    if (str_lower(wks_type).eq."x11") then
 ;
 ; Create an XWorkstation object.
 ;
-        wid = create "mp04Work" xWorkstationClass defaultapp
-            "wkPause" : True
-        end create
-      else
-        if (PS .eq. 1) then
+      wid = create "mp04Work" xWorkstationClass defaultapp
+          "wkPause" : True
+      end create
+    end if
+    if (str_lower(wks_type).eq."ps") then
 ;
 ; Create a PSWorkstation object.
 ;
-          wid = create "mp04Work" psWorkstationClass defaultapp
-           "wkPSFileName" : "./mp04n.ps"
-          end create
-        else
-          if (PDF .eq. 1) then
+      wid = create "mp04Work" psWorkstationClass defaultapp
+       "wkPSFileName" : "./mp04n.ps"
+      end create
+    end if
+    if (str_lower(wks_type).eq."pdf") then
 ;
 ; Create a PDFWorkstation object.
 ;
-            wid = create "mp04Work" pdfWorkstationClass defaultapp
-             "wkPDFFileName" : "./mp04n.pdf"
-            end create
-          end if
-        end if
-      end if
+      wid = create "mp04Work" pdfWorkstationClass defaultapp
+       "wkPDFFileName" : "./mp04n.pdf"
+      end create
+    end if
+    if (str_lower(wks_type).eq."newpdf".or.str_lower(wks_type).eq."newps") then
+;
+; Create a cairo PS/PDF Workstation object.
+;
+      wid = create "mp04Work" documentWorkstationClass defaultapp
+       "wkFileName" : "./mp04n"
+       "wkFormat" : wks_type
+      end create
+    end if
+    if (str_lower(wks_type).eq."newpng".or.str_lower(wks_type).eq."png") then
+;
+; Create a cairo PNG Workstation object.
+;
+      wid = create "mp04Work" imageWorkstationClass defaultapp
+       "wkFileName" : "./mp04n"
+       "wkFormat" : wks_type
+      end create
     end if
 ;
 ; AnnoManager objects allow the PlotManager to manipulate any View class

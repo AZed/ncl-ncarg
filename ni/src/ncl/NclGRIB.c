@@ -6315,6 +6315,7 @@ int wr_status;
 
 	if (! Ptables) {
 		InitPtables();
+		_DateInit();
 	}
 
 	therec->n_vars = 0;
@@ -6740,6 +6741,7 @@ int wr_status;
 						ptable_count = sizeof(ncep_reanal_params)/sizeof(TBLE2);
 						break;
 					case 7: /* NCEP */
+					case 60: /* NCAR */ 
 						switch (ptable_version) {
 						case 0:
 						case 1:

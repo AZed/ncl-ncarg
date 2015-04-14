@@ -1,5 +1,5 @@
 ;
-;      $Id: shea_util.ncl,v 1.35 2009/05/28 17:47:29 shea Exp $
+;      $Id: shea_util.ncl,v 1.39 2010/03/08 19:45:31 haley Exp $
 ;
 ; ******************** NOTE *******************************
 ; These are my personal functions/procedures. They do things
@@ -3224,20 +3224,20 @@ end
 ;----------------------------------------------------------------------------
 ;----------------------- Unsupported: DJS -----------------------------------
 ;----------------------------------------------------------------------------
-undef("IntegrateHybrid")
-function IntegrateHybrid (X:numeric, dp:numeric, con[1]:numeric \
-                          ,long_name:string, units:string, iopt:integer)
+undef("vertint")
+function vertint (X:numeric, dp:numeric, con[1]:numeric \
+                   ,long_name:string, units:string, iopt:integer)
 ; 
-; Perform vertical integration over hybrid coordinates.
+; Perform vertical integration:  dim_sum_n(X*dp,lind) 
 ; 
-; Requirement: X must have named dimensions and
-;              must be in the following order: ([time,],lev,lat,lon)
+; Requirement: X must be in the following order: ([time,],lev,lat,lon)
 ;
 ; Nomenclature:
-; X         - 3D or 4D array to be integrated
-;             dimension order ([time,],lev,lat,lon)
-; dp        - pressure thickness computed by "dpres_hybrid_ccm"
+; X         - 3D , 4D or 5D array to be integrated. No missing data allowed
+;             dimension order ([[case,]time,],lev,lat,lon)
+; dp        - pressure thickness computed by "dpres_hybrid_ccm" or "dpres_plevel"
 ;             Must be the same size/shape as X
+;             No missing data allowed.
 ; con       - constant used to multiply the value after integration
 ;             If none, set to 1
 ; long_name - long name of the resultant integrand 
@@ -3246,7 +3246,7 @@ function IntegrateHybrid (X:numeric, dp:numeric, con[1]:numeric \
 ;                   =1 means input dimension names will be renamed
 ;                      to "time", "lat", "lon" where appropriate.
 ;
-; Usage
+; Usage for hybrid levels
 ;        f = addfile("....", "r")
 ;        hyai = f->hyai
 ;        hybi = f->hybi
@@ -3254,55 +3254,93 @@ function IntegrateHybrid (X:numeric, dp:numeric, con[1]:numeric \
 ;        ps   = f->PS
 ;    
 ;        dp   = dpres_hybrid_ccm (ps,p0,hyai,hybi)  ; Pa [kg/(m s2)]
+;--------------------
+; Usage for pressure levels
+;        f   = addfile("....", "r")
+;        lev = f->lev  ; (/  1,  2,  3,  5,   7, 10, 20, 30, \   ; hPa 
+;                           50, 70,100,150, 200,250,300,400, \
+;                          500,600,700,775, 850,925,1000 /)
+;                      ; uniys of lev and psfc must match
+;        psfc= f->PS   ; PA         (time,lat,lon)
+;        lev = lev*100 ; make PA to match psfc       
+;        lev@units = "PA"
 ;
-;        t    = f->T
+;        ptop= 0       ; integrate 0==>psfc at each grid point
+;
+;                      ; dp(klev,nlat,mlon) or dp(ntim,klev,nlat,mlon)
+;        dp  = dpres_plevel(lev, psfc, ptop, 0)     ; Pa [kg/(m s2)]
+;--------------------
+; Use the 'dp' from above
+;        t    = f->T                                ; (time,lev,lat,lon)
 ;        cp   = 1004.                               ; J/(K kg)     [ m2/(K s2) ]
-;        g    = 9.81                                ; m/s
+;        g    = 9.81                                ; m/s2
 ;
 ;        con  = cp/g                                ; constant
-;        xvi  = IntegrateHybrid(t, dp, con \
-;                              ,"Vertically Integrated Internal Energy" \
-;                              , "kg/s2", 0) 
-;
+;        xvi  = vertint(t, dp, con \
+;                        ,"Vertically Integrated Internal Energy" \
+;                        ,"kg/s2", 0) 
+
+local dimX, dimDP, rankX, Xdp, lev_dim, VI
 begin
 
   dimX  = dimsizes( X )
   dimDP = dimsizes( dp )
   rankX = dimsizes( dimX )
-  if (.not.(rankX.eq.3 .or. rankX.eq.4)) then
-      print("integrate_hybrid: variable rank must be 3D or 4D")
-      print("integrate_hybrid: rank="+rankX+"D")
+
+  if (rankX.le.2 .or. rankX.ge.6) then
+      print("vertint: variable rank must be 3D or 4D or 5D")
+      print("vertint: rank="+rankX+"D")
       exit
   end if
 
   if (.not.all(dimDP.eq.dimX) ) then  ; error check
-      print("integrate_hybrid: dimension sizes are not equal")
-      print("integrate_hybrid:  dimX="+dimX)
-      print("integrate_hybrid: dimDP="+dimsizes(dp) )
+      print("vertint: dimension sizes are not equal")
+      print("vertint:  dimX="+dimX)
+      print("vertint: dimDP="+dimsizes(dp) )
       exit
   end if
 
-  dNamX = getvardims( X )                    ; get dimension names
+  if (isatt(X,"_FillValue") .and. any(ismissing(X)) ) then  ; error check
+      print("vertint: No _FillValue allowed")
+      print("vertint: X: nFill="+num(ismissing(X)))
+      exit
+  end if
+
+  if (isatt(dp,"_FillValue") .and. any(ismissing(dp)) ) then  ; error check
+      print("vertint: No _FillValue allowed")
+      print("vertint: dp: nFill="+num(ismissing(dp)))
+      exit
+  end if
 
   Xdp  = X*dp                                ; [? kg/(m s2)]   (temporary variable)
   copy_VarCoords(X, Xdp)
-                                             ; sum vertically [ie integrate]
-                                             ; must make "lev" rightmost dimension
-  if (rankX.eq.3) then                       ; (lat,lon,lev)   ; after reorder
-      VI = dim_sum_Wrap( Xdp($dNamX(1)$|:,$dNamX(2)$|:,$dNamX(0)$|:) )  ; 2D result 
-     ;VI = dim_sum_n_Wrap( Xdp, 0 )  ; 2D result [5.1.1] 
-      if (iopt.eq.1) then
+
+  if (rankX.eq.3) then                       ;   0   1   2
+      lev_dim = 0                            ; (lev,lat,lon) 
+  end if
+  if (rankX.eq.4) then                       ;   0   1   2  ,3
+      lev_dim = 1                            ; (time,lev,lat,lon)
+  end if
+  if (rankX.eq.5) then                       ;   0    1    2 , 3 , 4
+      lev_dim = 2                            ; (case,time,lev,lat,lon)
+  end if
+
+  VI = dim_sum_n_Wrap( Xdp, lev_dim )        ; sum vertically [ie integrate]
+  if (iopt.eq.1) then
+      if (rankX.eq.3) then   
           VI!0 = "lat"
           VI!1 = "lon"
       end if
-  end if
-  if (rankX.eq.4) then                       ; (time,lat,lon,lev) ; after reorder
-      VI = dim_sum_Wrap( Xdp($dNamX(0)$|:,$dNamX(2)$|:,$dNamX(3)$|:,$dNamX(1)$|:) ) ; 3D result 
-     ;VI = dim_sum_n_Wrap( Xdp, 1 ) ; 3D result  [5.1.1]
-      if (iopt.eq.1) then
+      if (rankX.eq.4) then   
           VI!0 = "time"
           VI!1 = "lat"
           VI!2 = "lon"
+      end if
+      if (rankX.eq.5) then   
+          VI!0 = "case"
+          VI!1 = "time"
+          VI!2 = "lat"
+          VI!3 = "lon"
       end if
   end if
 
@@ -3315,99 +3353,29 @@ begin
 ;----------------------------------------------------------------------------
 ;----------------------- Unsupported: DJS -----------------------------------
 ;----------------------------------------------------------------------------
+undef("IntegrateHybrid")
+function IntegrateHybrid (X:numeric, dp:numeric, con[1]:numeric \
+                         ,long_name:string, units:string, iopt:integer)
+;
+; Old interface
+; Perform vertical integration over hybrid coordinates.
+; 
+begin
+  return( vertint(X, dp, con, long_name, units, iopt) )  ; contributed.ncl
+end
+;----------------------------------------------------------------------------
+;----------------------- Unsupported: DJS -----------------------------------
+;----------------------------------------------------------------------------
 
 undef("IntegratePlevel")
 function IntegratePlevel (X:numeric, dp:numeric, con[1]:numeric \
-                          ,long_name:string, units:string, iopt:integer)
+                         ,long_name:string, units:string, iopt:integer)
 ; 
+; Old interface:
 ; Perform vertical integration over constant pressure coordinates.
 ; 
-; Requirement: X must have named dimensions and
-;              must be in the following order: ([time,],lev,lat,lon)
-;
-; Nomenclature:
-; X         - 3D or 4D array to be integrated
-;             dimension order ([time,],lev,lat,lon)
-; dp        - pressure thickness computed by "dpres_plevel"
-;             Must be the same size/shape as X
-; con       - constant used to multiply the value after integration
-;             If none, set to 1
-; long_name - long name of the resultant integrand 
-; units     - units of the resultant integrand 
-; iopt      - flag: =0 means input dimension names will be retained
-;                   =1 means input dimension names will be renamed
-;                      to "time", "lat", "lon" where appropriate.
-;
-; Usage
-;        f   = addfile("....", "r")
-;        lev = f->lev  ; (/  1,  2,  3,  5,   7, 10, 20, 30, \   ; hPa 
-;                           50, 70,100,150, 200,250,300,400, \
-;                          500,600,700,775, 850,925,1000 /)
-;                      ; uniys of lev and psfc must match
-;        psfc= f->PS   ; PA         (time,lat,lon)
-;        lev = lev*100 ; make PA to match psfc       
-;        lev@units = "PA"
-;
-;        ptop= 0       ; integrate 0==>psfc at each grid point
-;
-;                      ; dp(ntim,klev,nlat,mlon)
-;        dp  = dpres_plevel(lev, psfc, ptop, 0)     ; Pa [kg/(m s2)]
-;
-;        t    = f->T                                ; (time,lev,lat,lon)
-;        cp   = 1004.                               ; J/(K kg)     [ m2/(K s2) ]
-;        g    = 9.81                                ; m/s
-;
-;        con  = cp/g                                ; constant
-;        xvi  = IntegratePlevel(t, dp, con \
-;                              ,"Vertically Integrated Internal Energy" \
-;                              , "kg/s2", 0) 
 begin
-
-  dimX  = dimsizes( X )
-  dimDP = dimsizes( dp )
-  rankX = dimsizes( dimX )
-  if (.not.(rankX.eq.3 .or. rankX.eq.4)) then
-      print("integrate_plevel: variable rank must be 3D or 4D")
-      print("integrate_plevel: rank="+rankX+"D")
-      exit
-  end if
-
-  if (.not.all(dimDP.eq.dimX) ) then  ; error check
-      print("integrate_plevel: dimension sizes are not equal")
-      print("integrate_plevel:  dimX="+dimX)
-      print("integrate_plevel: dimDP="+dimsizes(dp) )
-      exit
-  end if
-
-  dNamX = getvardims( X )                    ; get dimension names
-
-  Xdp  = X*dp                                ; [? kg/(m s2)]   (temporary variable)
-  copy_VarCoords(X, Xdp)
-                                             ; sum vertically [ie integrate]
-                                             ; must make "lev" rightmost dimension
-  if (rankX.eq.3) then                       ; (lat,lon,lev) after reorder
-      VI = dim_sum_Wrap( Xdp($dNamX(1)$|:,$dNamX(2)$|:,$dNamX(0)$|:) )  ; 2D result 
-     ;VI = dim_sum_n_Wrap( Xdp, 0 )  ; 2D result  [5.1.1] 
-      if (iopt.eq.1) then
-          VI!0 = "lat"
-          VI!1 = "lon"
-      end if
-  end if
-  if (rankX.eq.4) then                       ; (time,lat,lon,lev) after reorder
-      VI = dim_sum_Wrap( Xdp($dNamX(0)$|:,$dNamX(2)$|:,$dNamX(3)$|:,$dNamX(1)$|:) ) ; 3D result 
-     ;VI = dim_sum_n_Wrap( Xdp,1 ) ; 3D result   [5.1.1]
-      if (iopt.eq.1) then
-          VI!0 = "time"
-          VI!1 = "lat"
-          VI!2 = "lon"
-      end if
-  end if
-
-  VI   = con*VI 
-  VI@long_name = long_name
-  VI@units     = units
-
-  return( VI )
+  return( vertint(X, dp, con, long_name, units, iopt) )  ; contributed.ncl
 end
 ;----------------------------------------------------------------------------
 ;----------------------- Unsupported: DJS -----------------------------------
@@ -3883,3 +3851,192 @@ begin
   return( pv )
 
 end
+; ******************************************************************
+; *******  THERE IS NO SUPPORT FOR THE PIE CHART FUNCTION **********
+; ******************************************************************
+; *******              PIE CHART FUNCTION                 **********
+; ******************************************************************
+undef("pie_chart")
+function pie_chart(wks:graphic, percent[*]:numeric, name[*]:string        \
+                              , colors[*]:string, pieChartRes:logical)
+;                    Create a Pie Chart
+; Nomenclature
+;      percent     - percent [%: 0-100] for each section: sum(percent)=100
+;                    percent = (/ 30, 10.5, 20, 39.5 /)/)
+;      name        - names to be associated with each section
+;                    name = (/ "Apple", "Spinach", "Orange", "Banana"/)
+;      color         colors for each section
+;                    color = (/ "red", "green", "blue", "brown" /)
+;      pieChartRes - resources which affect plot appearance    
+;                    Some examples
+;                    pieChartRes = True
+;                    pieChartRes@tiMainString= " ..."   [default is no title]
+;                    pieChartRes@pcLabelType = "section"   [default]
+;                    pieChartRes@pcLabelType = "block"  [labels beneath chart]
+ begin
+  rad       = 4.*atan(1.0)/180.                ; degress to radians
+  nSections = dimsizes(percent) 
+                                               ; Specify limits for X and Y axes.
+  circ              = 75                       ; arbitrary
+  extraSpace        = 100-circ                 ; Extra space beyond outer circle
+
+  opts              = True                     ; local and default options
+  if (pieChartRes .and. \
+      isatt(pieChartRes,"pcLabelType") .and. pieChartRes@pcLabelType.eq."block") then
+                                               ; block
+      opts@vpXF     = 0.125                    ; default=0.2
+      opts@vpYF     = 0.925                    ; default=0.8 
+      opts@vpWidthF = 0.75                     ; default=0.6
+      opts@vpHeightF= 0.75                     ; default=0.6
+  else                                        
+                                               ; section
+      opts@vpXF     = 0.125                    ; default=0.2
+      opts@vpYF     = 0.90                     ; default=0.8 
+      opts@vpWidthF = 0.75                     ; default=0.6
+      opts@vpHeightF= 0.75                     ; default=0.6
+  end if
+
+  opts@trXMinF      = -circ-extraSpace         ; min X 
+  opts@trXMaxF      =  circ+extraSpace         ; max X
+  opts@trYMinF      = -circ-extraSpace         ; min Y
+  opts@trYMaxF      =  circ+extraSpace         ; max Y
+
+  opts@tmXTOn       = False                    ; turn off tick marks on each side
+  opts@tmXBOn       = False
+  opts@tmYLOn       = False
+  opts@tmYROn       = False
+  opts@tmXBBorderOn = False                    ; turn off borders on each side
+  opts@tmXTBorderOn = False
+  opts@tmYLBorderOn = False
+  opts@tmYRBorderOn = False
+  opts@gsnFrame     = False                    ; do not advance frame
+  opts@gsnDraw      = False                    ; do not draw
+  opts@xyMonoDashPattern = True   
+
+  if (pieChartRes .and. isatt(pieChartRes,"tiMainString")) then
+      opts@tiMainString   = pieChartRes@tiMainString
+      opts@tiMainOffsetYF = -0.05              ; move tiMainString down a bit
+                                               ; leave roome for section label
+      if (isatt(pieChartRes,"pcLabelType") .and. \
+          pieChartRes@pcLabelType.eq."block") then
+          opts@tiMainOffsetYF = -0.065         ; no section label, move down more 
+      end if
+  end if
+ ;print(opts)
+
+  plotPC = gsn_xy(wks,(/0.0,0.0/),(/0.0,0.0/),opts)      ; background 
+;;plotPC = gsn_csm_xy(wks,(/0.0,0.0/),(/0.0,0.0/),opts)  
+
+  plRes  = True                                ; polyline resources
+  plRes@gsLineColor        = "black"
+  plRes@gsLineThicknessF   = 1.0
+
+  gsRes  = True                                ; polymarker resources
+  gsRes@gsMarkerIndex      = 16
+  gsRes@gsMarkerSizeF      = 0.0115  
+ ;gsRes@gsMarkerThicknessF = 0.0175
+  if (pieChartRes .and. isatt(pieChartRes,"gsMarkerSizeF")) then
+      gsRes@gsMarkerSizeF  = pieChartRes@gsMarkerSizeF
+  end if
+
+  txRes  = True                                ; text resources
+  txRes@txJust             = "CenterLeft"
+  txRes@txFontHeightF      = 0.0125            ; default=0.05
+  if (pieChartRes .and. isatt(pieChartRes,"txFontHeightF")) then
+      txRes@txFontHeightF = pieChartRes@txFontHeightF
+  end if
+
+  pgRes  = True                                ; polygon resources
+
+  xOrig  = 0.0
+  yOrig  = 0.0
+  xLoc   = 0.0
+  yLoc   = 0.0
+
+  pcPie  = (percent/100.)*360                  ; percent of 360 degrees 
+  pcStrt = 0.0 
+  pcLast = pcPie(0)
+  phase  = 90.0 - 0.5*pcPie(0)                 ; 'center' 1st section n=0
+
+  do n=0,nSections-1
+                                               ; create nodes for section
+     npts  = round(pcPie(n), 3)
+     npts2 = npts+2
+     xx    = new (npts2, "double", "No_FillValue")
+     yy    = new (npts2, "double", "No_FillValue")
+     xx(0) = xOrig
+     yy(0) = yOrig
+     xx(1:npts2-2) = circ*cos((fspan(pcStrt, pcLast, npts)+phase)*rad)
+     yy(1:npts2-2) = circ*sin((fspan(pcStrt, pcLast, npts)+phase)*rad)
+     xx(npts2-1)   = xOrig
+     yy(npts2-1)   = yOrig
+
+     pgRes@gsFillColor   =  colors(n)          ; fill with associated color
+     plotPC@$unique_string("dum")$ = gsn_add_polygon (wks, plotPC, xx, yy, pgRes)  ; color fill
+     plotPC@$unique_string("dum")$ = gsn_add_polyline(wks, plotPC, xx, yy, plRes)  ; outline
+
+     gsRes@gsMarkerColor = colors(n)           ; associate marker
+     if (percent(n).lt.10) then
+         text = sprintf("%5.1f", percent(n))+"  "+name(n)  ; include %
+     else
+         text = sprintf("%4.1f", percent(n))+"  "+name(n)  ; include %
+     end if
+                                               ; labels
+  if (pieChartRes .and. \
+      isatt(pieChartRes,"pcLabelType") .and. pieChartRes@pcLabelType.eq."block") then
+                                               ; block labels
+     if ((n%2).eq.0) then
+         mx   = -circ+25.                      ; left  column labels    
+     else
+         mx   =  circ*0.25                     ; right column labels
+     end if
+   ;;datatondc(plotPC,0.0,-circ, xLoc, yLoc)
+   ;;ny = yLoc - ????
+     ny   = -(circ+5)
+     ix   = 5   
+     iy   = 6.0
+     jy   = ny-(n/2)*iy
+    ;print("jy="+jy)
+     plotPC@$unique_string("dum")$ = gsn_add_polymarker(wks, plotPC,       mx   , jy, gsRes)
+     plotPC@$unique_string("dum")$ = gsn_add_text      (wks, plotPC, text, mx+ix, jy, txRes)
+
+  else    ; must be "section" labeling
+                                               ; section labels
+     xxInfo = (circ+0.25*extraSpace)*cos(((pcStrt+pcLast)*0.5+phase)*rad)
+     yyInfo = (circ+0.25*extraSpace)*sin(((pcStrt+pcLast)*0.5+phase)*rad)
+     angle  = atan2(xxInfo,yyInfo)/rad
+    ;print("n="+n+"   angle="+angle+"   "+colors(n))
+     ix     = 5   
+     if (angle.gt.-0.001) then                 ; round
+         txRes@txJust  = "CenterLeft"
+         plotPC@$unique_string("dum")$ = gsn_add_polymarker(wks, plotPC,       xxInfo   , yyInfo, gsRes)
+         plotPC@$unique_string("dum")$ = gsn_add_text      (wks, plotPC, text, xxInfo+ix, yyInfo, txRes)
+     else
+         txRes@txJust  = "CenterRight"
+         plotPC@$unique_string("dum")$ = gsn_add_polymarker(wks, plotPC,       xxInfo   , yyInfo, gsRes)
+         plotPC@$unique_string("dum")$ = gsn_add_text      (wks, plotPC, text, xxInfo-ix, yyInfo, txRes)
+     end if
+
+  end if
+
+     delete(xx)
+     delete(yy)
+
+     if (n.lt.(nSections-1)) then 
+         pcStrt = pcLast+0.001
+         pcLast = pcLast+pcPie(n+1)
+     end if
+  end do
+
+  if (.not.isatt(pieChartRes,"gsnDraw") .or. \
+     (isatt(opts,"gsnDraw") .and. opts@gsnDraw)) then 
+	draw(plotPC)
+  end if
+
+  if (.not.isatt(pieChartRes,"gsnFrame") .or. \
+     (isatt(opts,"gsnFrame") .and. opts@gsnFrame)) then 
+	frame(wks)
+  end if
+
+  return (plotPC)
+ end

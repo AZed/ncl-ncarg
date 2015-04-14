@@ -51,7 +51,11 @@ typedef enum _NclFileFormat {
 	_NclCCM = 1,
 	_NclNETCDF,
 	_NclHDF,
+#ifdef BuildHDF5
+	_NclHDF5,
+#endif
 	_NclHDFEOS,
+	_NclHDFEOS5,
 	_NclGRIB,
 	_NclGRIB2,
         _NclOGR

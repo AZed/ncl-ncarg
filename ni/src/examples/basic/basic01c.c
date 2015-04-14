@@ -1,5 +1,5 @@
 /*
- * $Id: basic01c.c,v 1.11 2003/02/28 21:43:13 grubin Exp $
+ * $Id: basic01c.c,v 1.13 2010/03/15 22:49:23 haley Exp $
  */
 /***********************************************************************
 *                                                                      *
@@ -38,6 +38,8 @@
 #include <ncarg/hlu/NcgmWorkstation.h>
 #include <ncarg/hlu/PSWorkstation.h>
 #include <ncarg/hlu/PDFWorkstation.h>
+#include <ncarg/hlu/CairoWorkstation.h>
+#include <ncarg/hlu/ImageWorkstation.h>
 #include <ncarg/hlu/XWorkstation.h>
 #include <ncarg/hlu/ContourPlot.h>
 #include <ncarg/hlu/hlu.h>
@@ -46,7 +48,7 @@ main()
 {
     int appid,wks,con1,rlist;
 
-    int NCGM=0, X11=1, PS=0, PDF=0;
+    char const *wks_type = "x11";
 
 /*
  * ##########
@@ -95,7 +97,7 @@ main()
  * when creating the object.  In this example, no modifications are made to
  * default values.
  */
-    if (NCGM) {
+    if (!strcmp(wks_type,"ncgm") || !strcmp(wks_type,"NCGM")) {
 /*
  * Create a meta file workstation.
  */
@@ -104,7 +106,7 @@ main()
         NhlCreate(&wks,"wks",NhlncgmWorkstationClass,NhlDEFAULT_APP,
                   rlist);
     }
-    else if (X11) {
+    else if (!strcmp(wks_type,"x11") || !strcmp(wks_type,"X11")) {
 /*
  * Create an X workstation.
  */
@@ -112,7 +114,7 @@ main()
         NhlRLSetInteger(rlist,NhlNwkPause,True);
         NhlCreate(&wks,"wks",NhlxWorkstationClass,NhlDEFAULT_APP,rlist);
     }
-    else if (PS) {
+    else if (!strcmp(wks_type,"ps") || !strcmp(wks_type,"PS")) {
 /*
  * Create a PS file workstation.
  */
@@ -121,13 +123,35 @@ main()
         NhlCreate(&wks,"wks",NhlpsWorkstationClass,NhlDEFAULT_APP,
                   rlist);
     }
-    else if (PDF) {
+    else if (!strcmp(wks_type,"pdf") || !strcmp(wks_type,"PDF")) {
 /*
  *  Create a PDF file workstation.
  */
         NhlRLClear(rlist);
         NhlRLSetString(rlist,NhlNwkPDFFileName,"./basic01c.pdf");
         NhlCreate(&wks,"wks",NhlpdfWorkstationClass,NhlDEFAULT_APP,
+                  rlist);
+   }
+    else if (!strcmp(wks_type,"newpdf") || !strcmp(wks_type,"NEWPDF") ||
+             !strcmp(wks_type,"newps") || !strcmp(wks_type,"NEWPS")) {
+/*
+ *  Create a cairo PS/PDF file workstation.
+ */
+        NhlRLClear(rlist);
+        NhlRLSetString(rlist,NhlNwkFileName,"./basic01c");
+        NhlRLSetString(rlist,NhlNwkFormat,(char*)wks_type);
+        NhlCreate(&wks,"wks",NhlcairoPSPDFWorkstationClass,NhlDEFAULT_APP,
+                  rlist);
+   }
+    else if (!strcmp(wks_type,"newpng") || !strcmp(wks_type,"NEWPNG") ||
+             !strcmp(wks_type,"png") || !strcmp(wks_type,"PNG")) {
+/*
+ *  Create a cairo PNG file workstation.
+ */
+        NhlRLClear(rlist);
+        NhlRLSetString(rlist,NhlNwkFileName,"./basic01c");
+        NhlRLSetString(rlist,NhlNwkFormat,(char*)wks_type);
+        NhlCreate(&wks,"wks",NhlcairoImageWorkstationClass,NhlDEFAULT_APP,
                   rlist);
    }
 

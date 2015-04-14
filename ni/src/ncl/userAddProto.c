@@ -1,5 +1,5 @@
 /*
- *      $Id: userAddProto.c,v 1.10 2009/05/08 03:55:50 haley Exp $
+ *      $Id: userAddProto.c,v 1.13 2010/02/01 22:28:48 huangwei Exp $
  */
 /************************************************************************
 *                                                                   *
@@ -38,6 +38,12 @@ void
 );
 
 extern NhlErrorTypes _Nclstr_get_field(
+#if NhlNeedProto
+void
+#endif
+);
+
+extern NhlErrorTypes _Nclstr_split(
 #if NhlNeedProto
 void
 #endif
@@ -133,6 +139,12 @@ void
 #endif
 );
 
+extern NhlErrorTypes _Nclstr_match(
+#if NhlNeedProto
+void
+#endif
+);
+
 extern NhlErrorTypes _Nclstr_get_comma();
 extern NhlErrorTypes _Nclstr_get_space();
 extern NhlErrorTypes _Nclstr_get_tab();
@@ -166,6 +178,14 @@ void NclAddUserBuiltInFuncs
     dimsizes[0] = 1;
     SetArgTemplate(args, nargs, "string", 1, dimsizes); nargs++;
     NclRegisterFunc(_Nclstr_get_field, args, "str_get_field", nargs);
+
+    nargs = 0;
+    args = NewArgs(2);
+    dimsizes[0] = 1;
+    SetArgTemplate(args, nargs, "string", 1, dimsizes); nargs++;
+    dimsizes[0] = 1;
+    SetArgTemplate(args, nargs, "string", 1, dimsizes); nargs++;
+    NclRegisterFunc(_Nclstr_split, args, "str_split", nargs);
     
     nargs = 0;
     args = NewArgs(3);
@@ -259,6 +279,14 @@ void NclAddUserBuiltInFuncs
     dimsizes[0] = 1;
     SetArgTemplate(args, nargs, "numeric", 1, dimsizes); nargs++;
     NclRegisterFunc(_Nclstr_insert, args, "str_insert", nargs);
+
+    nargs = 0;
+    args = NewArgs(2);
+    SetArgTemplate(args, nargs, "string", 0, NclANY); nargs++;
+    dimsizes[0] = 1;
+    SetArgTemplate(args, nargs, "string", 1, dimsizes); nargs++;
+    NclRegisterFunc(_Nclstr_match, args, "str_match", nargs);
+
 
     nargs = 0;
     args = NewArgs(0);

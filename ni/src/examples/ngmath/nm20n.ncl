@@ -1,5 +1,5 @@
 ;
-;      $Id: nm20n.ncl,v 1.7 2003/03/01 00:42:50 grubin Exp $
+;      $Id: nm20n.ncl,v 1.9 2010/03/15 22:49:24 haley Exp $
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                       ;
@@ -120,23 +120,8 @@ begin
 ;
 ; Create a workstation.
 ;
-  NCGM=1
-  X11=0
-  PS=0
-  PDF=0
-
-  if (NCGM .eq. 1) then
-    wks = gsn_open_wks("ncgm","nm20n")
-  end if
-  if (X11 .eq. 1) then
-    wks = gsn_open_wks("x11","nm20n")
-  end if
-  if (PS .eq. 1) then
-    wks = gsn_open_wks("ps","nm20n")
-  end if
-  if (PDF .eq. 1) then
-    wks = gsn_open_wks("pdf","nm20n")
-  end if
+  wks_type = "ncgm"
+  wks = gsn_open_wks(wks_type,"nm20n")
 
   gsn_define_colormap(wks,cmap)
 

@@ -1,5 +1,5 @@
 /*
- *      $Id: vc09c.c,v 1.4 2003/03/03 20:20:54 grubin Exp $
+ *      $Id: vc09c.c,v 1.6 2010/03/15 22:49:25 haley Exp $
  */
 /************************************************************************
  *                                                                      *
@@ -32,6 +32,8 @@
 #include <ncarg/hlu/NcgmWorkstation.h>
 #include <ncarg/hlu/PSWorkstation.h>
 #include <ncarg/hlu/PDFWorkstation.h>
+#include <ncarg/hlu/CairoWorkstation.h>
+#include <ncarg/hlu/ImageWorkstation.h>
 #include <ncarg/hlu/XWorkstation.h>
 #include <ncarg/hlu/VectorPlot.h>
 #include <ncarg/hlu/ScalarField.h>
@@ -52,7 +54,7 @@ int main ()
  *
  */
 
-    int ZOOM=0, NCGM=1, X11=0, PS=0, PDF=0;
+    int ZOOM=0;
 
     int i, j, k, u_id, v_id, p_id, t_id, len_dims [2], *time, *timestep;
     int rlist, uf, vf, pf, tf, tim_id, lat_id, lon_id, tit_id;
@@ -68,6 +70,7 @@ int main ()
     char title [256];
     const char *dir = _NGGetNCARGEnv ("data");
     extern void get_2d_array(float *, long, long, int, int, long);
+    const char *wks_type = "ncgm";
 
 /*
  *  Create an application object.  It will look for a resource file
@@ -86,50 +89,66 @@ int main ()
  *  Create an ncgmWorkstation object.
  */
 
-    if (NCGM) {
+    if (!strcmp(wks_type,"ncgm") || !strcmp(wks_type,"NCGM")) {
        NhlRLClear (rlist);
        NhlRLSetString (rlist, NhlNwkMetaName, "./vc09c.ncgm");
        NhlRLSetString (rlist, NhlNwkColorMap, "temp1");
        NhlCreate (&wid, "vc09Work", NhlncgmWorkstationClass,
                    NhlDEFAULT_APP, rlist);
     }
-    else
-
+    else if (!strcmp(wks_type,"x11") || !strcmp(wks_type,"X11")) {
 /*
  *  Create an XWorkstation object.
  */
-
-    if (X11) {
       NhlRLClear (rlist);
       NhlRLSetString (rlist, NhlNwkPause, "True");
       NhlRLSetString (rlist, NhlNwkColorMap, "temp1");
       NhlCreate (&wid, "vc09Work", NhlxWorkstationClass,
                    NhlDEFAULT_APP, rlist);
     }
-    else
+    else if (!strcmp(wks_type,"ps") || !strcmp(wks_type,"PS")) {
 
 /*
  *  Create a PSWorkstation object.
  */
-
-    if (PS) {
        NhlRLClear (rlist);
        NhlRLSetString (rlist, NhlNwkPSFileName, "vc09c.ps");
 	   NhlRLSetString (rlist, NhlNwkColorMap, "temp1");
        NhlCreate (&wid, "vc09Work", NhlpsWorkstationClass,
                    NhlDEFAULT_APP, rlist);
     }
-    else
-
+    else if (!strcmp(wks_type,"pdf") || !strcmp(wks_type,"PDF")) {
 /*
  *  Create a PDFWorkstation object.
  */
-
-    if (PDF) {
        NhlRLClear (rlist);
        NhlRLSetString (rlist, NhlNwkPDFFileName, "vc09c.pdf");
 	   NhlRLSetString (rlist, NhlNwkColorMap, "temp1");
        NhlCreate (&wid, "vc09Work", NhlpdfWorkstationClass,
+                   NhlDEFAULT_APP, rlist);
+    }
+    else if (!strcmp(wks_type,"newpdf") || !strcmp(wks_type,"NEWPDF") ||
+             !strcmp(wks_type,"newps") || !strcmp(wks_type,"NEWPS")) {
+/*
+ *  Create a cairo PS/PDF Workstation object.
+ */
+       NhlRLClear (rlist);
+       NhlRLSetString (rlist, NhlNwkFileName, "vc09c");
+       NhlRLSetString (rlist, NhlNwkFormat,(char*)wks_type);
+	   NhlRLSetString (rlist, NhlNwkColorMap, "temp1");
+       NhlCreate (&wid, "vc09Work", NhlcairoPSPDFWorkstationClass,
+                   NhlDEFAULT_APP, rlist);
+    }
+    else if (!strcmp(wks_type,"newpng") || !strcmp(wks_type,"NEWPNG") ||
+             !strcmp(wks_type,"png") || !strcmp(wks_type,"PNG")) {
+/*
+ *  Create a cairo PNG Workstation object.
+ */
+       NhlRLClear (rlist);
+       NhlRLSetString (rlist, NhlNwkFileName, "vc09c");
+       NhlRLSetString (rlist, NhlNwkFormat,(char*)wks_type);
+	   NhlRLSetString (rlist, NhlNwkColorMap, "temp1");
+       NhlCreate (&wid, "vc09Work", NhlcairoImageWorkstationClass,
                    NhlDEFAULT_APP, rlist);
     }
 

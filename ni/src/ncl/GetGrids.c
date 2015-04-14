@@ -6620,6 +6620,7 @@ GribParamList* thevarrec;
 	int lat_size, lon_size;
 	int j;
 	int has_missing, operio, oveggy;
+	double bin_scale, dec_scale;
 	
 	if (therec->has_gds) {
 		nlon = CnvtToDecimal(2,&(therec->gds[6]));
@@ -6703,6 +6704,8 @@ GribParamList* thevarrec;
 	if(bds[4] & (char)0200) {
 		binary_scale_factor = -binary_scale_factor;
 	}
+	bin_scale = pow(2.0,(double)binary_scale_factor);
+	dec_scale = pow(10.0,(double)decimal_scale_factor);
 	sign  = (bds[6] & (char) 0200)? 1 : 0;
 /*
 * Compute exponent GRIB docs specify 7 bit exponent
@@ -6723,7 +6726,7 @@ GribParamList* thevarrec;
 	lat_size =  thevarrec->var_info.dim_sizes[thevarrec->var_info.num_dimensions-2];
 	grid_size = is_staggered_grid ? lon_size * lat_size / 2 : lon_size * lat_size;
 
-	if((!spherical_harm)&&(!second_order)&&(!additional_flags) && (!is_thinned_lat)) {
+	if((!spherical_harm)&&(!second_order) && (!is_thinned_lat)) {
 		if(integer) {
 			*missing_value= (void*)NclMalloc((unsigned)sizeof(int));
 			*(int*)(*missing_value) = DEFAULT_MISSING_INT;
@@ -6758,13 +6761,13 @@ GribParamList* thevarrec;
 					X = X >> (isize - number_of_bits);
 					if(integer) {
 						((int*)data)[(*index_func)(index,lon_size,lat_size,ijswap,is_uv)] = 
-							(int)(reference_value + (X * pow(2.0,(double)binary_scale_factor)))/pow(10.0,(double)(decimal_scale_factor));
+							(int)(reference_value + (X * bin_scale))/dec_scale;
 						index++;
 						dnum++;
 
 					} else {
 						((float*)data)[(*index_func)(index,lon_size,lat_size,ijswap,is_uv)] = 
-							    (float)(reference_value + (X * pow(2.0,(double)binary_scale_factor)))/pow(10.0,(double)(decimal_scale_factor));
+							(float)(reference_value + (X * bin_scale)) / dec_scale;
 						index++;
 						dnum++;
 					}
@@ -6802,16 +6805,28 @@ GribParamList* thevarrec;
 					data = *outdat;
 				}
 				for(i = 0; i < total; i++) {
-					((int*)data)[i]= (int)reference_value;
+					if(is_gpoint(bms,i)) {
+						((int*)data)[i]= (int)reference_value;
+					}
+					else {
+                                                ((int*)data)[i] = DEFAULT_MISSING_INT;
+					}
 				}
 			} else {
+				float val;
 				if(*outdat == NULL) {
 					data = (void*)NclMalloc((unsigned)sizeof(float)*total);
 				} else {
 					data = *outdat;
 				}
+				val = (float) reference_value/pow(10.0,(double)(decimal_scale_factor));
 				for(i = 0; i < total; i++) {
-					((float*)data)[i]= reference_value/pow(10.0,(double)(decimal_scale_factor));
+					if(is_gpoint(bms,i)) {
+						((float*)data)[i]= val;
+					}
+					else {
+                                                ((float*)data)[i] = DEFAULT_MISSING_FLOAT;
+					}
 				}
 			}
 			*outdat = data;
@@ -7094,9 +7109,166 @@ GribParamList* thevarrec;
 			*outdat = NULL;
 		}
 	} 
-	else if (second_order || additional_flags) {
+	else if (second_order) {
+		int n1_first_order_start;
+		int n2_second_order_start;
+		int secondary_bit_maps;
+		int second_order_variable_width;  /* variable or constant width for the second order values */
+		int second_order_width = 0;
+		int *second_order_widths = NULL;
+		int extended_second_order_packing;
+		int boustrophedonic_ordering;
+		int spatial_differencing; /* 0 -none, 1 - 1st order, 2 - 2nd order, 3 - 3rd order */
+		int p1_num_sub_sections;
+		int p2_num_second_order;
+		int *p1_widths;
+		int i;
+		unsigned char *sec_bm = NULL;
+		int sec_bm_size = 0;
+		int *first_order_vals = NULL;
+		
+
+		n1_first_order_start = UnsignedCnvtToDecimal(2, &(bds[11]));
+		n2_second_order_start = UnsignedCnvtToDecimal(2, &(bds[14]));
+		p1_num_sub_sections = UnsignedCnvtToDecimal(2, &(bds[16]));
+		p2_num_second_order = UnsignedCnvtToDecimal(2, &(bds[18]));
+		secondary_bit_maps = (bds[13] & (char)0040) ? 1 : 0;
+		second_order_variable_width = (bds[13] & (char)0020) ? 1 : 0;
+		extended_second_order_packing = (bds[13] & (char)0010) ? 1 : 0;
+		boustrophedonic_ordering = (bds[13] & (char)04) ? 1 : 0;
+		spatial_differencing = (int) (bds[13] & (char)03);
+		
+
+		if(integer) {
+			*missing_value= (void*)NclMalloc((unsigned)sizeof(int));
+			*(int*)(*missing_value) = DEFAULT_MISSING_INT;
+		} else {
+			*missing_value= (void*)NclMalloc((unsigned)sizeof(float));
+			*(float*)(*missing_value) = DEFAULT_MISSING_FLOAT;
+		}
+		if (! second_order_variable_width) {
+			second_order_width = UnsignedCnvtToDecimal(1, &(bds[21]));
+		}
+		else {
+			second_order_widths = NclMalloc(p1_num_sub_sections * sizeof(int));
+			for (i = 0; i < p1_num_sub_sections; i++) {
+				second_order_widths[i] = (int) UnsignedCnvtToDecimal(1, &(bds[21 + i]));
+			}
+			
+		}
+		if (secondary_bit_maps) {
+			sec_bm_size = p2_num_second_order / 8 +  (p2_num_second_order % 8 == 0 ? 0 : 1);
+			sec_bm_size += sec_bm_size % 2;
+			sec_bm = bds + 21 + p1_num_sub_sections;
+			/*
+			if (bds + n1_first_order_start != sec_bm + sec_bm_size) {
+				printf("not correct yet\n");
+			}
+			*/
+		}
+		first_order_vals = NclMalloc(p1_num_sub_sections * sizeof(int));
+		
+		if (first_order_vals) {
+			if (number_of_bits == 0) {
+				for (i = 0; i < p1_num_sub_sections; i++) {
+					first_order_vals[i] = 0;
+				}
+			}
+			else {
+				int bit_offset = 0;
+				int tbits = 0;
+				int cix = 0;
+				unsigned char *start = bds + n1_first_order_start - 1;
+				for (i = 0; i < p1_num_sub_sections; i++) {
+					X = UnsignedCnvtToDecimal(4,start + cix);
+					X = X << bit_offset;
+					X = X >> (isize - number_of_bits);
+					first_order_vals[i] = X;
+					tbits += number_of_bits;
+					cix = tbits / 8;
+					bit_offset = tbits % 8;
+				}
+			}
+		}
+		if(integer) {
+			if(*outdat == NULL) {
+				data = (void*)NclMalloc((unsigned)sizeof(int)*grid_size);
+			} else {
+				data = *outdat;
+			}
+		} else {
+			if(*outdat == NULL) {
+				data = (void*)NclMalloc((unsigned)sizeof(float)*grid_size);
+			} else {
+				data = *outdat;
+			}
+		}
+		has_missing = 0;
+		index = 0;  /* this indexes the output data array */
+		if (! secondary_bit_maps && first_order_vals) {  /* packing is by row or column depending on ijswap  */
+			unsigned char *dstart = bds + n2_second_order_start -1;
+			int num_per_subsection = ijswap ? lat_size : lon_size;
+			int bit_offset = 0;
+			int tbits = 0;
+			int cix = 0;
+			for (i = 0; i < p1_num_sub_sections; i++) {
+				int bit_width = second_order_widths ? second_order_widths[i] : second_order_width;
+				int first_order_val = first_order_vals[i];
+				if (bit_width == 0) {
+					for (j = 0; j < num_per_subsection; j++) {
+						if (! is_gpoint(bms,index)) {
+                                                        has_missing = 1;                                                        
+							if(integer) {
+                                                                ((int*)data)[index] = DEFAULT_MISSING_INT;
+                                                        } else {
+                                                                ((float*)data)[index] = DEFAULT_MISSING_FLOAT;                                                        
+							}
+							index++;
+                                                        continue;
+                                                }
+						if(integer) {
+							((int*)data)[index] = (int) (reference_value + first_order_val * bin_scale) / dec_scale;
+						} else {
+							((float*)data)[index] = (float) (reference_value + first_order_val * bin_scale) / dec_scale;
+						}
+						index++;
+					}
+				}
+				else {
+					for (j = 0; j < num_per_subsection; j++) {
+						if (! is_gpoint(bms,index)) {
+							has_missing = 1;
+							if(integer) {
+								((int*)data)[index] = DEFAULT_MISSING_INT;
+							} else {
+								((float*)data)[index] = DEFAULT_MISSING_FLOAT;
+							}
+							index++;
+							continue;
+						}
+						X = UnsignedCnvtToDecimal(4,dstart + cix);
+						X = X << bit_offset;
+						X = X >> (isize - bit_width);
+						if(integer) {
+							((int*)data)[index] = (int) (reference_value + (first_order_val + X) * bin_scale) / dec_scale;
+						} else {
+							((float*)data)[index] = (float) (reference_value + (first_order_val + X) * bin_scale) / dec_scale;
+						}
+						tbits += bit_width;
+						cix = tbits / 8;
+						bit_offset = tbits % 8;
+						index++;
+					}
+				}
+			}
+
+		}
+		else { /* don't know how to do secondary bit maps yet */
 			*outdat = NULL;
-			NhlPError(NhlWARNING,NhlEUNKNOWN,"GenericUnPack: NCL does not yet handle gridded data with complex packing: no valid values returned");
+			NhlPError(NhlWARNING,NhlEUNKNOWN,"GenericUnPack: NCL does not yet handle gridded data using secondary bitmaps with complex packing : no valid values returned");
+		}
+		if (first_order_vals)
+			NhlFree(first_order_vals);
 	}
 	else {
 			*outdat = NULL;
@@ -8231,7 +8403,7 @@ int* nrotatts;
 	int is_thinned_lon = 0;
 	int idir;
 	int ix;
-	int try = 0;
+
 
 
 	if((thevarrec->thelist != NULL)&&(thevarrec->thelist->rec_inq != NULL)) {
@@ -8244,14 +8416,15 @@ int* nrotatts;
 		
 		/* 
 		 * this is a hack for certain IPCC data that does not have the correct info in gds[25+]. 
-		 * I hope it doesn't screw anything else up.
+		 * nlat can legitimately be larger than the lat dimension size if a non-global grid is being constructed, but it would not make sense for it to be orders of magnitude larger
 		 */
-		
-		if (nlat > (*dimsizes_lat)[0]) {
+
+		if (nlat > 5 * (*dimsizes_lat)[0]) {
 			nlat = (*dimsizes_lat)[0];
  			NhlPError(NhlWARNING,NhlEUNKNOWN,
 			"GdsGAGrid: Invalid value for Gaussian LatLon grid in GDS octets 26-27; inferring N from octets 9-10 (See GRIB Section 2 documentation)");
 		}
+
 		theta = (double*)NclMalloc(sizeof(double)*nlat);
 		wts = (double*)NclMalloc(sizeof(double)*nlat);
 		lwork = 4 * nlat*(nlat+1)+2;
@@ -8259,12 +8432,7 @@ int* nrotatts;
 		*lat = (float*)NclMalloc(sizeof(float)*nlat);
 /*
  * These come out south to north
- * The conditional that goes to TRY2 is also part of the IPCC hack.
  */
-	TRY2:
-		NGCALLF(gaqdnio,GAQDNIO)(&nlat,theta,wts,work,&lwork,&ierror);
-
-
 
 		tmpc[0] = thevarrec->thelist->rec_inq->gds[10] & (char)0177;
 		tmpc[1] = thevarrec->thelist->rec_inq->gds[11];
@@ -8275,27 +8443,61 @@ int* nrotatts;
 		tmpc[2] = thevarrec->thelist->rec_inq->gds[19];
 		ila2 = ((thevarrec->thelist->rec_inq->gds[17] & (char)0200) ? -1:1)*(int)UnsignedCnvtToDecimal(3,tmpc);
 
+		NGCALLF(gaqdnio,GAQDNIO)(&nlat,theta,wts,work,&lwork,&ierror);
+
 		if(!(thevarrec->thelist->rec_inq->gds[27] & (char)0100)) {
-/* -j direction implies north to south*/
-			i = nlat -1;
-			while(i >= 0) {
-				if((ila1 == (int)(rtod*theta[i] * 1000.0) - 90000)||(ila1 == (int)(rtod*theta[i] * 1000.0 + .5) - 90000)) {
-					break;
-				} else {
-					i--;	
+                        /* -j direction implies north to south*/
+			int done = 0;
+			int redo_nlat = 0;
+			i = nlat - 1;
+			while (! done) {
+				if (ila1 > (int)(rtod*theta[i] * 1000.0 + .5) - 90000) {
+					if (nlat < (*dimsizes_lat)[0]) {
+						redo_nlat = 1;
+					}
+					else {
+						NhlPError(NhlWARNING,NhlEUNKNOWN,
+							  "GdsGAGrid: GRIB attributes La1 and/or La2 are incorrectly out of range of the gaussian latitude array (See GRIB Section 2 documentation)");
+					}
 				}
-			}
-			if (i == 0 && try < 1 && nlat != (*dimsizes_lat)[0]) {
-				NhlPError(NhlWARNING,NhlEUNKNOWN,
-					  "GdsGAGrid: Invalid value for Gaussian LatLon grid in GDS octets 26-27; inferring N from octets 9-10 (See GRIB Section 2 documentation)");
-				try++;
-				nlat = (*dimsizes_lat)[0];
-				theta = (double*)NclRealloc(theta,sizeof(double)*nlat);
-				wts = (double*)NclRealloc(wts,sizeof(double)*nlat);
-				lwork = 4 * nlat*(nlat+1)+2;
-				work = (double*)NclRealloc(work,sizeof(double)*lwork);
-				*lat = (float*)NclRealloc(*lat,sizeof(float)*nlat);
-				goto TRY2;
+				else {
+					/* 
+					 * nlat can legitimately be larger than the size of the lat array if the grid is not global 
+					 */
+					while(i >= 0) {
+						if((ila1 == (int)(rtod*theta[i] * 1000.0) - 90000)||(ila1 == (int)(rtod*theta[i] * 1000.0 + .5) - 90000)) {
+							break;
+						} else {
+							i--;
+						}
+					}
+					/*if (2 + 2 * i - nlat != (*dimsizes_lat)[0]) {   nlat - 2((nlat -1) - i : might be invalid to assume symmetry in the subselection of gaussian coordinates */
+					if (i < (*dimsizes_lat)[0] - 1) { /* this is the only thing that is clearly going to generate some undefined values */
+						if (nlat != *(dimsizes_lat)[0]) {
+							redo_nlat = 1;
+						}
+						else {
+							NhlPError(NhlWARNING,NhlEUNKNOWN,
+								  "GdsGAGrid: Possible error generating Gaussian latitude coordinates: continuing anyway");
+						}
+					}
+				}
+				if (! redo_nlat) {
+					done = 1;
+				}
+				else {
+					NhlPError(NhlWARNING,NhlEUNKNOWN,
+						  "GdsGAGrid: Invalid value for Gaussian LatLon grid in GDS octets 26-27; inferring N from octets 9-10 (See GRIB Section 2 documentation)");
+					nlat = (*dimsizes_lat)[0];
+					theta = (double*)NclRealloc(theta,sizeof(double)*nlat);
+					wts = (double*)NclRealloc(wts,sizeof(double)*nlat);
+					lwork = 4 * nlat*(nlat+1)+2;
+					work = (double*)NclRealloc(work,sizeof(double)*lwork);
+					*lat = (float*)NclRealloc(*lat,sizeof(float)*nlat);
+					NGCALLF(gaqdnio,GAQDNIO)(&nlat,theta,wts,work,&lwork,&ierror);
+					redo_nlat = 0;
+					i = nlat - 1;
+				}
 			}
 			k = 0;
 			while((k<(*dimsizes_lat)[0])&&(i>=0)) {
@@ -8311,26 +8513,57 @@ int* nrotatts;
 			}
 	
 		} else {
-/* +j direction implies south to north*/
+                        /* +j direction implies south to north*/
+			int done = 0;
+			int redo_nlat = 0;
 			i = 0;
-			while(i<nlat) {
-				if((ila1 == (int)(rtod*theta[i] * 1000.0 + .5) - 90000)||(ila1 == (int)(rtod*theta[i] * 1000.0) - 90000)) {
-					break;
-				} else {
-					i++;		
+			while (! done) {
+				if (ila1 <  (int)(rtod*theta[i] * 1000.0) - 90000) {
+					if (nlat < (*dimsizes_lat)[0]) {
+						redo_nlat = 1;
+					}
+					else {
+						NhlPError(NhlWARNING,NhlEUNKNOWN,
+							  "GdsGAGrid: GRIB attributes La1 and/or La2 are incorrectly out of range of the gaussian latitude array (See GRIB Section 2 documentation)");
+					}
 				}
-			}
-			if (i == nlat && try < 1 && nlat != (*dimsizes_lat)[0]) {
-				NhlPError(NhlWARNING,NhlEUNKNOWN,
-					  "GdsGAGrid: Invalid value for Gaussian LatLon grid in GDS octets 26-27; inferring N from octets 9-10 (See GRIB Section 2 documentation)");
-				try++;
-				nlat = (*dimsizes_lat)[0];
-				theta = (double*)NclRealloc(theta,sizeof(double)*nlat);
-				wts = (double*)NclRealloc(wts,sizeof(double)*nlat);
-				lwork = 4 * nlat*(nlat+1)+2;
-				work = (double*)NclRealloc(work,sizeof(double)*lwork);
-				*lat = (float*)NclRealloc(*lat,sizeof(float)*nlat);
-				goto TRY2;
+				else {
+					/* 
+					 * nlat can legitimately be larger than the size of the lat array if the grid is not global 
+					 */
+					while(i < nlat) {
+						if((ila1 == (int)(rtod*theta[i] * 1000.0) - 90000)||(ila1 == (int)(rtod*theta[i] * 1000.0 + .5) - 90000)) {
+							break;
+						} else {
+							i++;
+						}
+					}
+					if (nlat - i < (*dimsizes_lat)[0]) {
+						if (nlat != *(dimsizes_lat)[0]) {
+							redo_nlat = 1;
+						}
+						else {
+							NhlPError(NhlWARNING,NhlEUNKNOWN,
+								  "GdsGAGrid: Possible error generating Gaussian latitude coordinates: continuing anyway");
+						}
+					}
+				}
+				if (! redo_nlat) {
+					done = 1;
+				}
+				else {
+					NhlPError(NhlWARNING,NhlEUNKNOWN,
+						  "GdsGAGrid: Invalid value for Gaussian LatLon grid in GDS octets 26-27; inferring N from octets 9-10 (See GRIB Section 2 documentation)");
+					nlat = (*dimsizes_lat)[0];
+					theta = (double*)NclRealloc(theta,sizeof(double)*nlat);
+					wts = (double*)NclRealloc(wts,sizeof(double)*nlat);
+					lwork = 4 * nlat*(nlat+1)+2;
+					work = (double*)NclRealloc(work,sizeof(double)*lwork);
+					*lat = (float*)NclRealloc(*lat,sizeof(float)*nlat);
+					NGCALLF(gaqdnio,GAQDNIO)(&nlat,theta,wts,work,&lwork,&ierror);
+					redo_nlat = 0;
+					i = 0;
+				}
 			}
 			k = 0;
 			while((i<nlat)&&(k<(*dimsizes_lat)[0])) {
@@ -8589,7 +8822,11 @@ int* nrotatts;
 	do_rot = 1;
 	grid_oriented = ((unsigned char)010 & (unsigned char)gds[16])?1:0;
 
-#if 0
+#if 1
+	if (do_rot) {
+		*rot = NhlMalloc(nx * ny * sizeof(float));
+	}
+	
 	if(north) {
 		InitMapTrans("ST",90.0,lov,0.0);
 /*
@@ -8615,6 +8852,10 @@ int* nrotatts;
 				float tmpy = ny0 + jdir * j * deltay;
 				NGCALLF(maptri,MAPTRI)
 				(&tmpx,&tmpy,&((*lat)[j * nx + i]),&((*lon)[j * nx + i]));
+				if (do_rot) {
+					gridrot(lov,(*lon)[j * nx + i],&((*rot)[j * nx + i]));
+				}
+
 			}
 		}
 	} else {
@@ -8642,12 +8883,15 @@ int* nrotatts;
 				float tmpy = ny0 + jdir * j * deltay;
 				NGCALLF(maptri,MAPTRI)
 				(&tmpx,&tmpy,&((*lat)[j * nx + i]),&((*lon)[j * nx + i]));
+				if (do_rot) {
+					gridrot(lov,(*lon)[j * nx + i],&((*rot)[j * nx + i]));
+				}
 			}
 		}
 	}
 #endif
 
-#if 1
+#if 0
 	{
 		int kgds[32];
 		int iopt;
@@ -9182,7 +9426,8 @@ int* nrotatts;
 	int is_thinned_lat;
 	int is_thinned_lon;
 	int gds_type;
-	
+	static int failed_gds_types[5] = {-1,-1,-1,-1,-1};
+        static int failed_count = 0;
 	
 	*lat = NULL;
 	*n_dims_lat = 0;
@@ -9204,11 +9449,11 @@ int* nrotatts;
 	gds_type = (int) gds[5];
 	switch (gds_type) {
 	default:
-		NhlPError(NhlFATAL,NhlEUNKNOWN,
-			  "GdsUnsupportedGrid: Not enough known about grid %d to determine grid size or shape",
+		NhlPError(NhlWARNING,NhlEUNKNOWN,
+	  "GdsUnknownGrid: GDS grid %d is unknown and may not be decoded correctly; no coordinate variables will be supplied",
 			gds_type);
-		return;
-
+		/* we will try to at least get the dimension sizes, but no guarantee */
+		break;
 	case 10:
 	case 14:
 	case 20:
@@ -9216,6 +9461,10 @@ int* nrotatts;
 	case 30:
 	case 34:
 	case 90:
+		NhlPError(NhlWARNING,NhlEUNKNOWN,
+		  "NCL does not yet fully support GDS grid type %d, no coordinate variables will be supplied for this grid",
+			  gds_type);
+
 		/* we can at least get the x and y dimensions for these grids */
 		break;
 	}
@@ -9224,15 +9473,15 @@ int* nrotatts;
 	nlat = CnvtToDecimal(2,&(gds[8]));
 	is_thinned_lon = (nlon == 65535); /* all bits set indicates missing: missing means thinned */
 	is_thinned_lat = (nlat == 65535);
-	if (nlon <= 1 || nlat <= 1 || is_thinned_lon || is_thinned_lat) {
-		if (is_thinned_lon || is_thinned_lat) {
-			NhlPError(NhlFATAL,NhlEUNKNOWN,
-				  "GdsUnsupportedGrid: Cannot handle unsupported grid containing thinned lats or lons");
-		}
-		else {
-			NhlPError(NhlFATAL,NhlEUNKNOWN,
-				  "GdsUnknownGrid: Invalid grid detected");
-		}
+	if (is_thinned_lon || is_thinned_lat) {
+		NhlPError(NhlFATAL,NhlEUNKNOWN,
+			  "GdsUnknownGrid: Cannot decode unsupported grid containing thinned lats or lons");
+	}
+	/* this is a purely heuristic test: passing it does not definitively mean the dimensions have been decoded correctly. */
+	else if (nlat <= 1 || nlon <= 1 || nlat > 15000 || nlon > 15000) {
+		NhlPError(NhlFATAL,NhlEUNKNOWN,
+			  "GdsUnknownGrid: Not enough known about grid %d to determine grid size or shape",
+			gds_type);
 		return;
 	}
 	*dimsizes_lat = (int*)NclMalloc(sizeof(int));
@@ -9241,9 +9490,6 @@ int* nrotatts;
 	*(*dimsizes_lat) = nlat;
 	*n_dims_lat = 1;
 	*n_dims_lon = 1;
-	NhlPError(NhlWARNING,NhlEUNKNOWN,
-		  "NCL does not yet fully support GDS grid type %d, no coordinate variables will be supplied for this grid",
-		  gds_type);
 
 	return;
 }

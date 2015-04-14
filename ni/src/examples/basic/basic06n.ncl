@@ -1,4 +1,4 @@
-; $Id: basic06n.ncl,v 1.6 2003/02/28 21:43:14 grubin Exp $
+; $Id: basic06n.ncl,v 1.8 2010/03/15 22:49:23 haley Exp $
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;                                                                       ;
 ;                Copyright (C)  1995                                    ;
@@ -105,12 +105,9 @@ cmap = (/ (/1.0, 1.0, 1.0/), \
 ;
 ; Set the display. Default is to display output to an X workstation.
 ;
-NCGM=0
-X11=1
-PS=0
-PDF=0
+wks_type = "x11"
 
-if (NCGM .eq. 1) then
+if (str_lower(wks_type).eq."ncgm") then
 ;
 ; Create an ncgmWorkstation object with default colormap.
 ;
@@ -118,36 +115,53 @@ if (NCGM .eq. 1) then
       "wkMetaName" : "basic06n.ncgm"
       "wkColorMap"         : cmap
   end create
-else
-  if (X11 .eq. 1) then
+end if
+if (str_lower(wks_type).eq."x11") then
 ;
 ; Create an X11 output workstation and use the above color map.
 ;
   xwork_id = create "simple" xWorkstationClass defaultapp
-      "wkPause" : "True"
-      "wkColorMap"         : cmap
+    "wkPause" : "True"
+    "wkColorMap"         : cmap
   end create
-  else
-    if (PS .eq. 1) then
+end if
+if (str_lower(wks_type).eq."ps") then
 ;
 ; Create a PSWorkstation object.
 ;
-      xwork_id = create "simple" psWorkstationClass defaultapp
-        "wkPSFileName"   : "basic06n.ps"
-        "wkColorMap"     : cmap
-      end create
-    else
-      if (PDF .eq. 1) then
+  xwork_id = create "simple" psWorkstationClass defaultapp
+    "wkPSFileName"   : "basic06n.ps"
+    "wkColorMap"     : cmap
+  end create
+end if
+if (str_lower(wks_type).eq."pdf") then
 ;
 ; Create a PDFWorkstation object.
 ;
-        xwork_id = create "simple" pdfWorkstationClass defaultapp
-          "wkPDFFileName"   : "basic06n.pdf"
-          "wkColorMap"     : cmap
-        end create
-      end if
-    end if
-  end if
+  xwork_id = create "simple" pdfWorkstationClass defaultapp
+    "wkPDFFileName"   : "basic06n.pdf"
+    "wkColorMap"     : cmap
+  end create
+end if
+if (str_lower(wks_type).eq."newpdf".or.str_lower(wks_type).eq."newps") then
+;
+; Create a cairo PS/PDF Workstation object.
+;
+  xwork_id = create "simple" documentWorkstationClass defaultapp
+    "wkFileName" : "basic06n"
+    "wkFormat"   : wks_type
+    "wkColorMap" : cmap
+  end create
+end if
+if (str_lower(wks_type).eq."newpng".or.str_lower(wks_type).eq."png") then
+;
+; Create a cairo PNG Workstation object.
+;
+  xwork_id = create "simple" imageWorkstationClass defaultapp
+    "wkFileName" : "basic06n"
+    "wkFormat"   : wks_type
+    "wkColorMap" : cmap
+  end create
 end if
 
 ;

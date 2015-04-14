@@ -1,5 +1,5 @@
 ;
-;      $Id: contributed.ncl,v 1.229 2009/05/28 21:25:49 shea Exp $
+;      $Id: contributed.ncl,v 1.268 2010/03/23 17:53:22 haley Exp $
 ;
 ;
 ; -------------- added Feb 14 2002
@@ -275,6 +275,11 @@ end
 ; M. Haley
 ; Copy the coordinate variables from one variable to another,
 ;    except for the indicated dimension(s).  
+; Note that this makes the assumption that var_from has "dims"
+;     more dimensions than var_to.
+; If you want to copy var coords and skip a dimension, use
+;     copy_VarCoords_not_n.
+;
 ; Used internally, based on copy_VarCoords_1
 
 undef ("copy_VarCoords_n")
@@ -312,6 +317,54 @@ begin
        ;else
        ;        print("ERROR: copy_VarCoords_n: rank problem")
        ;end if
+  end if
+end
+;************************************************************
+; M. Haley
+; Copy the coordinate variables from one variable to another,
+;    skipping the indicated dimension(s).  
+; Note that this makes the assumption that var_from and
+;    var_to have the same dimensionality, except for the
+;    dimensions to skip.
+;
+; Used internally, based on copy_VarCoords_n
+; Added Oct 25, 2009
+
+undef ("copy_VarCoords_not_n")
+procedure copy_VarCoords_not_n(var_from,var_to,dims[*]:integer)  
+local dimt, dimf, rfrom, rto, i, dName, ndims
+begin                      
+
+  dimf  = dimsizes(var_from)            
+  dimt  = dimsizes(var_to)
+  rfrom = dimsizes(dimf)      ; rank of var_from
+  rto   = dimsizes(dimt)      ; rank of var_to
+  ndims = dimsizes(dims)
+
+  if(rfrom.ne.rto)
+    print("copy_VarCoords_not_n: var_from and var_to must be the same rank.")
+    return
+  end if
+
+  dName = getvardims(var_from)
+
+  if (.not.all(ismissing(dName))) then
+                do i = 0,dims(0)-1            ; don't use dims' dimensions
+                   if (.not.ismissing(dName(i)).and.dimf(i).eq.dimt(i)) then  
+                        var_to!i = var_from!i
+                        if(iscoord(var_from,var_from!i))
+                                var_to&$var_to!i$ = var_from&$var_from!i$
+                        end if
+                   end if
+                end  do
+                do i = dims(ndims-1)+1,rfrom-1  ; don't use dims' dimensions
+                   if (.not.ismissing(dName(i)).and.dimf(i).eq.dimt(i)) then  
+                        var_to!i = var_from!i
+                        if(iscoord(var_from,var_from!i))
+                                var_to&$var_to!i$ = var_from&$var_from!i$
+                        end if
+                   end if
+                end  do
   end if
 end
 ;****************************************
@@ -650,6 +703,35 @@ begin
   return (getvardims(x))
 end
 
+;*************************************************************************
+; D. Shea
+; print Min and Max of a numeric variable using long_name [if present]
+;
+undef("printMinMax")
+procedure printMinMax (x:numeric,optSpace:logical)  
+;  Usage:   printMinMax (T,True)                   
+begin                                             
+          ; attribute names to check             
+   vLongName = (/"long_name", "description", "standard_name" /)
+   long_name = ""        
+   do n=0,dimsizes(vLongName)-1            
+      if (isatt(x,vLongName(n))) then     
+          long_name = x@$vLongName(n)$   
+          break
+      end if
+   end do
+        
+   if (optSpace) then
+       print (" ")  
+   end if          
+                  
+   if (long_name.ne."") then 
+       print (long_name+ ": min="+min(x)+"   max="+max(x)) 
+   else 
+       print ("min="+min(x)+"   max="+max(x))
+   end if 
+end
+
 ; *****************************************************************
 ; D. Shea
 ; Generate gaussian latitudes and meta data 
@@ -844,8 +926,8 @@ undef ("changeCaseChar")
 function changeCaseChar (x:string)
 
 begin
-  print("changeCaseChar: this function has been deprecated.")
-  print("                Will use str_switch.")
+;  print("changeCaseChar: this function has been deprecated.")
+;  print("                Will use str_switch.")
   return(str_switch(x))
 end
 ; *****************************************************************
@@ -1620,9 +1702,10 @@ begin
 
           ; names to check
  oNames = (/"add_offset", "offset", "OFFSET", "Offset", "_offset" \
-           ,"Intercept", "intercept"/)
+           ,"Intercept", "intercept", "scalingIntercept" /)
  sNames = (/"scale", "SCALE", "Scale", "_scale", "scale_factor" \
-           ,"Scale_factor", "Slope" , "slope", "ScaleFactor", "Scale_Factor" /)
+           ,"Scale_factor", "Slope" , "slope", "ScaleFactor"      \
+           ,"Scale_Factor", "scalingSlope" /)
 
 
  offset = 0.0   ; establish as type float
@@ -1822,7 +1905,6 @@ begin
       return( i )
   end if
 end
-
 ; ********************************************************************
 ; D. Shea
 ; Truncate or Round "x" to the number of decimal places [nDec]
@@ -1833,7 +1915,10 @@ end
 ; ==> The NCL function "sprintf" has much of the same functionality
 ; ==> as this function. "decimalPlaces" is kept for backward
 ; ==> compatibility reasons.
-
+;
+; It was upgraded by D Shea in Dec 2009 to use "round" and to
+; return metadata.
+;
 ; x     - float or double only
 ; nDec  - number of decimal places to the right of decimal point
 ; Round - round or truncate
@@ -1844,45 +1929,40 @@ end
 ;   xRound = decimalPlaces(x, 2, False) ; x=12.345678 => 12.34
 ;   title  = "EOF: PerCent Variance="+decimalPlaces(pcvar(0), 2, True)
 
-
 undef("decimalPlaces")
-function decimalPlaces (x:numeric, nDec:integer, Round:logical)
-local xType, shift, xTmp, iTmp, zero, half, one, HALF
+function decimalPlaces(x:numeric, nDec:integer, Round:logical)
+local xType, shift, xTmp, _FillValue
 begin
   xType = typeof(x)
 
   if (xType.eq."float"  .or.  xType.eq."double") then
       if (xType.eq."double") then
-          zero = 0.0d
-          half = 0.5d
-          one  = 1.0d
-          shift = 10.d^nDec
+          shift = 10.0d^nDec
       else
-          zero  = 0.0
-          half  = 0.5
-          one   = 1.0
-          shift = 10.^nDec
+          shift = 10.0^nDec
       end if
 
-      HALF = where(x.lt.zero, -half, half)
-
-      if (Round) then
-          xTmp = (x + HALF/shift)*shift  ; xTmp same type as x
-      else
-          xTmp = x*shift
+      xTmp = x                            
+      if (isatt(xTmp,"_FillValue")) then
+          FillValue = xTmp@_FillValue
+          delete(xTmp@_FillValue)
+          xTmp@_FillValue = FillValue*shift       ; shifted _FillValue
       end if
 
-      if (xType.eq."float") then
-          iTmp  = floattointeger(xTmp)  ; truncate temporary variable
-      else
-          iTmp  = doubletointeger(xTmp) ; truncate temporary variable
+      xTmp = xTmp*shift               
+      xTmp = round(xTmp, 0)
+      xTmp = xTmp/shift
+     ;xTmp = (/ round(x*shift)/shift /)
+
+      if (isvar("FillValue")) then
+          xTmp@_FillValue = FillValue              ; original _FillValue
       end if
 
-      xTmp  = iTmp/shift                ; return original type
-      return (xTmp)
+      return(xTmp)
   else
       print ("decimalPlaces: input is of type "+xType )
-      return (x)                        ; must not be float or double
+      print ("               only float or double is allowed")
+      return (x)           
   end if
 end
 
@@ -1934,6 +2014,8 @@ begin
 
  xave = dim_avg(x)          ; arithmetic ave [no meta data]
  
+ copy_VarAtts (x, xave)     ; copy attributes
+
  dimx = dimsizes(x)         ; size of each dimension
  Ndx  = dimsizes(dimx)      ; number of dimensions
  copy_VarCoords_1 (x, xave) ; one less dimension 
@@ -2929,7 +3011,7 @@ end
 
 undef("clmMonTLL")
 function clmMonTLL (x[*][*][*]:numeric)
-local dimx, ntim, i, nmos, monAveLLT
+local dimx, ntim, nlat, mlon, i, nmo, nmos, monAveLLT
 begin
   dimx = dimsizes(x)
   ntim = dimx(0)
@@ -2938,15 +3020,39 @@ begin
   modCheck ("clmMonTLL", ntim, nmos)   ; error check
  ;rankCheck("clmMonTLL", x, 3)         ; not needed due to prototyping
       
-  do i=0,2
-     if (ismissing(x!i)) then
-         print("contributed.ncl: clmMonTLL: all dimensions must be named")
-         exit
-     end if
-  end do
+  nlat = dimx(1)
+  mlon = dimx(2)
+;
+; Compute all 12 monthly averages first. 
+;
+   aveMonth = new((/nmos,nlat,mlon/),typeof(x) \
+                                    ,getFillValue(x))
+   do nmo=0,nmos-1
+      aveMonth(nmo,:,:) = dim_avg_n( x(nmo:ntim-1:nmos,:,:), 0 )
+   end do
 
-  monAveLLT = clmMonLLT( x($x!1$|:,$x!2$|:,$x!0$|:) )
-  return ( monAveLLT(month|:,$x!1$|:,$x!2$|:) )   ; return (month,lat,lon)
+; copy attributes and add a couple of informational attributes
+; only need to do this if plotting or writing to netCDF file
+
+   copy_VarAtts (x,aveMonth)
+   aveMonth@time_op_ncl = "Climatology: "+ (ntim/nmos) +" years"
+   aveMonth@info    = "function clmMonLLT: contributed.ncl"
+
+; copy spatial (eg, lat/lon) coordinate variables
+
+   do i=1,2
+      if (.not.ismissing(x!i)) then
+          aveMonth!i = x!i
+          if (iscoord(x,x!i)) then
+              aveMonth&$aveMonth!i$ = x&$x!i$
+          end if
+      end if
+   end  do
+
+   aveMonth!0     = "month"           ; create a "month" named dim
+   aveMonth&month = ispan(0,nmos-1,1) ; create a month coord var
+
+   return (aveMonth)
 end
 ; ******************************************************************
 ; D. Shea
@@ -2961,10 +3067,9 @@ end
 ;
 ; Usage:  moStd = stdMonTLL (x)
 
-
 undef("stdMonTLL")
 function stdMonTLL (x[*][*][*]:numeric)
-local dimx, ntim, i, nmos, monStdLLT
+local dimx, ntim, nlat, mlon, i, nmo, nmos, stdMonth
 begin
   dimx = dimsizes(x)
   ntim = dimx(0)
@@ -2972,17 +3077,42 @@ begin
   nmos  = 12
   modCheck ("stdMonTLL", ntim, nmos)   ; error check
  ;rankCheck("stdMonTLL", x, 3)         ; not needed due to prototyping
+      
+  nlat = dimx(1)
+  mlon = dimx(2)
+;
+; Compute all 12 std deviations. 
+;
+   stdMonth = new((/nmos,nlat,mlon/),typeof(x) \
+                                    ,getFillValue(x))
+   do nmo=0,nmos-1
+      stdMonth(nmo,:,:) = dim_stddev_n( x(nmo:ntim-1:nmos,:,:), 0 )
+   end do
 
-  do i=0,2
-     if (ismissing(x!i)) then
-         print("contributed.ncl: stdMonTLL: all dimensions must be named")
-         exit
-     end if
-  end do
+; copy attributes and add a couple of informational attributes
+; only need to do this if plotting or writing to netCDF file
 
-  monStdLLT = stdMonLLT( x($x!1$|:,$x!2$|:,$x!0$|:) )
-  return ( monStdLLT(month|:,$x!1$|:,$x!2$|:) )      ; return (month,lat,lon)
+   copy_VarAtts (x,stdMonth)
+   stdMonth@time_op_ncl = "Monthly Standard Deviation: "+ (ntim/nmos) +" years"
+   stdMonth@info    = "function stdMonTLL: contributed.ncl"
+
+; copy spatial (eg, lat/lon) coordinate variables
+
+   do i=1,2
+      if (.not.ismissing(x!i)) then
+          stdMonth!i = x!i
+          if (iscoord(x,x!i)) then
+              stdMonth&$stdMonth!i$ = x&$x!i$
+          end if
+      end if
+   end  do
+
+   stdMonth!0     = "month"           ; create a "month" named dim
+   stdMonth&month = ispan(0,nmos-1,1) ; create a month coord var
+
+   return (stdMonth)
 end
+
 ;**********************************************************************
 ; D. Shea
 ; Calculate standardized anomalies from monthly data
@@ -3024,7 +3154,8 @@ begin
 
    xStiz = x          ; variable to variable copy [meta data]
    do nmo=0,ntim-1,nmos
-      xStiz(nmo:ntim-1:nmos,:,:) = dim_standardize(x(namd1|:,namd2|:,namd0|nmo:ntim-1:nmos), opt)
+     ;xStiz(nmo:ntim-1:nmos,:,:) = dim_standardize(x(namd1|:,namd2|:,namd0|nmo:ntim-1:nmos), opt)
+      xStiz(nmo:ntim-1:nmos,:,:) = dim_standardize_n(x(nmo:ntim-1:nmos,:,:), opt, 0 )  ; Nov 9, 2009
    end do
    if (isatt(x,"long_name") .or. isatt(x,"description") .or. \
        isatt(x,"standard_name") ) then
@@ -3280,27 +3411,51 @@ end
 ; Usage:  moClm = clmMonTLLL (x)
 ; Output: moClm(12,lev,lat,lon)
 
-
 undef("clmMonTLLL")
 function clmMonTLLL (x[*][*][*][*]:numeric)
-local dimx, ntim, i, nmos, monAveLLLT
+local dimx, klvl, ntim, nlat, mlon, i, nmo, nmos, monAveLLT
 begin
   dimx = dimsizes(x)
   ntim = dimx(0)
 
   nmos  = 12
   modCheck ("clmMonTLLL", ntim, nmos)   ; error check
- ;rankCheck("clmMonTLLL", x, 4)         ; not needed due to prototyping
+ ;rankCheck("clmMonTLLL", x, 3)         ; not needed due to prototyping
       
-  do i=0,3
-     if (ismissing(x!i)) then
-         print("contributed.ncl: clmMonTLLL: all dimensions must be named")
-         exit
-     end if
-  end do
+  klvl = dimx(1)
+  nlat = dimx(2)
+  mlon = dimx(3)
+;
+; Compute all 12 monthly averages first. 
+;
+   aveMonth = new((/nmos,klvl,nlat,mlon/),typeof(x) \
+                                         ,getFillValue(x))
+   do nmo=0,nmos-1
+      aveMonth(nmo,:,:,:) = dim_avg_n( x(nmo:ntim-1:nmos,:,:,:), 0 )
+   end do
 
-  monAveLLLT = clmMonLLLT( x($x!1$|:,$x!2$|:,$x!3$|:,$x!0$|:) )
-  return ( monAveLLLT(month|:,$x!1$|:,$x!2$|:,$x!3$|:) )   ; return (month,lev,lat,lon)
+; copy attributes and add a couple of informational attributes
+; only need to do this if plotting or writing to netCDF file
+
+   copy_VarAtts (x,aveMonth)
+   aveMonth@time_op_ncl = "Climatology: "+ (ntim/nmos) +" years"
+   aveMonth@info    = "function clmMonLLLT: contributed.ncl"
+
+; copy spatial (eg, lat/lon) coordinate variables
+
+   do i=1,3
+      if (.not.ismissing(x!i)) then
+          aveMonth!i = x!i
+          if (iscoord(x,x!i)) then
+              aveMonth&$aveMonth!i$ = x&$x!i$
+          end if
+      end if
+   end  do
+
+   aveMonth!0     = "month"           ; create a "month" named dim
+   aveMonth&month = ispan(0,nmos-1,1) ; create a month coord var
+
+   return (aveMonth)
 end
 
 ; ******************************************************************
@@ -3316,25 +3471,50 @@ end
 
 undef("stdMonTLLL")
 function stdMonTLLL (x[*][*][*][*]:numeric)
-local dimx, ntim, i, nmos, monStdLLLT
+local dimx, klvl, ntim, nlat, mlon, i, nmo, nmos, stdMonth
 begin
   dimx = dimsizes(x)
   ntim = dimx(0)
 
   nmos  = 12
   modCheck ("stdMonTLLL", ntim, nmos)   ; error check
- ;rankCheck("stdMonTLLL", x, 4)         ; not needed due to prototyping
+ ;rankCheck("stdMonTLLL", x, 3)         ; not needed due to prototyping
+      
+  klvl = dimx(1)
+  nlat = dimx(2)
+  mlon = dimx(3)
+;
+; Compute all 12 standard deviations first. 
+;
+   stdMonth = new((/nmos,klvl,nlat,mlon/),typeof(x) \
+                                         ,getFillValue(x))
+   do nmo=0,nmos-1
+      stdMonth(nmo,:,:,:) = dim_stddev_n( x(nmo:ntim-1:nmos,:,:,:), 0 )
+   end do
 
-  do i=0,3
-     if (ismissing(x!i)) then
-         print("contributed.ncl: stdMonTLLL: all dimensions must be named")
-         exit
-     end if
-  end do
+; copy attributes and add a couple of informational attributes
+; only need to do this if plotting or writing to netCDF file
 
-  monStdLLLT = stdMonLLLT( x($x!1$|:,$x!2$|:,$x!3$|:,$x!0$|:) )
-  return ( monStdLLLT(month|:,$x!1$|:,$x!2$|:,$x!3$|:) ) ; return (month,lev,lat,lon)
-  end
+   copy_VarAtts (x,stdMonth)
+   stdMonth@time_op_ncl = "Monthly Standard Deviation: "+ (ntim/nmos) +" years"
+   stdMonth@info    = "function stdMonTLLL: contributed.ncl"
+
+; copy spatial (eg, lat/lon) coordinate variables
+
+   do i=1,3
+      if (.not.ismissing(x!i)) then
+          stdMonth!i = x!i
+          if (iscoord(x,x!i)) then
+              stdMonth&$stdMonth!i$ = x&$x!i$
+          end if
+      end if
+   end  do
+
+   stdMonth!0     = "month"           ; create a "month" named dim
+   stdMonth&month = ispan(0,nmos-1,1) ; create a month coord var
+
+   return (stdMonth)
+end
 ;**********************************************************************
 ; D. Shea
 ; Calculate anomalies from climatology [Remove annual cycle]
@@ -3508,7 +3688,8 @@ begin
 ;
    do ndy=0,ndys-2                                 ; ndy=0->364 ==> day of year 1->365       
       indx = ind( days.eq.(ndy+1) )       
-      clmDay(ndy,:,:) = dim_avg(x(lat|:,lon|:,time|indx))
+     ;clmDay(ndy,:,:) = dim_avg(x(lat|:,lon|:,time|indx))
+      clmDay(ndy,:,:) = dim_avg_n(x(indx,:,:), 0)  ; 5 Nov 2009
       delete(indx)                  
    end do
                                                    ; nominal day 366 
@@ -3754,17 +3935,56 @@ begin
 
   nD   = nDim-1                                 ; last dimension
                                                 ; create a new coord for
-  if (.not.ismissing(xo!0)) then
+  if (isdimnamed(xo,0)) then
       fo!nD = xo!0                              ; if present, use xo name
   else 
-      if (.not.ismissing(fi!nD)) then
-          fo!nD = changeCaseChar(fi!nD)         ; if present, use same name
+      if (isdimnamed(fi,nD)) then
+          fo!nD = str_switch(fi!nD)             ; if present, use same name
       else                                      ; but change case [contributed]
           fo!nD = "X"                           ; default dimension name
       end if                
   end if
                                                 ; assign coordinates
   fo&$fo!nD$ = xo                               ; rightmost dim
+   
+  return (fo)
+end
+
+; **********************************************************************
+; M. Haley
+; wrapper for NCL procedure "linint1_n" that copies attributes and coordinate 
+; vars.  It adds the longitude and latitude coordinates.
+
+undef("linint1_n_Wrap")
+function linint1_n_Wrap (xi:numeric, fi:numeric, wrapX:logical \
+                        ,xo[*]:numeric, Opt, dim[1]:integer)
+
+; wrapper for NCL function "linint1_n" that copies attributes and coordinate vars.
+local fo, dimfi, nDim, n, nD
+begin
+
+  fo   = linint1_n (xi,fi, wrapX, xo, Opt, dim) ; perform interpolation 
+                                                ; shea_misc functions
+  dimfi= dimsizes(fi)
+  nDim = dimsizes(dimsizes(fo))                 ; number of dimensions
+
+  copy_VarAtts (fi, fo)                         ; copy variable attributes
+  copy_VarCoords_not_n (fi, fo, dim)            ; copy coord variables  
+                                                ; except for dim-th
+
+                                                ; create a new coord for
+  nD   = dim                                    ; "dim"-th dimension
+  if (isdimnamed(xo,0)) then
+      fo!nD = xo!0                              ; if present, use xo name
+  else 
+      if (isdimnamed(fi,nD)) then
+          fo!nD = str_switch(fi!nD)             ; if present, use same name
+      else                                      ; but change case [contributed]
+          fo!nD = "X"                           ; default dimension name
+      end if                
+  end if
+                                                ; assign coordinates
+  fo&$fo!nD$ = xo                               ; "dim"-th dimension
    
   return (fo)
 end
@@ -3800,7 +4020,7 @@ begin
   else 
       do nD=nDim-2,nDim-1                       ; two rightmost dimensions
          if (.not.ismissing(fi!nD)) then
-             fo!nD = changeCaseChar(fi!nD)      ; if present, use same name
+             fo!nD = str_switch(fi!nD)          ; if present, use same name
          end if                                 ; but change case
       end do
   end if
@@ -3888,7 +4108,7 @@ begin
   else
       do nD=nDim-2,nDim-1                  ; two rightmost dimensions
          if (.not.ismissing(fi!nD)) then
-             fo!nD = changeCaseChar(fi!nD) ; if present, use same name
+             fo!nD = str_switch(fi!nD)     ; if present, use same name
          end if                            ; but change case
       end do
   end if
@@ -3900,21 +4120,15 @@ begin
 
   return (fo)
 end
-
-
-; **********************************************************************
-; D. Shea
-; wrapper for NCL function "rcm2points"  that copies attributes+coordinates
-; vars.  It creates a "pts" coord variable and creates two 1D
-; attributes that indicate the lat/lon associated with each point.
+;-------------------------
 undef ("rcm2points_Wrap")
 function rcm2points_Wrap \ 
-                      (xi[*][*]:numeric,yi[*][*]:numeric, fi:numeric \
-                      ,xo[*]:numeric,yo[*]:numeric, Opt)
+                      (yi[*][*]:numeric,xi[*][*]:numeric, fi:numeric \
+                      ,yo[*]:numeric,xo[*]:numeric, Opt)
 
 local fo, dimfi, nDim, pts
 begin
-  fo   = rcm2rgrid_points (xi,yi,fi, wrapX, xo,yo, Opt)  ; perform interpolation 
+  fo   = rcm2points (xi,yi,fi, xo,yo, Opt)  ; perform interpolation 
                                                
   dimfi= dimsizes(fi)
   nDim = dimsizes(dimsizes(fi))                 ; number of dimensions
@@ -3934,9 +4148,10 @@ begin
   fo@xcoord     =  xo            ; x/longitude points
   fo@ycoord     =  yo            ; y/latitude  points
   fo@ncl = "rgrid2points used for interpolation"
-   
+
   return (fo)
 end
+
 ; **********************************************************************
 ; D. Shea
 ; wrapper for NCL function "rgrid2rcm"  that copies attributes and coordinate 
@@ -5527,27 +5742,85 @@ end
 ; ******************************************************************
 ; Dennis Shea
 
-; wrapper for NCL functions "natgrds" and "natgrdd"
-; Note: The natgrd[s/d] functions are two of the few
-;       that require that all types be the same.
-; Note: because the (xi,yi) and/or (xo,yo) are no
-;       required to be monotonic, they may or may
-;       nor be coordinate variables.
-
 undef("natgrid_Wrap")
 function natgrid_Wrap (xi[*]:numeric,yi[*]:numeric, fi:numeric \
                       ,xo[*]:numeric,yo[*]:numeric)
 
-local fo, dimfi, nDim
+local fo, dimfi, nDimi, nDimo
 begin
   fo = natgrid (xi,yi,fi, xo,yo)            ; perform interpolation 
                                              
   dimfi= dimsizes(fi)
-  nDim = dimsizes(dimsizes(fi))                 ; rank: # of dimensions
+  nDimi= dimsizes(dimsizes(fi))                 ; rank: # of dimensions
 
   copy_VarAtts (fi, fo)                         ; copy variable attributes
-  if (nDim.ge.2) then                           ; copy coord vars
+  if (nDimi.ge.2) then                          ; copy coord vars
       copy_VarCoords_1(fi,fo)                   ; except for rightmost dim
+  end if
+
+  nDimo = dimsizes(dimsizes(fo))
+
+  dNam = getvardims( yo )
+  if (.not.ismissing(dNam)) then
+      fo!(nDimo-2) = dNam
+      fo&$dNam$    = yo
+  else
+      fo!(nDimo-2) = "y"
+      fo&y         = yo
+  end if
+  delete(dNam)
+
+  dNam = getvardims( xo )
+  if (.not.ismissing(dNam)) then
+      fo!(nDimo-1) = dNam
+      fo&$dNam$    = xo
+  else
+      fo!(nDimo-1) = "x"
+      fo&x         = xo
+  end if
+
+  return (fo)
+end
+
+; ******************************************************************
+; Dennis Shea
+
+undef("obj_anal_ic_Wrap")
+function obj_anal_ic_Wrap (xi[*]:numeric,yi[*]:numeric, fi:numeric \
+                          ,xo[*]:numeric,yo[*]:numeric,rscan[*]:numeric \
+                          ,opt[1]:logical)
+
+local fo, dimfi, nDimi, nDimo
+begin
+  fo = obj_anal_ic (xi,yi,fi, xo,yo,rscan,opt)  ; perform interpolation 
+                                             
+  dimfi = dimsizes(fi)
+  nDimi = dimsizes(dimsizes(fi))                ; rank: # of dimensions
+
+  copy_VarAtts (fi, fo)                         ; copy variable attributes
+  if (nDimi.ge.2) then                          ; copy coord vars
+      copy_VarCoords_1(fi,fo)                   ; except for rightmost dim
+  end if
+
+  nDimo = dimsizes(dimsizes(fo))
+
+  dNam = getvardims( yo )
+  if (.not.ismissing(dNam)) then
+      fo!(nDimo-2) = dNam
+      fo&$dNam$    = yo
+  else
+      fo!(nDimo-2) = "y"
+      fo&y         = yo
+  end if
+  delete(dNam)
+
+  dNam = getvardims( xo )
+  if (.not.ismissing(dNam)) then
+      fo!(nDimo-1) = dNam
+      fo&$dNam$    = xo
+  else
+      fo!(nDimo-1) = "x"
+      fo&x         = xo
   end if
 
   return (fo)
@@ -5568,6 +5841,22 @@ begin
   return(xRunAve)
 end
 ; ******************************************************************
+; Mary Haley
+; wrapper for NCL function runave_n
+
+undef ("runave_n_Wrap")
+function runave_n_Wrap( x:numeric, nave[1]:integer, kopt[1]:integer, \
+                        dim[1]:integer)
+local xRunAve
+begin
+ ;xRunAve = x
+  xRunAve = runave_n (x, nave, kopt, dim)   
+  copy_VarMeta(x, xRunAve)
+  xRunAve@runave_op_ncl = "runave_n: nave="+nave 
+
+  return(xRunAve)
+end
+; ******************************************************************
 ; Dennis Shea
 ; wrapper for NCL function wgt_runave
 
@@ -5583,6 +5872,22 @@ begin
   return(wRunAve)
 end
 ; ******************************************************************
+; Mary Haley
+; wrapper for NCL function wgt_runave_n
+
+undef ("wgt_runave_n_Wrap")
+function wgt_runave_n_Wrap( x:numeric, wgt[*]:numeric, kopt[1]:integer, \
+                            dim[1]:integer)
+local wRunAve
+begin
+ ;wRunAve = x
+  wRunAve = wgt_runave_n (x, wgt, kopt, dim)   
+  copy_VarMeta(x, wRunAve)
+  wRunAve@wgt_runave_op_ncl = "wgt_runave_n"
+
+  return(wRunAve)
+end
+; ******************************************************************
 ; Dennis Shea
 ; wrapper for NCL function taper
 
@@ -5594,6 +5899,23 @@ begin
   xTaper = taper (x, pct, kopt)   
   copy_VarMeta(x, xTaper)       
   xTaper@taper_op_ncl = "taper: pct="+sprintf("%4.2f", pct)
+
+  return(xTaper)
+end
+
+; ******************************************************************
+; Mary Haley
+; wrapper for NCL function taper_n, added 11/1/2009
+;
+undef ("taper_n_Wrap")
+function taper_n_Wrap( x:numeric, pct[1]:numeric, kopt[1]:numeric,  \
+                       dim[1]:integer)
+local xTaper 
+begin
+ ;xTaper = x            
+  xTaper = taper_n (x, pct, kopt, dim)
+  copy_VarMeta(x, xTaper)       
+  xTaper@taper_op_ncl = "taper_n: pct="+sprintf("%4.2f", pct)
 
   return(xTaper)
 end
@@ -5627,32 +5949,10 @@ function wgt_runave_leftdim(x:numeric, wgt[*]:numeric, opt[1]:integer)
 ; utility routine ... makes for cleaner code
 ; Reorder so time is rightmost; applies Lanczos weights, reorder back
 ;
-local dimx, rank, dNam, xWork
+; Updated 11/7/2009 to use wgt_runave_n_Wrap
+;
 begin
-  dimx = dimsizes(x)
-  rank = dimsizes( dimx )
-
-  dNam = getvardims( x )
-
-  if (rank.eq.1) then
-      return( wgt_runave_Wrap( x, wgt, opt) )
-  end if
-  if (rank.eq.2) then
-      xWork = wgt_runave_Wrap( x($dNam(1)$|:,$dNam(0)$|:), wgt, opt)
-      return( xWork($dNam(0)$|:,$dNam(1)$|:) ) 
-  end if
-  if (rank.eq.3) then
-      xWork = wgt_runave_Wrap( x($dNam(1)$|:,$dNam(2)$|:,$dNam(0)$|:), wgt, opt)
-      return( xWork($dNam(0)$|:,$dNam(1)$|:,$dNam(2)$|:) )
-  end if
-  if (rank.eq.4) then
-      xWork = wgt_runave_Wrap( x($dNam(1)$|:,$dNam(2)$|:,$dNam(3)$|:,$dNam(0)$|:), wgt, opt)
-      return (xWork($dNam(0)$|:,$dNam(1)$|:,$dNam(2)$|:,$dNam(3)$|:) )
-  end if
-  if (rank.eq.5) then
-      xWork = wgt_runave_Wrap( x($dNam(1)$|:,$dNam(2)$|:,$dNam(3)$|:,$dNam(4)$|:,$dNam(0)$|:), wgt, opt)
-      return (xWork($dNam(0)$|:,$dNam(1)$|:,$dNam(2)$|:,$dNam(3)$|:,$dNam(4)$|:) )
-  end if
+  return( wgt_runave_n_Wrap( x, wgt, opt, 0) )
 end
 ; ******************************************************************
 undef("taper_leftdim")
@@ -5661,7 +5961,9 @@ function taper_leftdim(x:numeric, pct[1]:numeric, opt[1]:integer)
 ; utility routine ... makes for cleaner code
 ; Reorder so time is rightmost; applies taper, reorder back
 ;
-local dimx, rank, dNam, xWork
+; Updated 11/1/2009 to use taper_n_Wrap. No reordering needed.
+;
+local n, dimx, rank, dNam
 begin
   if (pct.le.0 .or. pct.gt.1) then
       print("**************************************************")
@@ -5685,60 +5987,24 @@ begin
      end if
   end do
 
-  if (rank.eq.2) then
-      xWork = taper_Wrap( x($dNam(1)$|:,$dNam(0)$|:), pct, opt)
-      return( xWork($dNam(0)$|:,$dNam(1)$|:) ) 
-  end if
-  if (rank.eq.3) then
-      xWork = taper_Wrap( x($dNam(1)$|:,$dNam(2)$|:,$dNam(0)$|:), pct, opt)
-      return( xWork($dNam(0)$|:,$dNam(1)$|:,$dNam(2)$|:) )
-  end if
-  if (rank.eq.4) then
-      xWork = taper_Wrap( x($dNam(1)$|:,$dNam(2)$|:,$dNam(3)$|:,$dNam(0)$|:), pct, opt)
-      return (xWork($dNam(0)$|:,$dNam(1)$|:,$dNam(2)$|:,$dNam(3)$|:) )
-  end if
-  if (rank.eq.5) then
-      xWork = taper_Wrap( x($dNam(1)$|:,$dNam(2)$|:,$dNam(3)$|:,$dNam(4)$|:,$dNam(0)$|:), pct, opt)
-      return (xWork($dNam(0)$|:,$dNam(1)$|:,$dNam(2)$|:,$dNam(3)$|:,$dNam(4)$|:) )
-  end if
+  return( taper_n_Wrap( x, pct, opt, 0) )
 end
 ;**********************************************************
 undef("dtrend_leftdim")
 function dtrend_leftdim(x:numeric, opt[1]:logical)
 ;
 ; utility routine ... makes for cleaner code
-; Reorder so time is rightmost; detrend the time series, reorder back
 ;
-local dimx, rank, dNam, x_dtrend, xWork
+; Pre V5.2.0: Reorder so time is rightmost; detrend the time series,
+;     reorder back
+;
+; Post V5.2.0: Updated 11/1/09 to use dtrend_n.
+;
+local x_dtrend
 begin
-  dimx = dimsizes(x)
-  rank = dimsizes( dimx )
-  dNam = getvardims( x )
-
-  if (rank.eq.1) then
-      x_dtrend = x                             ; retain meta data
-      x_dtrend = dtrend( x, False) 
-  end if
-  if (rank.eq.2) then
-      xWork = x($dNam(1)$|:,$dNam(0)$|:)       ; retain meta data
-      xWork = dtrend( xWork, False)
-      return( xWork($dNam(0)$|:,$dNam(1)$|:) ) 
-  end if
-  if (rank.eq.3) then
-      xWork = x($dNam(1)$|:,$dNam(2)$|:,$dNam(0)$|:)
-      xWork = dtrend( xWork, False)
-      return( xWork($dNam(0)$|:,$dNam(1)$|:,$dNam(2)$|:) )
-  end if
-  if (rank.eq.4) then
-      xWork = x($dNam(1)$|:,$dNam(2)$|:,$dNam(3)$|:,$dNam(0)$|:)
-      xWork = dtrend( xWork, False)
-      return (xWork($dNam(0)$|:,$dNam(1)$|:,$dNam(2)$|:,$dNam(3)$|:) )
-  end if
-  if (rank.eq.5) then
-      xWork = x($dNam(1)$|:,$dNam(2)$|:,$dNam(3)$|:,$dNam(4)$|:,$dNam(0)$|:)
-      xWork = dtrend( xWork, False)
-      return (xWork )
-  end if
+  x_dtrend = x                             ; retain meta data
+  x_dtrend = dtrend_n( x, opt, 0) 
+  return (x_dtrend)
 end
 
 ; ******************************************************************
@@ -7649,35 +7915,6 @@ begin
   return(table)
 end
 
-;*************************************************************************
-; D. Shea
-; print Min and Max of a numeric variable using long_name [if present]
-;
-undef("printMinMax")
-procedure printMinMax (x:numeric,optSpace:logical)  
-;  Usage:   printMinMax (T,True)                   
-begin                                             
-          ; attribute names to check             
-   vLongName = (/"long_name", "description", "standard_name" /)
-   long_name = ""        
-   do n=0,dimsizes(vLongName)-1            
-      if (isatt(x,vLongName(n))) then     
-          long_name = x@$vLongName(n)$   
-          break
-      end if
-   end do
-        
-   if (optSpace) then
-       print (" ")  
-   end if          
-                  
-   if (long_name.ne."") then 
-       print (long_name+ ": min="+min(x)+"   max="+max(x)) 
-   else 
-       print ("min="+min(x)+"   max="+max(x))
-   end if 
-end
-
 ;********************************************************************
 ; D. Shea
 ; wrapper for NCL function "hyi2hyo" that copies attributes and coordinate vars.
@@ -8245,13 +8482,13 @@ begin
        nyr    = -1
        xAnnual= new ( (/nyrs,nn/), typeof(x), getFillValue(x)) ;  contributed.ncl
        do nt=0,ntim-1,NMOS
-          xTemp = x($dName(1)$|:,$dName(0)$|nt:nt+NMOS1)          ; cleaner code only
+          xTemp = x(nt:nt+NMOS1, :)       ; cleaner code only
           nyr   = nyr+1
 
           if (opt.eq.0) then
-              xAnnual(nyr,:) = dim_sum ( xTemp )
+              xAnnual(nyr,:) = dim_sum_n ( xTemp, 0 )
           else
-              xAnnual(nyr,:) = dim_avg ( xTemp )
+              xAnnual(nyr,:) = dim_avg_n ( xTemp, 0 )
           end if
 
           nMsg  = 0                             ; number of missing for current year (nyr)
@@ -8281,13 +8518,13 @@ begin
        nyr    = -1
        xAnnual= new ( (/nyrs,ny,mx/), typeof(x), getFillValue(x)) ;  contributed.ncl
        do nt=0,ntim-1,NMOS
-          xTemp = x($dName(1)$|:,$dName(2)$|:,$dName(0)$|nt:nt+NMOS1) ; cleaner code only
+          xTemp = x(nt:nt+NMOS1,:,:) ; cleaner code only
           nyr   = nyr+1
 
           if (opt.eq.0) then
-              xAnnual(nyr,:,:) = dim_sum ( xTemp )
+              xAnnual(nyr,:,:) = dim_sum_n ( xTemp, 0 )
           else
-              xAnnual(nyr,:,:) = dim_avg ( xTemp )
+              xAnnual(nyr,:,:) = dim_avg_n ( xTemp, 0 )
           end if
 
           nMsg  = 0                             ; number of missing for current year (nyr)
@@ -8317,13 +8554,13 @@ begin
        nyr    = -1
        xAnnual= new ( (/nyrs,kz,ny,mx/), typeof(x), getFillValue(x)) ;  contributed.ncl
        do nt=0,ntim-1,NMOS
-          xTemp = x($dName(1)$|:,$dName(2)$|:,$dName(3)$|:,$dName(0)$|nt:nt+NMOS1) 
+          xTemp = x(nt:nt+NMOS1,:,:,:) 
           nyr   = nyr+1
 
           if (opt.eq.0) then
-                  xAnnual(nyr,:,:,:) = dim_sum ( xTemp )
+                  xAnnual(nyr,:,:,:) = dim_sum_n ( xTemp, 0 )
           else
-                  xAnnual(nyr,:,:,:) = dim_avg ( xTemp )
+                  xAnnual(nyr,:,:,:) = dim_avg_n ( xTemp, 0 )
           end if
 
           nMsg  = 0                             ; number of missing for current year (nyr)
@@ -8454,7 +8691,7 @@ begin
       nyr    = -1
       do nt=0,ntim-1,12
          nyr     = nyr+1
-         xTemp   = x($dName(1)$|:,$dName(0)$|nt:nt+11)  
+         xTemp   = x(nt:nt+11,:)  
 
         ;nMsg = 0
         ;if (isatt(x,"_FillValue")) then
@@ -8462,10 +8699,10 @@ begin
         ;end if
 
         ;if (nMsg.eq.0) then
-             wgt            = conform(xTemp, dymon(nt:nt+11), 1)
+             wgt            = conform(xTemp, dymon(nt:nt+11), 0)
              xTemp          = xTemp*wgt                       ; values*wgt 
-             xAnnual(nyr,:) = dim_sum( xTemp )                ; opt=3
-             nAnnual        = dim_num (.not.ismissing(xTemp) )  
+             xAnnual(nyr,:) = dim_sum_n( xTemp, 0 )                ; opt=3
+             nAnnual        = dim_num_n(.not.ismissing(xTemp), 0 )  
 
              if (opt.eq.1) then                               
                  wgtSum = wSum_1
@@ -8504,7 +8741,7 @@ begin
 
       nyr    = -1
       do nt=0,ntim-1,12
-         xTemp = x($dName(1)$|:,$dName(2)$|:,$dName(0)$|nt:nt+11) 
+         xTemp = x(nt:nt+11,:,:) 
 
          nyr   = nyr+1
 
@@ -8514,10 +8751,10 @@ begin
         ;end if
 
         ;if (nMsg.eq.0) then
-             wgt              = conform(xTemp, dymon(nt:nt+11), 2)
+             wgt              = conform(xTemp, dymon(nt:nt+11), 0)
              xTemp            = xTemp*wgt
-             xAnnual(nyr,:,:) = dim_sum ( xTemp )   ; opt=0
-             nAnnual          = dim_num (.not.ismissing(xTemp) )  
+             xAnnual(nyr,:,:) = dim_sum_n ( xTemp, 0 )   ; opt=0
+             nAnnual          = dim_num_n (.not.ismissing(xTemp), 0 )  
 
              if (opt.eq.1) then
                  wgtSum = wSum_1
@@ -8557,7 +8794,7 @@ begin
 
       nyr    = -1
       do nt=0,ntim-1,12
-         xTemp = x($dName(1)$|:,$dName(2)$|:,$dName(3)$|:,$dName(0)$|nt:nt+11) 
+         xTemp = x(nt:nt+11,:,:,:) 
 
          nyr   = nyr+1
 
@@ -8567,10 +8804,10 @@ begin
         ;end if
 
         ;if (nMsg.eq.0) then
-             wgt                = conform(xTemp, dymon(nt:nt+11),3)
+             wgt                = conform(xTemp, dymon(nt:nt+11),0)
              xTemp              = xTemp*wgt
-             xAnnual(nyr,:,:,:) = dim_sum ( xTemp )   ; opt=0
-             nAnnual            = dim_num (.not.ismissing(xTemp) )  
+             xAnnual(nyr,:,:,:) = dim_sum_n ( xTemp, 0 )   ; opt=0
+             nAnnual            = dim_num_n (.not.ismissing(xTemp), 0 )  
 
              if (opt.eq.1) then
                  wgtSum = wSum_1
@@ -8946,6 +9183,7 @@ end
 ;**************************************************************************
 ; Contributed by Christine Shields, March 2006.
 ; Slight mods were made to allow input to be numeric.
+; Bug fix: 23 Sept 2009
 
 undef("rho_mwjf")
 function rho_mwjf(t2d[*][*]:numeric,s2d[*][*]:numeric,depth:numeric) 
@@ -9031,6 +9269,9 @@ begin
   end if
  
   p = pressure 
+; CAS corrected this; verified w/Steve Yeager 9/8/09
+; p = pressure only works for potential density; depth/pressure = 0. 
+  p = pressure*c10
 
 ;========= compute the numerator of the MWFJ density  [P_1(S,T,p)]  
 
@@ -9312,12 +9553,12 @@ begin
 
   return (tNew)
 end
+
 ; ******************************************************************
 ; D. Shea
 ; appends table data: ie (row,column) arrays
 ; adds additional columns
 ;
-; This *requires* that the dimensions be named for each table
 
 undef("table_attach_columns")
 function table_attach_columns (t1[*][*], t2[*][*], iopt:integer)
@@ -9347,12 +9588,27 @@ begin
       print ("                      typeof(t2)="+typeof(t2)) 
       exit
   end if
-
-  if (any(ismissing(dimNames_t1))  .or.  \
-      any(ismissing(dimNames_t2))) then 
-      print ("table_attach_columns: dimensions must be named")       
-      print ("                      dimNames_t1="+dimNames_t1)  
-      print ("                      dimNames_t2="+dimNames_t2)  
+                        
+  if (any(ismissing(dimNames_t1))) then
+      if (ismissing(dimNames_t1(0))) then
+          t1!0 = "row_1"
+          dimNames_t1(0) = t1!0
+      end if
+      if (ismissing(dimNames_t1(1))) then
+          t1!1 = "col_1"
+          dimNames_t1(1) = t1!1
+      end if
+  end if
+                        
+  if (any(ismissing(dimNames_t2))) then
+      if (ismissing(dimNames_t2(0))) then
+          t2!0 = "row_2"
+          dimNames_t2(0) = t2!0
+      end if
+      if (ismissing(dimNames_t2(1))) then
+          t2!1 = "col_2"
+          dimNames_t2(1) = t2!1
+      end if
   end if
                                    ; reverse order ... invoke row append
   trows = table_attach_rows(t1($dimNames_t1(1)$|:,$dimNames_t1(0)$|:) \
@@ -9361,7 +9617,6 @@ begin
                                    ; revert back to original order
   return (trows($dimNames(1)$|:,$dimNames(0)$|:) )
 end
-
 ;****************************************************************
 ; D Shea
 ; requires NCL version a034 or later
@@ -9385,7 +9640,7 @@ begin
      dist   = gc_latlon(LAT(n),LON(n),lat1d,lon1d, 2,2)
      mndist = min( dist )
      ind1d  = ind(dist.eq.mndist)
-     if (.not.ismissing(ind1d)) then
+     if (.not.ismissing(ind1d(0))) then
          ij(n,:) = ind_resolve( ind1d(0), n2d )
      else
          print("getind_latlon2d: lat="+ LAT(n)+"  lon="+ LON(n)+" problem")
@@ -9492,6 +9747,75 @@ begin
   r   = random_uniform(0,100,N)
   return( dim_pqsort(r, 1) )
 end
+; **********************************************************************
+; D. Shea
+;
+undef("isEqualSpace")
+function isEqualSpace(z[*]:numeric, epsz[1]:numeric)
+local nz, dz, dz_low, dz_high, diff
+begin
+  nz = dimsizes(z)
+  if (nz.le.1) then
+      print("is_equal_space: input array  must be > 2")
+      exit
+  end if
+  dz     = abs(z(1)-z(0))             ; error check 
+  dz_low = dz-epsz
+  dz_hgh = dz+epsz
+  diff   = all(abs(z(1:nz-1)-z(0:nz-2)) .ge. dz_low) .and. \
+           all(abs(z(1:nz-1)-z(0:nz-2)) .le. dz_hgh)      
+  return (diff)
+end
+; ---
+undef("isConstantSpace")
+; old name
+function isConstantSpace(z[*]:numeric, epsz[1]:numeric)
+begin
+  return(isEqualSpace(z,epsz))
+end
+
+; **********************************************************************
+; D. Shea
+; wrapper for NCL procedure "area_hi2lores": copies attributes and coordinate 
+; vars.  It adds the longitude and latitude coordinates.
+;
+undef ("area_conserve_remap_Wrap")
+function area_conserve_remap_Wrap (xi[*]:numeric,yi[*]:numeric, fi:numeric \
+                                  ,xo[*]:numeric,yo[*]:numeric, opt)
+
+; wrapper for NCL function "area_conserve_remap" 
+; that copies attributes and coordinate vars
+
+local fo, dimfi, nDim, nD
+begin
+  fo   = area_conserve_remap (xi,yi,fi, xo,yo, opt)  ; perform interp
+                                                ; shea_misc functions
+  dimfi= dimsizes(fi)
+  nDim = dimsizes(dimsizes(fi))                 ; number of dimensions
+
+  copy_VarAtts (fi, fo)                         ; copy variable attributes
+  copy_VarCoords_2 (fi, fo)                     ; copy coord variables  
+
+  fo!(nDim-2) = "Y"                             ; default named dimensions
+  fo!(nDim-1) = "X"
+                                                ; override if possible
+  if (isdimnamed(xo,0) .and. isdimnamed(yo,0) ) then
+      fo!(nDim-2) = yo!0                        ; if present, use xo name
+      fo!(nDim-1) = xo!0                        ; if present, use xo name
+  else 
+      do nD=nDim-2,nDim-1                       ; two rightmost dimensions
+         if (.not.ismissing(fi!nD)) then
+            ;fo!nD = changeCaseChar(fi!nD)      ; if present, use same name
+             fo!nD = str_switch(fi!nD)          ; if present, use same name
+         end if                                 ; but change case
+      end do
+  end if
+
+  fo&$fo!(nDim-2)$ = yo                         ; create coordinate var 
+  fo&$fo!(nDim-1)$ = xo                         ; two rightmost dimensions
+
+  return (fo)
+end
 
 ; **********************************************************************
 ; D. Shea
@@ -9523,7 +9847,8 @@ begin
   else 
       do nD=nDim-2,nDim-1                       ; two rightmost dimensions
          if (.not.ismissing(fi!nD)) then
-             fo!nD = changeCaseChar(fi!nD)      ; if present, use same name
+            ;fo!nD = changeCaseChar(fi!nD)      ; if present, use same name
+             fo!nD = str_switch(fi!nD)          ; if present, use same name
          end if                                 ; but change case
       end do
   end if
@@ -9536,21 +9861,26 @@ end
 ; **********************************************************************
 ; D. Shea
 ; Generate [sin(lat+dlat/2)-sin(lat-dlat/2)] weights 
-; for equally spaced grids. Currently, only global grids
-; are supported.
+; for equally spaced grids. Currently, only global grids are supported.
+;
 undef("latRegWgt")
 function latRegWgt(lat[*]:numeric, nType[1]:string, opt[1]:integer)
 ; usage: wgt = latRegWgt(lat, "double", 0)
 ;        wgt = latRegWgt(lat, "float" , 0)
-local nlat, pi, rad, err, dlat, w, nl, dNam
+local nlat, pi, rad, err, eps, dlat, dlat_low, dlat_hgh, diff, nl, dNam
 begin
   nlat = dimsizes(lat)
   pi   = 4.0d*atan(1.0d)
   rad  = pi/180.0d
   err  = 1d20
+  eps  = 0.001                          ; arbitrary
 
   dlat = abs(lat(2)-lat(1))             ; error check
-  if (.not.all( abs(lat(1:nlat-1)-lat(0:nlat-2)) .eq. dlat)) then
+  dlat_low = dlat-eps
+  dlat_hgh = dlat+eps
+  diff     = all(abs(lat(1:nlat-1)-lat(0:nlat-2)) .ge. dlat_low) .and. \
+             all(abs(lat(1:nlat-1)-lat(0:nlat-2)) .le. dlat_hgh)        
+  if (.not.diff) then
       print("latRegWgt: Expecting equally spaced latitudes")
       if (nType.eq."double") then
           return(new(nlat,"double",err))
@@ -10602,9 +10932,9 @@ begin
   return(G)
 end
 ;----------------------------------------------------------------------------
-undef("obj_anal_ic")
-function obj_anal_ic(X[*],Y[*],Z[*], lon:numeric,lat:numeric \
-                    ,dcrit[*]:numeric,opt:logical)
+undef("obj_anal_ic_deprecated")
+function obj_anal_ic_deprecated(X[*],Y[*],Z[*], lon:numeric,lat:numeric \
+                        ,dcrit[*]:numeric,opt:logical)
 ; Perform Barnes [ Cressman ] type iterative correction objective analysis
 ;
 ; Nomenclature
@@ -10817,9 +11147,11 @@ end
 ; D. Shea
 ; wrapper for NCL procedure "int2p"  that copies attributes and coordinate 
 ; vars.  It adds the longitude and latitude coordinates.
+;
+; Modified by Seah 1/1/2010 to handle multi-d xo.
 
 undef("int2p_Wrap")
-function int2p_Wrap (xi:numeric, fi:numeric, xo[*]:numeric, linlog[1]:integer)
+function int2p_Wrap (xi:numeric, fi:numeric, xo:numeric, linlog[1]:integer)
 
 ; wrapper for NCL function "int2p"  that copies attributes and coordinate vars.
 local fo, dimfi, nDim, n, nD
@@ -10833,21 +11165,623 @@ begin
   copy_VarAtts (fi, fo)                         ; copy variable attributes
   copy_VarCoords_1 (fi, fo)                     ; copy coord variables  
                                                 ; except for rightmost
+  nD    = nDim-1                              ; last dimension (rightmost)
+  rnkxo = dimsizes( dimsizes(xo) )
 
-  nD   = nDim-1                                 ; last dimension
-                                                ; create a new coord for
-  if (.not.ismissing(xo!0)) then
-      fo!nD = xo!0                              ; if present, use xo name
-  else 
-      if (.not.ismissing(fi!nD)) then
-          fo!nD = str_switch(fi!nD)             ; if present, use same name
-        ;;fo!nD = changeCaseChar(fi!nD)         ; if present, use same name
-      else                                      ; but change case 
-          fo!nD = "X"                           ; default dimension name
-      end if                
+  if (rnkxo.eq.1) then
+      if (isdimnamed(xo,0)) then                ; create a new coord for
+          fo!nD      = xo!0                     ; if present, use xo name
+      else 
+          if (isdimnamed(fi,nD)) then
+              fo!nD = str_switch(fi!nD)         ; if present, use same name
+            ;;fo!nD = changeCaseChar(fi!nD)     ; if present, use same name
+          else                                  ; but change case 
+              fo!nD = "X"                       ; default dimension name
+          end if                
+      end if
+
+      fo&$fo!nD$ = xo                           ; assign coords [1D only]
+
+  else                                          ; must be multi-d
+      if (isdimnamed(xo,nD)) then               ; is xo rightmost named?
+         fo!nD   = xo!nD                        ; if present, use xo name
+      else 
+         if (isdimnamed(fi,nD)) then
+             fo!nD = str_switch(fi!nD)          ; if present, use same name
+           ;;fo!nD = changeCaseChar(fi!nD)      ; if present, use same name
+         else                                   ; but change case 
+             fo!nD = "X"                        ; default dimension name
+         end if                
+      end if
   end if
-                                                ; assign coordinates
-  fo&$fo!nD$ = xo                               ; rightmost dim
    
   return (fo)
+end
+; **********************************************************************
+; M. Haley
+; wrapper for NCL procedure "int2p_n" that copies attributes and
+; coordinate  vars.  It adds the longitude and latitude coordinates.
+;
+; Based on int2p_Wrap.
+; Added Oct 25, 2009
+
+undef("int2p_n_Wrap")
+function int2p_n_Wrap (xi:numeric, fi:numeric, xo:numeric, \
+                       linlog[1]:integer, pdim[1]:integer)
+
+; wrapper for NCL function "int2p_n"  that copies attributes and 
+; coordinate vars.
+local fo, dimfi, nDim, n, nD
+begin
+
+  fo   = int2p_n (xi,fi, xo, linlog, pdim)      ; perform interpolation 
+                                                ; shea_misc functions
+  dimfi= dimsizes(fi)
+  nDim = dimsizes(dimsizes(fo))                 ; number of dimensions
+
+  copy_VarAtts (fi, fo)                         ; copy variable attributes
+  copy_VarCoords_not_n (fi, fo, pdim)           ; copy coord variables  
+                                                ; except for pdim-th
+
+                                                ; create a new coord for
+                                                ; level dimension
+  dimxo = dimsizes(xo)                          ; check if multi-d
+  rnkxo = dimsizes(dimxo)
+  if (rnkxo.eq.1.and.isdimnamed(xo,0)) then
+    fo!pdim = xo!0                              ; if present, use xo name
+  else
+    if(rnkxo.gt.1.and.isdimnamed(xo,pdim)) then
+      fo!pdim = xo!pdim                         ; if present, use xo name
+    else 
+      if (isdimnamed(fi,pdim)) then
+        fo!pdim = str_switch(fi!pdim)           ; if present, use same name
+        ;;fo!pdim = changeCaseChar(fi!pdim)     ; if present, use same name
+      else                                      ; but change case 
+        fo!pdim = "X"                           ; default dimension name
+      end if                
+    end if
+  end if
+                                                ; assign coordinates
+  if (rnkxo.eq.1) then
+    fo&$fo!pdim$ = xo
+  end if
+   
+  return (fo)
+end
+;------------------------------------------------
+undef("numBinOneRuns")
+function numBinOneRuns ( a[*]:integer, nCrit:integer)
+;
+; Give a binary series [0s and 1s], calculate the
+; number of 'runs' of 1s that meet lengths specified by 'nCrit'
+; Nomenclature:
+;      a[*]   => integer ... eg (/ 1,1,1,0,0,0,1,0,0,1,1,1,1 /)
+;      nCrit  => integer ... scalar [eg, 3] or of length 2 [eg: (/4,6/) ]
+;                scalar: count the number of runs .ge.3
+;                   [2]: count the number of runs .ge.4 and .le. 6
+;                      : if nCrit[0]=nCrit[1] ( eg : (/5,5/) ]
+;                   [2]: count the number of runs .ge.5 and .le. 5
+;                      : this would yield the number of runs of
+;                      ; exactly length 5
+;
+; Primary source:
+; David Allured: CU/CIRES Climate Diagnostics Center (CDC) 
+
+local inds, ni, deltas, starts, ends, lengths
+begin
+   dim_nCrit  = dimsizes(nCrit)
+   if (dim_nCrit.gt.2) then
+       print("numBinOneRuns: nCrit size must be .le. 2: nCrit="+dim_nCrit)
+       return(-999)
+   end if
+
+   inds    = ind (a .eq. 1)
+   ni      = dimsizes (inds)
+   deltas  = new (ni+1, integer)
+   deltas  = 0
+   deltas(1:ni-1) = (inds(1:ni-1) - inds(0:ni-2))
+   starts  = inds(ind (deltas(0:ni-1).ne.1 .and. deltas(1:ni).eq.1))
+   ends    = inds(ind (deltas(0:ni-1).eq.1 .and. deltas(1:ni).ne.1))
+   lengths = ends - starts + 1
+
+   if (dim_nCrit.eq.1) then
+       return(num (lengths.ge.nCrit) )
+   else
+       return(num (lengths.ge.nCrit(0) .and. lengths.le.nCrit(1)) )
+   end if
+end
+;---------------------------------
+; undocumented
+;
+undef ("calculate_monthly_values")
+function calculate_monthly_values (x:numeric, arith:string, nDim[1]:integer, opt[1]:logical)
+
+; calculate monthly values [avg, sum, min, max]
+; x: numeric array of 4D or less [eg: time,lev,lat,lon]
+;    *must* have time coordinate recognized by ut_calendar
+;    if 5D [case,time,lev,lat,lon]
+; arith: "avg" [also, "ave"], "sum","min","max"     others may be added later
+; nDim : scalar integer that specifies the 'time' dimension [generally, 0]
+; opt  : option ... not used here 
+;
+; Sample usage:  x(time,lat,lon) where time are n-hrly or daily values.
+;        xMonthAvg = calculate_monthly_values(x, "avg", 0, False)
+;        xMonthSum = calculate_monthly_values(x, "sum", 0, False)
+;        xMonthMin = calculate_monthly_values(x, "min", 0, False)
+;        xMonthMax = calculate_monthly_values(x, "max", 0, False)
+;
+local dimx, rankx, utc_date, year, month, day, hour, ntim \
+    , yrStrt, yrLast, nyrs, NTIM, dAvg, xReturn, xMonth \
+    , NT, nmo, ii 
+
+begin
+    dimx   = dimsizes( x )
+    rankx  = dimsizes( dimx )
+
+    if (rankx.gt.5) then
+        print("calculate_monthly_values: rankx="+rankx +" [only 5D or fewer supported]")
+        exit
+    end if
+
+    utc_date = ut_calendar(x&time, 0)
+    year     = floattointeger(utc_date(:,0))   
+    month    = floattointeger(utc_date(:,1))  
+    day      = floattointeger(utc_date(:,2))
+    hour     = floattointeger(utc_date(:,3))
+   ;minute   = floattointeger(utc_date(:,4))
+   ;second   = utc_date(:,5)
+
+    if (rankx.le.4) then
+        ntim = dimx(0)
+    else
+        ntim = dimx(1)
+    end if
+
+    yrStrt = year(0)
+    yrLast = year(ntim-1)
+    nyrs   = yrLast-yrStrt+1
+
+    NTIM   = 12*nyrs              ; size of monthly files
+    dAvg   = dimx
+    if (rankx.le.4) then
+        dAvg(0)= NTIM
+    else
+        dAvg(1)= NTIM
+    end if
+
+    xReturn= new ( dAvg , typeof(x), getFillValue(x))
+    xMonth = new ( NTIM , typeof(x&time), "No_FillValue")
+
+    NT   = -1
+    do yr=yrStrt,yrLast
+      do nmo=0,11
+
+         NT    = NT+1
+         if (isvar("ii")) then    ; keep this here!!
+             delete(ii)
+         end if
+         ii    = ind(yr.eq.year .and. (nmo+1).eq.month)
+
+         if (.not.ismissing(ii(0))) then
+             xMonth(NT) = (/ x&time(ii(0)) /)
+
+             if (rankx.eq.1) then
+                 if (arith.eq."avg" .or. arith.eq."ave") then
+                     xReturn(NT) = dim_avg_n(x(ii) , nDim)
+                 end if
+                 if (arith.eq."sum") then
+                     xReturn(NT) = dim_sum_n(x(ii) , nDim)
+                 end if
+                 if (arith.eq."min") then
+                     xReturn(NT) = dim_min_n(x(ii) , nDim)
+                 end if
+                 if (arith.eq."max") then
+                     xReturn(NT) = dim_max_n(x(ii) , nDim)
+                 end if
+             end if
+
+             if (rankx.eq.2) then
+                 if (arith.eq."avg" .or. arith.eq."ave") then
+                     xReturn(NT,:) = dim_avg_n(x(ii,:) , nDim)
+                 end if
+                 if (arith.eq."sum") then
+                     xReturn(NT,:) = dim_sum_n(x(ii,:) , nDim)
+                 end if
+                 if (arith.eq."min") then
+                     xReturn(NT,:) = dim_min_n(x(ii,:) , nDim)
+                 end if
+                 if (arith.eq."max") then
+                     xReturn(NT,:) = dim_max_n(x(ii,:) , nDim)
+                 end if
+             end if
+
+             if (rankx.eq.3) then
+                 if (arith.eq."avg" .or. arith.eq."ave") then
+                     xReturn(NT,:,:) = dim_avg_n(x(ii,:,:) , nDim)
+                 end if
+                 if (arith.eq."sum") then
+                     xReturn(NT,:,:) = dim_sum_n(x(ii,:,:) , nDim)
+                 end if
+                 if (arith.eq."min") then
+                     xReturn(NT,:,:) = dim_min_n(x(ii,:,:) , nDim)
+                 end if
+                 if (arith.eq."max") then
+                     xReturn(NT,:,:) = dim_max_n(x(ii,:,:) , nDim)
+                 end if
+             end if
+
+             if (rankx.eq.4) then
+                 if (arith.eq."avg" .or. arith.eq."ave") then
+                     xReturn(NT,:,:,:) = dim_avg_n(x(ii,:,:,:) , nDim)
+                 end if
+                 if (arith.eq."sum") then
+                     xReturn(NT,:,:,:) = dim_sum_n(x(ii,:,:,:) , nDim)
+                 end if
+                 if (arith.eq."min") then
+                     xReturn(NT,:,:,:) = dim_min_n(x(ii,:,:,:) , nDim)
+                 end if
+                 if (arith.eq."max") then
+                     xReturn(NT,:,:,:) = dim_max_n(x(ii,:,:,:) , nDim)
+                 end if
+             end if
+
+             if (rankx.eq.5) then        ; note the location of time
+                 if (arith.eq."avg" .or. arith.eq."ave") then
+                     xReturn(:,NT,:,:,:) = dim_avg_n(x(:,ii,:,:,:) , nDim)
+                 end if
+                 if (arith.eq."sum") then
+                     xReturn(:,NT,:,:,:) = dim_sum_n(x(:,ii,:,:,:) , nDim)
+                 end if
+                 if (arith.eq."min") then
+                     xReturn(:,NT,:,:,:) = dim_min_n(x(:,ii,:,:,:) , nDim)
+                 end if
+                 if (arith.eq."max") then
+                     xReturn(:,NT,:,:,:) = dim_max_n(x(:,ii,:,:,:) , nDim)
+                 end if
+             end if
+         end if
+
+         delete(ii)
+      end do      ; month
+    end do        ; year
+
+    if (rankx.le.4) then
+        xReturn!0= "time"
+    else
+        xReturn!1= "time"
+    end if
+
+    xMonth@units = x&time@units
+    xReturn&time = xMonth 
+
+    if (isatt(x,"long_name")) then
+        xReturn@long_name = x@long_name
+    end if
+
+    if (isatt(x,"units")) then
+        xReturn@units = x@units
+    end if
+
+    if (rankx.eq.3) then
+        copy_VarCoords(x(0,:,:), xReturn(0,:,:))
+    end if
+    if (rankx.eq.4) then
+        copy_VarCoords(x(0,0,:,:), xReturn(0,0,:,:))
+
+    end if
+    if (rankx.eq.5) then
+        copy_VarCoords(x(:,0,0,:,:), xReturn(:,0,0,:,:))
+    end if
+
+    xReturn@operation_tag = "calculate_monthly_values: "+arith
+
+    return( xReturn ) 
+end
+;**********************************************************
+undef("merge_levels_sfc")
+function merge_levels_sfc (x, xsfc, levind[1]:integer)
+; levind .ge. 0 top-to-bot ordering
+; levind .lt. 0 bot-to-top ordering
+;
+; rank 1: x(lev),  xsfc(1)
+; rank 2: x(time,lev),  xsfc(time)
+; rank 3: x(lev,lat,lon),  xsfc(lat,lon)
+; rank 4: x(time,lev,lat,lon),  xsfc(time,lat,lon)
+; rank 5: x(case,time,lev,lat,lon),  xsfc(case,time,lat,lon)
+;
+local dimx, dimxs, rankx, rankxs, klev, k1, k2, mono, fudge
+begin
+  dimx   = dimsizes(x)
+  rankx  = dimsizes(dimx)
+  dimxs  = dimsizes(xsfc)
+  rankxs = dimsizes(dimxs)
+
+  if (rankx.gt.1 .and. .not.(rankx.eq.(rankxs+1)) ) then
+      print("merge_levels_sfc: xsfc must have one less dimension than x")
+      print("                  rank(x)="+rankx+"  rank(xs)="+rankxs )
+      exit
+  end if
+
+  if (rankx.eq.1 .and. (rankxs.ne.1 .or. dimxs(0).gt.1) ) then
+      print("merge_levels_sfc: For x[*], then xsfc must be a scalar")
+      print("                  rank(x)="+rankx+"  rank(xs)="+rankxs+"  dimxs="+dimxs )
+      exit
+  end if
+
+  momo  = 1
+  fudge = 1.02    ; completely arbitrary > 1
+
+;     rank 5: x(case,time,lev,lat,lon),  xsfc(case,time,lat,lon)
+  if (rankx.eq.5 .and. rankxs.eq.4) then
+      klev    = dimx(2)+1
+
+      if (iscoord(x, x!2) ) then
+          lv    = x&$x!2$
+          mono  = isMonotonic(lv)
+          lvNew = new (klev, typeof(lv))
+      else
+          lv    = ispan(0,klev-2,1)*1.0
+          lvNew = ispan(0,klev-1,1)*1.0
+      end if
+
+      dimx(2) = klev
+      xNew    = new( dimx, typeof(x), getFillValue(x) )
+      if (levind.lt.0) then
+          xNew(:,:, 1:  ,:,:) = (/ x /)
+          xNew(:,:, 0:0 ,:,:) = (/ xsfc /)
+          lvNew(1:)           = (/ lv /)
+         ;lvNew(0 )           =  lv(0)*fudge  
+          lvNew(0 )           =  2*lv(0) - lv(1)  
+      else
+          k1  = klev-1
+          k2  = klev-2
+          xNew(:,:, 0:k2,:,:) = (/ x /)
+          xNew(:,:,k1:k1,:,:) = (/ xsfc /)
+          lvNew(0:k2)         = (/ lv /)
+         ;lvNew(k1)           =  lv(k2)*fudge  
+          lvNew(k1)           =  2*lv(k2) - lv(k2-1)  
+      end if
+      copy_VarAtts(lv, lvNew)
+       
+      if (isdimnamed(x, 0)) then
+          xNew!0  = x!0
+      else
+          x!0     = "case"
+          xNew!0  = "case"
+      end if
+      xNew!1  = x!1
+      xNew!2  = str_switch(x!2)   ; new name
+      xNew!3  = x!3
+      xNew!4  = x!4
+
+      if (iscoord(x, x!0) ) then
+          xNew&$xNew!0$ = x&$x!0$ ; case
+      end if
+      if (iscoord(x, x!1) ) then
+          xNew&$xNew!1$ = x&$x!1$ ; time
+      end if
+      if (iscoord(x, x!2) ) then
+          xNew&$xNew!2$ = lvNew   ; level of merged 
+      end if
+      if (iscoord(x, x!3) ) then
+          xNew&$xNew!3$ = x&$x!3$ ; lat
+      end if
+      if (iscoord(x, x!4) ) then
+          xNew&$xNew!4$ = x&$x!4$ ; lon
+      end if
+  end if
+
+;     rank 4: x(time,lev,lat,lon),  xsfc(time,lat,lon)
+  if (rankx.eq.4 .and. rankxs.eq.3) then
+      klev    = dimx(1)+1
+      if (iscoord(x, x!1) ) then
+          lv    = x&$x!1$
+          mono  = isMonotonic(lv)
+          lvNew = new (klev, typeof(lv))
+      else
+          lv    = ispan(0,klev-2,1)
+          lvNew = ispan(0,klev-1,1)
+      end if
+
+      dimx(1) = klev
+      xNew    = new( dimx, typeof(x), getFillValue(x) )
+      if (levind.lt.0) then
+          xNew(:, 1:  ,:,:) = (/ x /)
+          xNew(:, 0:0 ,:,:) = (/ xsfc /)
+          lvNew(1:)         = (/ lv /)
+         ;lvNew(0)          =  lv(0)*fudge  
+          lvNew(0 )         =  2*lv(0) - lv(1)  
+      else
+          k1  = klev-1
+          k2  = klev-2
+          xNew(:, 0:k2,:,:) = (/ x /)
+          xNew(:,k1:k1,:,:) = (/ xsfc /)
+          lvNew(0:k2)       = (/ lv /)
+         ;lvNew(k1)         =  lv(k2)*fudge  
+          lvNew(k1)         =  2*lv(k2) - lv(k2-1)  
+      end if
+      copy_VarAtts(lv, lvNew)
+
+      xNew!0  = x!0
+      xNew!1  = str_switch(x!1)   ; new name
+      xNew!2  = x!2
+      xNew!3  = x!3
+      if (iscoord(x, x!0) ) then
+          xNew&$xNew!0$ = x&$x!0$ ; time
+      end if
+      if (iscoord(x, x!1) ) then
+          xNew&$xNew!1$ = lvNew   ; level of merged 
+      end if
+      if (iscoord(x, x!2) ) then
+          xNew&$xNew!2$ = x&$x!2$ ; lat
+      end if
+      if (iscoord(x, x!3) ) then
+          xNew&$xNew!3$ = x&$x!3$ ; lon
+      end if
+  end if
+
+;     rank 3: x(lev,lat,lon),  xsfc(lat,lon)
+  if (rankx.eq.3 .and. rankxs.eq.2) then
+      klev    = dimx(0)+1
+      if (iscoord(x, x!0) ) then
+          lv    = x&$x!0$
+          mono  = isMonotonic(lv)
+          lvNew = new (klev, typeof(lv))
+      else
+          lv    = ispan(0,klev-2,1)
+          lvNew = ispan(0,klev-1,1)
+      end if
+
+      dimx(0) = klev
+      xNew    = new( dimx, typeof(x), getFillValue(x) )
+      if (levind.lt.0) then
+          xNew( 1:  ,:,:) = (/ x /)
+          xNew( 0:0 ,:,:) = (/ xsfc /)
+          lvNew(1:)       = (/ lv /)
+         ;lvNew(0)        =  lv(0)*fudge  
+          lvNew(0 )       =  2*lv(0) - lv(1)  
+      else
+          k1  = klev-1
+          k2  = klev-2
+          xNew( 0:k2,:,:) = (/ x /)
+          xNew(k1:k1,:,:) = (/ xsfc /)
+          lvNew(0:k2)     = (/ lv /)
+         ;lvNew(k1)       =  lv(k2)*fudge  
+          lvNew(k1)       =  2*lv(k2) - lv(k2-1)  
+      end if
+      copy_VarAtts(lv, lvNew)
+
+      xNew!0  = str_switch(x!0)   ; new name
+      xNew!1  = x!1
+      xNew!2  = x!2
+      if (iscoord(x, x!0) ) then
+          xNew&$xNew!0$ = lvNew   ; level of merged 
+      end if
+      if (iscoord(x, x!1) ) then
+          xNew&$xNew!1$ = x&$x!1$ ; lat
+      end if
+      if (iscoord(x, x!2) ) then
+          xNew&$xNew!2$ = x&$x!2$ ; lon
+      end if
+  end if
+
+;     rank 1: x(lev),  xsfc(1)
+  if (rankx.eq.1 .and. rankxs.eq.1) then
+      klev    = dimx(0)+1
+      if (iscoord(x, x!0) ) then
+          lv    = x&$x!0$
+          mono  = isMonotonic(lv)
+          lvNew = new (klev, typeof(lv))
+      else
+          lv    = ispan(0,klev-2,1)
+          lvNew = ispan(0,klev-1,1)
+      end if
+
+      dimx(0) = klev
+      xNew    = new( dimx, typeof(x), getFillValue(x) )
+      if (levind.lt.0) then
+          xNew( 1:  ) = (/ x /)
+          xNew( 0:0 ) = (/ xsfc /)
+          lvNew(1:)   = (/ lv /)
+         ;lvNew(0)    =  lv(0)*fudge  
+          lvNew(0 )   =  2*lv(0) - lv(1)  
+      else
+          k1  = klev-1
+          k2  = klev-2
+          xNew( 0:k2) = (/ x /)
+          xNew(k1:k1) = (/ xsfc /)
+          lvNew(0:k2) = (/ lv /)
+         ;lvNew(k1)   =  lv(k2)*fudge  
+          lvNew(k1)   =  2*lv(k2) - lv(k2-1)  
+      end if
+      copy_VarAtts(lv, lvNew)
+
+      xNew!0  = str_switch(x!0)   ; new name
+      if (iscoord(x, x!0) ) then
+          xNew&$xNew!0$ = lvNew   ; level of merged 
+      end if
+  end if
+
+;     rank 2: x(time,lev),  xsfc(time)
+  if (rankx.eq.2 .and. rankxs.eq.1) then
+      klev    = dimx(1)+1
+      if (iscoord(x, x!1) ) then
+          lv    = x&$x!1$
+          mono  = isMonotonic(lv)
+          lvNew = new (klev, typeof(lv))
+      else
+          lv    = ispan(0,klev-2,1)
+          lvNew = ispan(0,klev-1,1)
+      end if
+
+      dimx(1) = klev
+      xNew    = new( dimx, typeof(x), getFillValue(x) )
+      if (levind.lt.0) then
+          xNew(:, 1:  ) = (/ x /)
+          xNew(:, 0:0 ) = (/ xsfc /)
+          lvNew(1:)     = (/ lv /)
+         ;lvNew(0)      =  lv(0)*fudge  
+          lvNew(0 )     =  2*lv(0) - lv(1)  
+      else
+          k1  = klev-1
+          k2  = klev-2
+          xNew(:, 0:k2) = (/ x /)
+          xNew(:,k1:k1) = (/ xsfc /)
+          lvNew(0:k2)   = (/ lv /)
+         ;lvNew(k1)     =  lv(k2)*fudge  
+          lvNew(k1)     =  2*lv(k2) - lv(k2-1)  
+      end if
+
+      xNew!0  = x!0
+      xNew!1  = str_switch(x!1)   ; new name
+      if (iscoord(x, x!0) ) then
+          xNew&$xNew!0$ = x&$x!0$ ; time
+      end if
+      if (iscoord(x, x!1) ) then
+          xNew&$xNew!1$ = lvNew   ; level of merged 
+      end if
+  end if
+
+  copy_VarAtts(x, xNew)
+
+  return(xNew)
+end
+; --------------------------
+undef("time_to_newtime")
+function time_to_newtime(time[*]:numeric, new_time_units[1]:string)
+; change a "udunits" recognized time unit to a new (different)\
+; "udunits" recognized time unit.
+;
+; Example:
+;  TIME = time_to_newtime(time, "days since 1950-01-01 00:00" ) ; Time(time) 
+;  time = time_to_newtime(time, "hours since 1800-01-01 00:00") ; time(time) 
+begin
+  ntim   = dimsizes(time)
+  date   = ut_calendar( time, 0)
+ ;print(date(:,0)+"  "+date(:,1)+"  "+date(:,2)+"  "+date(:,3))
+  TIME   = ut_inv_calendar(toint(date(:,0)),toint(date(:,1)) \
+                          ,toint(date(:,2)),toint(date(:,3)) \
+                          ,toint(date(:,4)),todouble(date(:,5)),new_time_units, 0)
+  TIME@calendar = "gregorian"
+  TIME!0        = "time"
+  TIME&time     =  TIME
+                          ; delete attributes that may no longer be appropriate
+  if (isatt(TIME,"actual_range")) then
+     delete(TIME@actual_range)
+  end if
+  if (isatt(TIME,"delta_t")) then
+     delete(TIME@delta_t)
+  end if
+  if (isatt(TIME,"avg_period")) then
+     delete(TIME@avg_period)
+  end if
+  if (isatt(TIME,"prev_avg_period")) then
+     delete(TIME@prev_avg_period)
+  end if
+
+  if (typeof(time).eq."float") then
+      return(dble2flt(TIME))     ; retain meta data 
+  else
+      return(TIME)
+  end if
 end

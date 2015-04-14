@@ -1,5 +1,5 @@
 /*
- *      $Id: Symbol.c,v 1.71 2008/12/26 15:12:02 huangwei Exp $
+ *      $Id: Symbol.c,v 1.73 2009/12/04 15:23:07 huangwei Exp $
  */
 /************************************************************************
 *									*
@@ -86,6 +86,12 @@ void
 );
 
 extern void NclAddUserBuiltInFuncs(
+#if NhlNeedProto
+void
+#endif
+);
+
+extern void NclAddJavaBuiltInFuncs(
 #if NhlNeedProto
 void
 #endif
@@ -367,6 +373,7 @@ int _NclInitSymbol
 	_NclAddIntrinsics();
 	_NclAddBuiltIns();
 	NclAddUserBuiltInFuncs();
+	NclAddJavaBuiltInFuncs();
 	NclAddUserFuncs();
 	_NclAddHLUObjs();
 	NclAddUserHLUObjs();
@@ -998,6 +1005,29 @@ char *name;
 		s = s->symnext;
 	}
 	return(NULL);
+}
+
+void _NclUndefSymbolsInScope
+#if	NhlNeedProto
+(NclScopeRec *thetable)
+#else
+(thetable)
+	NclScopeRec *thetable;
+#endif
+{
+	NclScopeRec *sr = thetable;
+	NclSymbol *s;
+        int i;
+
+	for(i = 0; i < NCL_SYM_TAB_SIZE; i++) {
+		if(sr->this_scope[i].nelem != 0) {
+			s = sr->this_scope[i].thelist;
+			while (s != NULL) {
+				s->type = UNDEF;
+				s = s->symnext;
+			}
+		}
+	}
 }
 
 NclSymbol *_NclAddInScope
